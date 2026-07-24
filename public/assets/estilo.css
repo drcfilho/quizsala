@@ -264,8 +264,21 @@ input:focus-visible {
     }
     #comprovante-impressao ol { padding-left: 1.2rem; }
     #comprovante-impressao li { margin-bottom: 1rem; break-inside: avoid; }
-    #comprovante-impressao .item-certo p:last-child { color: #1e7a34; }
-    #comprovante-impressao .item-errado p:last-child { color: #d9342b; }
+
+    /* Sinal duplo tambem no papel: impressora pode nao ter tinta colorida,
+       entao "Acertou"/"Errou" ja vem como texto - a cor abaixo e so reforco
+       extra pra quem tem impressao colorida, nunca o unico sinal. */
+    #comprovante-impressao .status-comprovante { font-weight: 700; margin: 0.15rem 0; }
+    #comprovante-impressao .item-certo .status-comprovante { color: #1e7a34; }
+    #comprovante-impressao .item-errado .status-comprovante { color: #d9342b; }
+    #comprovante-impressao .resposta-comprovante { margin: 0.1rem 0; }
+    #comprovante-impressao .item-errado .resposta-comprovante { text-decoration: line-through; color: #000; }
+    #comprovante-impressao .resposta-certa-comprovante {
+        font-weight: 700;
+        border-left: 3px solid #000;
+        padding-left: 0.5rem;
+        margin: 0.1rem 0;
+    }
 }
 
 .aviso-flutuante {
