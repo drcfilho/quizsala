@@ -70,7 +70,11 @@ $pdo->commit();
 // recriasse o banco pra testar outra coisa.
 $arquivoSenha = $dbDir . '/admin.senha';
 if (!is_file($arquivoSenha)) {
-    file_put_contents($arquivoSenha, bin2hex(random_bytes(6)));
+    // 8 bytes (16 chars hex, 64 bits): mais forte que os 6 bytes originais,
+    // mas ainda digitavel a mao no celular - diferente do token_professor
+    // (16 bytes), que so trafega por URL/QR, nunca e digitado.
+    file_put_contents($arquivoSenha, bin2hex(random_bytes(8)));
+    chmod($arquivoSenha, 0600); // no-op inofensivo no Windows, restringe no Linux/Mac
 }
 $senhaAdmin = trim((string) file_get_contents($arquivoSenha));
 

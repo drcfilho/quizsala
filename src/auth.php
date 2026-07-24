@@ -24,6 +24,10 @@ function exigirAdmin(): void
     $erro = null;
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['senha_admin'])) {
         if ($senhaEsperada !== '' && hash_equals($senhaEsperada, (string) $_POST['senha_admin'])) {
+            // Fixacao de sessao: troca o ID apos autenticar, senao um ID de
+            // sessao capturado antes do login (ex: cookie fixado por outra
+            // aba) continuaria valido depois (achado por revisao automatica).
+            session_regenerate_id(true);
             $_SESSION['admin_ok'] = true;
             header('Location: ' . $_SERVER['REQUEST_URI']);
             exit;
