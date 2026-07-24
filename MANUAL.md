@@ -25,8 +25,9 @@ Clique em **Editar** na prova (ou ela já abre direto depois de criada). Você v
 Para cada questão:
 
 1. **Nova questão** → escreva o enunciado, preencha pelo menos 2 alternativas, marque com o rádio qual é a certa.
-2. **+ Explicação** (opcional, fica fechado por padrão) — anote por que a resposta certa está certa. Só você vê isso no editor; não aparece pro aluno nem no projetor.
-3. **Salvar questão**.
+2. **+ Explicação** (opcional, fica fechado por padrão) — anote por que a resposta certa está certa. Aparece no projetor no momento da revelação, junto com as barras de distribuição.
+3. **+ Cronômetro** (opcional, fica fechado por padrão) — defina uma duração em segundos pra essa questão específica. Com isso preenchido, o projetor e o seu celular mostram uma contagem regressiva enquanto a questão está no ar. Ao zerar, ela só avisa visualmente (o rótulo muda pra "Tempo esgotado" e o botão Revelar ganha destaque) — a revelação continua sempre manual, um clique seu. Deixe em branco pra questão ficar sem cronômetro.
+4. **Salvar questão**.
 
 Na lista de questões dá pra reordenar (setas ↑/↓) e excluir — excluir renumera as seguintes automaticamente, então a prova nunca fica com um buraco na ordem.
 
@@ -64,6 +65,12 @@ Guarde esse link do controle — ele tem um token de professor embutido na URL (
 O contador **"X online · Y responderam"** fica visível o tempo todo. Quando bater 100%, o botão **Revelar** ganha um destaque (borda) — só um sinal, ele nunca dispara sozinho.
 
 Um toque duplo sem querer não pula questão: o servidor só aplica o comando se a versão que o celular conhece bater com a atual — o segundo toque vira no-op.
+
+Ao **Revelar**, se a questão tiver uma explicação salva, ela aparece no projetor logo abaixo das barras de distribuição — os alunos veem não só a resposta certa, mas o porquê.
+
+Quando a última questão é revelada e você clica em **Próxima questão**, a prova encerra sozinha e o projetor mostra um **resumo final**: total de participantes e de questões no topo, e uma lista por questão com acertos/erros/não-responderam + as mesmas barras de distribuição da revelação. É a partir daí que você decide: abrir outra sessão (Nova sessão, no admin) ou parar por aqui.
+
+No celular do aluno, a tela final de placar avança sozinha pro "Obrigado por participar!" depois de 5 minutos sem ele tocar em nada — não precisa lembrar todo mundo de clicar em "Concluir".
 
 ## 6. Depois da aula
 
