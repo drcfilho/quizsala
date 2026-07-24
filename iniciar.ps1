@@ -64,6 +64,10 @@ Write-Host " QuizSala rodando em http://${ip}:8080"
 Write-Host " Aluno entra em:   http://${ip}:8080/index.php"
 Write-Host " Projetor:         http://${ip}:8080/tela.php  (acha a sessao ativa sozinho)"
 Write-Host " Admin de provas:  http://${ip}:8080/admin/index.php"
+Write-Host " ---------------------------------------------------"
+Write-Host " O projetor abre mostrando a tela de espera (QR Code) ate"
+Write-Host " voce clicar 'Iniciar prova' no controle do professor -"
+Write-Host " o link com o codigo e o token fica em admin/index.php."
 Write-Host "===================================================" -ForegroundColor Green
 Write-Host ""
 Write-Host "Deixe esta janela aberta - fechar encerra o servidor." -ForegroundColor Yellow

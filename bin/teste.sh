@@ -73,6 +73,15 @@ sql_exec() {
     ' "$RAIZ/db/quizsala.sqlite" "$1"
 }
 
+# A sessao semente nasce 'aguardando' (mesmo estado de uma sessao real -
+# achado testando de verdade: iniciar.bat/ps1/sh abriam a tela.php direto
+# numa pergunta em andamento, pulando a tela de espera com QR). Os casos
+# abaixo foram escritos pra AULA01 ja em 'respondendo', questao 1 - reproduz
+# isso aqui com o mesmo comando que o professor usaria (comando.php acao=
+# iniciar), pra nao reescrever nenhum caso.
+PT_AULA01=$(sql "SELECT token_professor FROM sessoes WHERE codigo='AULA01'")
+curl -s -X POST -H 'Content-Type: application/json' -d "{\"codigo\":\"AULA01\",\"acao\":\"iniciar\",\"versao_esperada\":0,\"token_professor\":\"$PT_AULA01\"}" "$BASE/api/comando.php" > /dev/null
+
 echo "=== Caso 1: 3 alunos entram ==="
 TOKENS=()
 for i in 1 2 3; do
