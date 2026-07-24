@@ -41,6 +41,110 @@ function animarContador(elemento, valoresAntigos, valoresNovos, formatar) {
     requestAnimationFrame(passo);
 }
 
+// T-novo: cronometro por questao - mesmo padrao de tela.js (setInterval
+// local de 1s recalibrado a cada poll de 2s), duplicado aqui de proposito:
+// cada .js deste projeto e autocontido, sem modulo compartilhado entre eles.
+var temporizadorEstado = null;
+var temporizadorIntervalo = null;
+
+function formatarTempo(segundos) {
+    var m = Math.floor(segundos / 60);
+    var s = segundos % 60;
+    return m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+function pararTemporizadorLocal() {
+    if (temporizadorIntervalo) {
+        clearInterval(temporizadorIntervalo);
+        temporizadorIntervalo = null;
+    }
+    temporizadorEstado = null;
+}
+
+// T07: "todos responderam" ja destaca o botao Revelar - tempo esgotado
+// ganha o mesmo destaque, mesma logica de "so sinaliza, nunca dispara
+// sozinho" (design.md D6).
+function atualizarDestaqueRevelar(container) {
+    var botao = container.querySelector('.botao-acao');
+    if (!botao) {
+        return;
+    }
+    var presenca = container.querySelector('.presenca-admin');
+    var completo = false;
+    if (presenca) {
+        var online = Number(presenca.dataset.online || 0);
+        var responderam = Number(presenca.dataset.responderam || 0);
+        completo = online > 0 && responderam >= online;
+    }
+    var esgotado = false;
+    if (temporizadorEstado) {
+        var decorrido = Math.floor((Date.now() - temporizadorEstado.capturadoEm) / 1000);
+        esgotado = temporizadorEstado.restante - decorrido <= 0;
+    }
+    botao.classList.toggle('em-destaque', completo || esgotado);
+}
+
+function atualizarExibicaoTemporizador(elemento, container) {
+    if (!temporizadorEstado) {
+        return;
+    }
+    var decorrido = Math.floor((Date.now() - temporizadorEstado.capturadoEm) / 1000);
+    var restanteAtual = Math.max(0, temporizadorEstado.restante - decorrido);
+    var esgotado = restanteAtual <= 0;
+
+    var numero = elemento.querySelector('.numero-temporizador-admin');
+    if (numero) {
+        numero.textContent = formatarTempo(restanteAtual);
+    }
+    var rotulo = elemento.querySelector('.rotulo-temporizador-admin');
+    if (rotulo) {
+        rotulo.textContent = esgotado ? 'Tempo esgotado' : 'Tempo restante';
+    }
+    elemento.classList.toggle('esgotado', esgotado);
+
+    atualizarDestaqueRevelar(container);
+
+    if (esgotado && temporizadorIntervalo) {
+        clearInterval(temporizadorIntervalo);
+        temporizadorIntervalo = null;
+    }
+}
+
+function iniciarTemporizadorLocal(elemento, dadosTemporizador, container) {
+    temporizadorEstado = { restante: dadosTemporizador.restante, capturadoEm: Date.now() };
+    atualizarExibicaoTemporizador(elemento, container);
+    temporizadorIntervalo = setInterval(function () {
+        atualizarExibicaoTemporizador(elemento, container);
+    }, 1000);
+}
+
+function recalibrarTemporizadorLocal(elemento, dadosTemporizador, container) {
+    if (!temporizadorEstado) {
+        iniciarTemporizadorLocal(elemento, dadosTemporizador, container);
+        return;
+    }
+    temporizadorEstado.restante = dadosTemporizador.restante;
+    temporizadorEstado.capturadoEm = Date.now();
+    atualizarExibicaoTemporizador(elemento, container);
+}
+
+function renderizarTemporizadorAdmin(cartao, dadosTemporizador, container) {
+    var painel = document.createElement('p');
+    painel.className = 'temporizador-admin';
+
+    var rotulo = document.createElement('span');
+    rotulo.className = 'rotulo-temporizador-admin';
+    rotulo.textContent = 'Tempo restante';
+    painel.appendChild(rotulo);
+
+    var numero = document.createElement('span');
+    numero.className = 'numero-temporizador-admin';
+    painel.appendChild(numero);
+
+    cartao.appendChild(painel);
+    iniciarTemporizadorLocal(painel, dadosTemporizador, container);
+}
+
 // Token de professor: capacidade separada do "codigo" publico. Sem isso,
 // qualquer aluno que soubesse o codigo da sala conseguia chamar
 // api/comando.php direto e controlar a prova (achado por revisao de
@@ -188,9 +292,11 @@ function atualizarPresencaAdmin(container, dados) {
     presenca.dataset.online = String(dados.online);
     presenca.dataset.responderam = String(dados.responderam);
 
-    var botaoRevelar = container.querySelector('.botao-acao');
-    if (botaoRevelar) {
-        botaoRevelar.classList.toggle('em-destaque', completo);
+    var temporizadorEl = container.querySelector('.temporizador-admin');
+    if (dados.temporizador && temporizadorEl) {
+        recalibrarTemporizadorLocal(temporizadorEl, dados.temporizador, container);
+    } else {
+        atualizarDestaqueRevelar(container);
     }
 }
 
@@ -204,6 +310,11 @@ function renderizar(dados) {
         atualizarPresencaAdmin(container, dados);
         return;
     }
+
+    // Transicao de verdade: qualquer cronometro da questao anterior para
+    // aqui, antes de limpar o container - senao vaza um setInterval batendo
+    // num no que ja saiu do DOM.
+    pararTemporizadorLocal();
 
     while (container.firstChild) {
         container.removeChild(container.firstChild);
@@ -251,6 +362,10 @@ function renderizar(dados) {
     if (dados.questao) {
         completo = dados.online > 0 && dados.responderam >= dados.online;
 
+        if (dados.temporizador) {
+            renderizarTemporizadorAdmin(cartao, dados.temporizador, container);
+        }
+
         var presenca = document.createElement('p');
         presenca.className = 'presenca-admin' + (completo ? ' completo' : '');
         presenca.dataset.online = String(dados.online);
@@ -269,10 +384,11 @@ function renderizar(dados) {
         cartao.appendChild(pergunta);
     }
 
-    // T07: ao bater 100%, destaca o botao Revelar - so sinaliza, nunca
-    // dispara sozinho (design.md D6).
+    // T07: ao bater 100% (ou o cronometro zerar) destaca o botao Revelar -
+    // so sinaliza, nunca dispara sozinho (design.md D6).
+    var esgotadoNoRender = dados.fase === 'respondendo' && !!temporizadorEstado && temporizadorEstado.restante <= 0;
     var acoesPrimarias = dados.fase === 'respondendo' ? ['revelar'] : ['proxima'];
-    var destaque = (dados.fase === 'respondendo' && completo) ? 'revelar' : null;
+    var destaque = (dados.fase === 'respondendo' && (completo || esgotadoNoRender)) ? 'revelar' : null;
     cartao.appendChild(criarBotoes(acoesPrimarias, destaque));
     cartao.appendChild(criarZonaRisco(['encerrar']));
 

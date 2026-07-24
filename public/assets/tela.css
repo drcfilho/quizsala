@@ -154,6 +154,62 @@ body {
 .bloco-contador.completo .numero-contador { color: #fff; }
 .bloco-contador.completo .rotulo-contador { color: rgba(255, 255, 255, 0.7); }
 
+/* T-novo: cronometro por questao - so aparece quando a questao tem duracao
+   configurada. Pill discreta acima do contador, nao compete com ele. */
+.temporizador-painel {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.6em;
+    border: 2px solid var(--pauta);
+    border-radius: 0.5rem;
+    padding: 0.8vh 1.6vw;
+    margin: 0 0 3vh;
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+.rotulo-temporizador {
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--grafite);
+    font-size: clamp(0.85rem, 1.6vw, 1.2rem);
+}
+.numero-temporizador {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    font-size: clamp(1.6rem, 3.2vw, 2.6rem);
+}
+/* Regra do Sinal Duplo: tempo esgotado muda a borda E o texto do rotulo
+   (trocado via JS) - nunca so a cor. So avisa, nunca revela sozinho. */
+.temporizador-painel.esgotado {
+    border-color: var(--marca);
+}
+.temporizador-painel.esgotado .rotulo-temporizador,
+.temporizador-painel.esgotado .numero-temporizador {
+    color: var(--marca);
+}
+
+/* T09c: explicacao da resposta certa, mostrada junto da revelacao. */
+.callout-explicacao {
+    width: 100%;
+    max-width: 56rem;
+    text-align: left;
+    border-left: 6px solid var(--tinta);
+    padding: 1.5vh 1.6vw;
+    margin: 4vh 0 0;
+    background: var(--cartao);
+}
+.rotulo-explicacao {
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--grafite);
+    font-size: clamp(0.85rem, 1.6vw, 1.1rem);
+    margin: 0 0 1vh;
+}
+.texto-explicacao {
+    font-size: clamp(1.1rem, 2.2vw, 1.6rem);
+    line-height: 1.5;
+    margin: 0;
+}
+
 .resumo-resultado {
     font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
     font-variant-numeric: tabular-nums;
@@ -238,6 +294,41 @@ body {
 .linha-correta .texto-barra { color: var(--acerto); font-weight: 700; }
 .linha-correta .barra-preenchida-painel { background: var(--acerto); }
 .linha-correta .contagem-barra { color: var(--acerto); font-weight: 700; }
+
+/* Fase "encerrada": a lista de questoes pode ficar mais alta que a tela -
+   painel vira scroll em vez de tentar centralizar tudo verticalmente
+   (unico jeito de nao cortar questoes numa prova longa). */
+.painel[data-fase="encerrada"] {
+    justify-content: flex-start;
+    overflow-y: auto;
+    padding-top: 6vh;
+}
+
+.lista-resumo-questoes {
+    width: 100%;
+    max-width: 56rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3vh;
+    margin-top: 2vh;
+}
+.bloco-questao-resumo {
+    text-align: left;
+    border-top: 1px solid var(--pauta);
+    padding-top: 2vh;
+}
+.cabecalho-questao-resumo {
+    font-weight: 600;
+    font-size: clamp(1.1rem, 2.2vw, 1.6rem);
+    margin: 0 0 1vh;
+}
+.mini-resumo-questao {
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+    color: var(--grafite);
+    font-size: clamp(0.95rem, 1.8vw, 1.3rem);
+    margin: 0 0 1.5vh;
+}
 
 @media (prefers-reduced-motion: reduce) {
     .bloco-contador, .barra-preenchida-painel { transition: none; }

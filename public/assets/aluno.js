@@ -109,6 +109,18 @@ function renderizarEstado(dados) {
     container.appendChild(lista);
 }
 
+// T-novo: se o aluno nao clicar em nenhum dos dois botoes do placar, a tela
+// avanca sozinha pro agradecimento depois de 5min - sem isso a tela do
+// placar fica aberta pra sempre esperando um toque que pode nunca vir.
+var timeoutPlacar = null;
+
+function limparTimeoutPlacar() {
+    if (timeoutPlacar) {
+        clearTimeout(timeoutPlacar);
+        timeoutPlacar = null;
+    }
+}
+
 function criarBotao(texto, classe, aoClicar) {
     var btn = document.createElement('button');
     btn.type = 'button';
@@ -122,6 +134,8 @@ function criarBotao(texto, classe, aoClicar) {
 // dialogo nativo de impressao do navegador ja tem "salvar como PDF" em
 // qualquer sistema, e funciona sem internet (design.md D-restricoes).
 function renderizarPlacar(dados) {
+    limparTimeoutPlacar();
+
     var container = limparConteudo();
     var resultado = dados.resultado;
 
@@ -143,15 +157,22 @@ function renderizarPlacar(dados) {
     var acoes = document.createElement('div');
     acoes.className = 'acoes-final';
     acoes.appendChild(criarBotao('Salvar comprovante em PDF', 'botao-principal', function () {
+        limparTimeoutPlacar();
         prepararComprovante(dados);
         window.print();
         renderizarAgradecimento();
     }));
-    acoes.appendChild(criarBotao('Concluir', 'botao-secundario-final', renderizarAgradecimento));
+    acoes.appendChild(criarBotao('Concluir', 'botao-secundario-final', function () {
+        limparTimeoutPlacar();
+        renderizarAgradecimento();
+    }));
     container.appendChild(acoes);
+
+    timeoutPlacar = setTimeout(renderizarAgradecimento, 5 * 60 * 1000);
 }
 
 function renderizarAgradecimento() {
+    limparTimeoutPlacar();
     var container = limparConteudo();
     var p = document.createElement('p');
     p.className = 'mensagem-agradecimento';
