@@ -3,7 +3,13 @@
 declare(strict_types=1);
 
 // Recria o banco do zero com uma prova de exemplo (3 questoes de redes) e
-// uma sessao pronta pra testar (AULA01, ja em fase 'respondendo').
+// uma sessao pronta pra testar (AULA01, em fase 'aguardando' - o mesmo
+// estado em que uma sessao de verdade nasce). Achado pelo usuario testando
+// de verdade: a sessao semente nascia direto em 'respondendo', entao
+// iniciar.bat/ps1/sh (que abrem tela.php sem codigo, contando com a
+// descoberta automatica da T16b) caiam direto numa pergunta ja em
+// andamento, pulando a tela de espera com QR - o oposto do fluxo
+// combinado (aguardando -> Iniciar prova -> respondendo).
 
 $dbDir = __DIR__ . '/../db';
 $caminho = $dbDir . '/quizsala.sqlite';
@@ -61,7 +67,7 @@ $tokenProfessor = bin2hex(random_bytes(16));
 $pdo->prepare(
     'INSERT INTO sessoes (prova_id, codigo, token_professor, modo, identificacao, questao_atual, fase, versao)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-)->execute([$provaId, 'AULA01', $tokenProfessor, 'sincrono', 'anonimo', 1, 'respondendo', 1]);
+)->execute([$provaId, 'AULA01', $tokenProfessor, 'sincrono', 'anonimo', 1, 'aguardando', 0]);
 
 $pdo->commit();
 
@@ -78,7 +84,7 @@ if (!is_file($arquivoSenha)) {
 }
 $senhaAdmin = trim((string) file_get_contents($arquivoSenha));
 
-echo "Banco recriado: prova '{$questoes[0]['enunciado']}...' (id {$provaId}), 3 questoes, sessao AULA01 pronta.\n";
+echo "Banco recriado: prova '{$questoes[0]['enunciado']}...' (id {$provaId}), 3 questoes, sessao AULA01 pronta (aguardando).\n";
 echo "Aluno entra com o codigo: AULA01\n";
-echo "Professor controla em: admin/sessao.php?codigo=AULA01&pt={$tokenProfessor}\n";
+echo "Professor controla em: admin/sessao.php?codigo=AULA01&pt={$tokenProfessor} (clique 'Iniciar prova' pra comecar)\n";
 echo "Admin de provas em: admin/provas.php (senha: {$senhaAdmin})\n";
