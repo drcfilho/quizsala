@@ -226,13 +226,18 @@ LOC3=$(curl -s -b /tmp/quizsala-admin.txt -o /dev/null -D - -X POST -d "acao=tes
 checar "redireciona pra sessao.php com codigo e pt" "true" "$(echo "$LOC3" | grep -q 'sessao.php?codigo=.*&pt=' && echo true || echo false)"
 
 echo "=== Caso 26: provas.php publica e despublica ==="
+# "Prova via teste" (Caso 20) nao tem sessao nenhuma - prova 1 ja tem uma
+# sessao em 'respondendo' (Caso 22-23) e nao pode mais ser usada aqui por
+# causa da regra nova do Caso 31 (nao despublica prova ja iniciada).
+IDTESTE=$(sql "SELECT id FROM provas WHERE titulo='Prova via teste'")
 CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/provas.php" | grep -o 'name="csrf" value="[^"]*"' | head -1 | sed 's/.*value="\([^"]*\)"/\1/')
-curl -s -b /tmp/quizsala-admin.txt -o /dev/null -X POST -d "acao=despublicar&prova_id=1&csrf=$CSRF" "$BASE/admin/provas.php"
-checar "prova 1 despublicada" "0" "$(sql "SELECT publicada FROM provas WHERE id=1")"
-checar "nova-sessao nao lista prova despublicada" "Nenhuma prova publicada ainda. Crie uma prova e clique em \"Publicar\"." "$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/nova-sessao.php" | grep -o 'Nenhuma prova publicada ainda[^<]*')"
+curl -s -b /tmp/quizsala-admin.txt -o /dev/null -X POST -d "acao=publicar&prova_id=$IDTESTE&csrf=$CSRF" "$BASE/admin/provas.php"
+checar "prova via teste publicada" "1" "$(sql "SELECT publicada FROM provas WHERE id=$IDTESTE")"
+checar "aparece no seletor de nova-sessao" "1" "$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/nova-sessao.php" | grep -c "Prova via teste")"
 CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/provas.php" | grep -o 'name="csrf" value="[^"]*"' | head -1 | sed 's/.*value="\([^"]*\)"/\1/')
-curl -s -b /tmp/quizsala-admin.txt -o /dev/null -X POST -d "acao=publicar&prova_id=1&csrf=$CSRF" "$BASE/admin/provas.php"
-checar "prova 1 publicada de novo" "1" "$(sql "SELECT publicada FROM provas WHERE id=1")"
+curl -s -b /tmp/quizsala-admin.txt -o /dev/null -X POST -d "acao=despublicar&prova_id=$IDTESTE&csrf=$CSRF" "$BASE/admin/provas.php"
+checar "prova via teste despublicada de novo" "0" "$(sql "SELECT publicada FROM provas WHERE id=$IDTESTE")"
+checar "some do seletor de nova-sessao" "0" "$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/nova-sessao.php" | grep -c "Prova via teste")"
 
 echo "=== Caso 27: provas.php exclui so com confirmacao = 'excluir' ==="
 CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/provas.php" | grep -o 'name="csrf" value="[^"]*"' | head -1 | sed 's/.*value="\([^"]*\)"/\1/')
@@ -264,6 +269,19 @@ CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/importar-csv.php" | grep 
 curl -s -b /tmp/quizsala-admin.txt -o /dev/null -X POST -F "csrf=$CSRF" -F "titulo=CSV Invalido" -F "csv=@bin/.tmp-csv-invalido.csv;type=text/csv" "$BASE/admin/importar-csv.php"
 checar "nenhuma prova criada com csv invalido" "0" "$(sql "SELECT COUNT(*) FROM provas WHERE titulo='CSV Invalido'")"
 rm -f "bin/.tmp-csv-invalido.csv"
+
+echo "=== Caso 31: nao deixa despublicar prova com sessao ja iniciada ==="
+# Usa a sessao $CODIGO2 (Caso 22-23, prova_id=1, ainda em 'respondendo') -
+# AULA01 ja foi encerrada la no Caso 14, nao serve mais pra este teste.
+CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/provas.php" | grep -o 'name="csrf" value="[^"]*"' | head -1 | sed 's/.*value="\([^"]*\)"/\1/')
+curl -s -b /tmp/quizsala-admin.txt -o /dev/null -X POST -d "acao=despublicar&prova_id=1&csrf=$CSRF" "$BASE/admin/provas.php"
+checar "prova continua publicada (sessao respondendo bloqueia)" "1" "$(sql "SELECT publicada FROM provas WHERE id=1")"
+checar "painel do projetor nao foi afetado" "respondendo" "$(campo_json "$(curl -s "$BASE/api/painel.php?codigo=$CODIGO2")" fase)"
+
+echo "=== Caso 32: despublicar funciona normalmente quando nao ha sessao iniciada ==="
+CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/provas.php" | grep -o 'name="csrf" value="[^"]*"' | head -1 | sed 's/.*value="\([^"]*\)"/\1/')
+curl -s -b /tmp/quizsala-admin.txt -o /dev/null -X POST -d "acao=despublicar&prova_id=$IDCSV&csrf=$CSRF" "$BASE/admin/provas.php"
+checar "prova sem sessao iniciada despublica normalmente" "0" "$(sql "SELECT publicada FROM provas WHERE id=$IDCSV")"
 
 rm -f /tmp/quizsala-admin.txt /tmp/quizsala-admin-errado.txt
 

@@ -128,6 +128,20 @@ function contarResponderam(PDO $pdo, int $sessaoId, int $questaoId): int
     return (int) $stmt->fetchColumn();
 }
 
+// T09d: uma prova com sessao ja em "respondendo"/"revelado" nao pode ser
+// despublicada - tirar do ar no meio da aplicacao derrubaria quem ja esta
+// respondendo. "aguardando" (sessao criada mas nao iniciada) e "encerrada"
+// (ja acabou) nao travam.
+function provaTemSessaoIniciada(PDO $pdo, int $provaId): bool
+{
+    $stmt = $pdo->prepare(
+        "SELECT COUNT(*) FROM sessoes WHERE prova_id = ? AND fase IN ('respondendo', 'revelado')"
+    );
+    $stmt->execute([$provaId]);
+
+    return (int) $stmt->fetchColumn() > 0;
+}
+
 // T13: duplica prova inteira (questoes + alternativas) com IDs novos -
 // titulo original preservado, so a copia leva o sufixo.
 function duplicarProva(PDO $pdo, int $provaId): int

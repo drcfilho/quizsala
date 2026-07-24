@@ -9,6 +9,10 @@ require __DIR__ . '/../../src/util.php';
 // por acao do aluno, nao do professor - o custo de recalcular a cada poll
 // e irrelevante numa unica tela.
 $codigo = (string) ($_GET['codigo'] ?? '');
+// admin/sessao.php manda ?admin=1 e continua vendo o estado real mesmo com
+// a prova despublicada - o professor precisa disso pra decidir/republicar.
+// tela.php (projetor) nao manda, entao cai no override abaixo.
+$admin = isset($_GET['admin']);
 
 $pdo = Db::conexao();
 $sessao = sessaoPorCodigo($pdo, $codigo);
@@ -18,12 +22,26 @@ if ($sessao === null) {
     exit;
 }
 
+// Prova despublicada trava sessao ja em andamento - o professor precisa de
+// um jeito de tirar a prova do ar na hora, nao so impedir abrir sessao nova
+// (achado de teste, T09d). provas.php incrementa "versao" ao publicar/
+// despublicar, entao o poll do projetor pega a mudanca sem esperar a
+// proxima acao real do professor.
+$fase = $sessao['fase'];
+if (!$admin && $fase !== 'encerrada') {
+    $stmt = $pdo->prepare('SELECT publicada FROM provas WHERE id = ?');
+    $stmt->execute([(int) $sessao['prova_id']]);
+    if (!$stmt->fetchColumn()) {
+        $fase = 'aguardando';
+    }
+}
+
 // "versao" viaja aqui tambem (nao so em estado.php) porque T07 reusa este
 // endpoint no admin do professor, e o admin precisa saber a versao pra
 // mandar em comando.php (guarda de toque duplo, T06) - nao duplica consulta.
-$payload = ['fase' => $sessao['fase'], 'versao' => (int) $sessao['versao']];
+$payload = ['fase' => $fase, 'versao' => (int) $sessao['versao']];
 
-if (in_array($sessao['fase'], ['respondendo', 'revelado'], true)) {
+if (in_array($fase, ['respondendo', 'revelado'], true)) {
     $questaoAtual = questaoPorOrdem($pdo, (int) $sessao['prova_id'], (int) $sessao['questao_atual']);
 
     if ($questaoAtual !== null) {
@@ -37,7 +55,7 @@ if (in_array($sessao['fase'], ['respondendo', 'revelado'], true)) {
 
         // D7: distribuicao (e a letra "correta") so existe a partir da
         // revelacao - antes disso o campo nem aparece no payload.
-        if ($sessao['fase'] === 'revelado') {
+        if ($fase === 'revelado') {
             $alternativas = alternativasDaQuestao($pdo, (int) $questaoAtual['id']);
             $stmtContagem = $pdo->prepare(
                 'SELECT COUNT(*) FROM respostas WHERE questao_id = ? AND alternativa_id = ?'

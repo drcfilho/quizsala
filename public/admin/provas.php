@@ -29,14 +29,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         duplicarProva($pdo, $provaId);
         header('Location: provas.php');
         exit;
-    } elseif ($acao === 'publicar') {
-        $pdo->prepare('UPDATE provas SET publicada = 1 WHERE id = ?')->execute([$provaId]);
-        header('Location: provas.php');
-        exit;
-    } elseif ($acao === 'despublicar') {
-        $pdo->prepare('UPDATE provas SET publicada = 0 WHERE id = ?')->execute([$provaId]);
-        header('Location: provas.php');
-        exit;
+    } elseif ($acao === 'publicar' || $acao === 'despublicar') {
+        if ($acao === 'despublicar' && provaTemSessaoIniciada($pdo, $provaId)) {
+            $erro = 'Essa prova já foi iniciada em alguma sessão — não dá pra despublicar no meio da aplicação. Espere encerrar.';
+        } else {
+            $pdo->prepare('UPDATE provas SET publicada = ? WHERE id = ?')->execute([$acao === 'publicar' ? 1 : 0, $provaId]);
+            // Sessoes ja abertas dessa prova precisam saber na hora - sem isso
+            // o projetor/aluno so veriam a mudanca na proxima acao real do
+            // professor (revelar/proxima), porque o poll deles e guiado por
+            // "versao" (design.md D3), que so muda aqui.
+            $pdo->prepare('UPDATE sessoes SET versao = versao + 1 WHERE prova_id = ?')->execute([$provaId]);
+            header('Location: provas.php');
+            exit;
+        }
     } elseif ($acao === 'excluir') {
         // Dupla confirmacao: o JS ja pede confirm() + digitar "excluir" antes
         // de submeter, mas confere de novo aqui - um POST direto (sem passar

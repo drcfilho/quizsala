@@ -421,10 +421,12 @@ foreach($p->query("SELECT ordem, enunciado FROM questoes WHERE prova_id=2 ORDER 
 - Botão "Publicar"/"Despublicar" em `provas.php` alterna o campo. `nova-sessao.php` só lista provas publicadas — é assim que uma prova "aparece pro aluno, pro projetor e pro professor": sem sessão não existe tela nenhuma dessas, e sem publicar não dá pra abrir sessão pelo fluxo normal. ("Testar prova" em `questoes.php` continua funcionando em rascunho — é o canal do professor pra conferir antes de publicar.)
 - "Editar" é só um atalho visível pro que clicar no título já fazia (vai pra `questoes.php`).
 - "Excluir" pede dupla confirmação: um `confirm()` e depois digitar a palavra "excluir" num `prompt()`. O servidor confere de novo (`$_POST['confirmacao'] === 'excluir'`) — um POST direto sem passar pelo `onsubmit` não apaga nada.
+- **Despublicar afeta sessão já em andamento, não só a criação de sessão nova.** Achado em teste real: o professor precisa de um jeito de tirar a prova do ar na hora, não só travar sessões futuras. `api/painel.php` (sem `?admin=1`, ou seja pro projetor) e `api/estado.php` (aluno) mostram `fase=aguardando` quando a prova da sessão está despublicada, mesmo que a sessão de verdade esteja em `respondendo`/`revelado`. `admin/sessao.php` manda `?admin=1` e continua vendo o estado real — o professor precisa saber o que está de fato acontecendo pra decidir. Publicar/despublicar incrementa `sessoes.versao` pra isso chegar no próximo poll (≤2s), sem esperar a próxima ação real do professor.
+- **Mas não deixa despublicar prova já iniciada** (`provaTemSessaoIniciada()`) — despublicar só funciona se nenhuma sessão dessa prova estiver em `respondendo`/`revelado`. Puxar o tapete no meio da aplicação seria pior que deixar rodar até encerrar. `aguardando` (sessão criada, não iniciada) e `encerrada` não travam.
 
-**Como testar** `bash bin/teste.sh` Casos 26-27: publica/despublica e confirma que `nova-sessao.php` reage; exclui sem confirmação (prova continua) e com confirmação certa (prova some, cascade leva questões/sessões).
+**Como testar** `bash bin/teste.sh` Casos 26-27: publica/despublica e confirma que `nova-sessao.php` reage; exclui sem confirmação (prova continua) e com confirmação certa (prova some, cascade leva questões/sessões). Casos 31-32: despublicar é bloqueado com sessão em `respondendo` (painel do projetor não muda) e funciona normalmente sem sessão iniciada.
 
-**Pronto quando** só provas publicadas viram sessão, e excluir exige duas confirmações antes de apagar de verdade.
+**Pronto quando** só provas publicadas viram sessão, despublicar reflete na tela ativa sem quebrar uma aplicação em andamento, e excluir exige duas confirmações antes de apagar de verdade.
 
 ---
 
