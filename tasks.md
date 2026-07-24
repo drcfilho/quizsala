@@ -463,13 +463,13 @@ foreach($p->query("SELECT ordem, enunciado FROM questoes WHERE prova_id=2 ORDER 
 
 ---
 
-## T17 · Script de partida
+## T17 · Script de partida *(concluída)*
 
-**Arquivos:** `iniciar.bat`, `iniciar.sh`
+**Arquivos:** `iniciar.bat`, `iniciar.ps1` — pedido do usuário trocou `iniciar.sh` por `iniciar.ps1` (ambiente é Windows; o `.bat` só chama o `.ps1`, pra não duplicar a lógica de detecção de IP/PHP em dois dialetos de shell).
 
-**Passos** Sobe o servidor, abre `tela.php` no navegador, imprime o IP no console. Um clique.
+**Passos** ~~Sobe o servidor, abre `tela.php` no navegador, imprime o IP no console.~~ Feito, e mais: testa se o PHP está instalado e na versão certa (8.2+) antes de tentar rodar qualquer coisa, com mensagem de erro clara e link de download se não achar. Cria o banco na primeira vez, se ainda não existir (sem sobrescrever numa segunda execução).
 
-**Como testar** Reiniciar o notebook e subir tudo só com o duplo clique.
+**Como testar** Rodei via `Start-Job` (sem travar o terminal no `php -S` final) e confirmei no log: detectou PHP 8.3.32, criou o banco, detectou o IP de rede correto (`192.168.0.2`, não a interface virtual do Hyper-V que também aparece na máquina), abriu o navegador de verdade (as requisições de `tela.php`/`tela.css`/`tela.js`/`painel.php` aparecem no log do servidor). Processo `php.exe` encerrado limpo depois.
 
 **Pronto quando** você não precisa lembrar de nenhum comando.
 
@@ -496,20 +496,22 @@ foreach($p->query("SELECT (SELECT COUNT(*) FROM provas) provas,
 
 ---
 
-## T19 · Documento de setup
+## T19 · Documento de setup *(concluída)*
 
 **Arquivos:** `SETUP.md`
 
 **Conteúdo**
-1. Configurar o roteador: SSID aberto, DHCP, sem senha.
-2. IP fixo no notebook (ex.: `192.168.0.10`).
-3. Liberar a porta 8080 no firewall — **é aqui que trava na primeira vez**, e o sintoma engana: funciona no `localhost` e não funciona em nenhum celular.
-4. Desativar suspensão automática.
-5. Checklist de aula.
+1. ~~Configurar o roteador: SSID aberto, DHCP, sem senha.~~ Feito.
+2. ~~IP fixo no notebook (ex.: `192.168.0.10`).~~ Feito.
+3. ~~Liberar a porta 8080 no firewall~~ Feito, com o comando `New-NetFirewallRule` pronto pra copiar/colar.
+4. ~~Desativar suspensão automática.~~ Feito.
+5. ~~Checklist de aula.~~ Feito, incluindo conferir que a prova está **publicada** (T09d) antes de começar.
 
-**Como testar** Outra pessoa monta tudo seguindo só o documento, sem perguntar nada.
+Também ganhou uma seção "O que precisa estar instalado" (PHP 8.2+, onde baixar, como confirmar) que não estava no escopo original — sem isso o documento pressupõe que a pessoa já sabe instalar PHP, o que não é dado.
 
-**Pronto quando** ela consegue.
+**Como testar** Ainda não testado por outra pessoa de verdade (esse teste exige alguém sem contexto do projeto). Revisão própria: os passos batem com o que os scripts (`iniciar.bat`/`.ps1`) realmente fazem, e o comando de firewall foi copiado exatamente da sintaxe do PowerShell (não testado em execução real — exige administrador, fora do escopo de teste automatizado).
+
+**Pronto quando** ela consegue. **Não verificado com uma pessoa real ainda.**
 
 ---
 
