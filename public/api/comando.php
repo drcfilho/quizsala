@@ -111,8 +111,13 @@ switch ($acao) {
 // fase_iniciada_em reseta em toda transicao - inofensivo quando o destino
 // nao e "respondendo" (nada le a coluna nesse caso), correto quando e
 // (base do cronometro da questao nova).
+// Sessao encerrada nunca deve continuar "no projetor" sozinha - sem isso
+// ativa=1 fica preso numa sessao ja encerrada pra sempre (nada mais
+// desmarca), e tela.php sem "?codigo=" mostra a prova encerrada em vez da
+// tela de espera mesmo com o professor achando que "nada esta selecionado".
+$ativaClausula = $novaFase === 'encerrada' ? ', ativa = 0' : '';
 $stmt = $pdo->prepare(
-    "UPDATE sessoes SET fase = ?, questao_atual = ?, fase_iniciada_em = strftime('%s','now'), versao = versao + 1
+    "UPDATE sessoes SET fase = ?, questao_atual = ?, fase_iniciada_em = strftime('%s','now'), versao = versao + 1{$ativaClausula}
      WHERE codigo = ? AND versao = ?"
 );
 $stmt->execute([$novaFase, $novaQuestao, $codigo, $versaoEsperada]);

@@ -382,6 +382,15 @@ checar "a nova fica ativa" "1" "$(sql "SELECT ativa FROM sessoes WHERE codigo='A
 RESP=$(curl -s "$BASE/api/sessao-ativa.php")
 checar "sessao-ativa.php agora devolve a nova" "ATIV36" "$(campo_json "$RESP" codigo)"
 
+# Encerrar (qualquer via - "encerrar" explicito ou fim natural das questoes)
+# tem que desmarcar ativa - senao a sessao encerrada fica presa no projetor
+# pra sempre, mesmo o professor achando que "nada esta selecionado".
+RESP=$(curl -s -X POST -H 'Content-Type: application/json' -d '{"codigo":"ATIV36","acao":"encerrar","versao_esperada":0,"token_professor":"pt-ativ36"}' "$BASE/api/comando.php")
+checar "'Encerrar' na sessao ativa -> comando.php confirma ok" "true" "$(campo_json "$RESP" ok)"
+checar "'Encerrar' na sessao ativa -> ativa vira 0 no banco" "0" "$(sql "SELECT ativa FROM sessoes WHERE codigo='ATIV36'")"
+RESP=$(curl -s "$BASE/api/sessao-ativa.php")
+checar "'Encerrar' na sessao ativa -> sessao-ativa.php volta a devolver vazio" "" "$(campo_json "$RESP" codigo)"
+
 echo "=== Caso 37: admin/index.php 'Limpar' - saiu do controle ao vivo (T18/T23), agora e so no admin desktop ==="
 # sessao descartavel so pra este teste
 CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/nova-sessao.php" | grep -o 'name="csrf" value="[^"]*"' | head -1 | sed 's/.*value="\([^"]*\)"/\1/')
