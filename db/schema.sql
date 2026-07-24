@@ -26,16 +26,24 @@ CREATE INDEX idx_alternativas_questao ON alternativas(questao_id, ordem);
 
 -- modo/identificacao: schema comporta sincrono+assincrono e anonimo+nome
 -- desde a v1 (design.md D8/D5), mesmo a v1 so implementando sincrono.
+-- token_professor: capacidade separada do "codigo" publico (D-seguranca,
+-- achado por revisao automatica). O codigo e dado a todo aluno pra entrar -
+-- sem um segredo a parte, qualquer aluno que soubesse o codigo conseguia
+-- chamar api/comando.php direto e revelar o gabarito, pular questao ou
+-- encerrar a prova, derrubando a propria protecao do D7 (gabarito so sai
+-- apos revelacao). Nao e um login (D explicito contra isso, rede local
+-- fechada) - e um token opaco, mesmo padrao ja usado pro aluno (D4).
 CREATE TABLE sessoes (
-    id             INTEGER PRIMARY KEY AUTOINCREMENT,
-    prova_id       INTEGER NOT NULL REFERENCES provas(id) ON DELETE CASCADE,
-    codigo         TEXT    NOT NULL UNIQUE,
-    modo           TEXT    NOT NULL DEFAULT 'sincrono' CHECK (modo IN ('sincrono', 'assincrono')),
-    identificacao  TEXT    NOT NULL DEFAULT 'anonimo'  CHECK (identificacao IN ('anonimo', 'nome')),
-    questao_atual  INTEGER NOT NULL DEFAULT 1,
-    fase           TEXT    NOT NULL DEFAULT 'aguardando' CHECK (fase IN ('aguardando', 'respondendo', 'revelado', 'encerrada')),
-    versao         INTEGER NOT NULL DEFAULT 0,
-    criada_em      INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    prova_id         INTEGER NOT NULL REFERENCES provas(id) ON DELETE CASCADE,
+    codigo           TEXT    NOT NULL UNIQUE,
+    token_professor  TEXT    NOT NULL UNIQUE,
+    modo             TEXT    NOT NULL DEFAULT 'sincrono' CHECK (modo IN ('sincrono', 'assincrono')),
+    identificacao    TEXT    NOT NULL DEFAULT 'anonimo'  CHECK (identificacao IN ('anonimo', 'nome')),
+    questao_atual    INTEGER NOT NULL DEFAULT 1,
+    fase             TEXT    NOT NULL DEFAULT 'aguardando' CHECK (fase IN ('aguardando', 'respondendo', 'revelado', 'encerrada')),
+    versao           INTEGER NOT NULL DEFAULT 0,
+    criada_em        INTEGER NOT NULL DEFAULT (strftime('%s','now'))
 );
 
 CREATE TABLE participantes (

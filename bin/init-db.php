@@ -56,11 +56,15 @@ foreach ($questoes as $indiceQuestao => $questao) {
     }
 }
 
+$tokenProfessor = bin2hex(random_bytes(16));
+
 $pdo->prepare(
-    'INSERT INTO sessoes (prova_id, codigo, modo, identificacao, questao_atual, fase, versao)
-     VALUES (?, ?, ?, ?, ?, ?, ?)'
-)->execute([$provaId, 'AULA01', 'sincrono', 'anonimo', 1, 'respondendo', 1]);
+    'INSERT INTO sessoes (prova_id, codigo, token_professor, modo, identificacao, questao_atual, fase, versao)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+)->execute([$provaId, 'AULA01', $tokenProfessor, 'sincrono', 'anonimo', 1, 'respondendo', 1]);
 
 $pdo->commit();
 
 echo "Banco recriado: prova '{$questoes[0]['enunciado']}...' (id {$provaId}), 3 questoes, sessao AULA01 pronta.\n";
+echo "Aluno entra com o codigo: AULA01\n";
+echo "Professor controla em: admin/sessao.php?codigo=AULA01&pt={$tokenProfessor}\n";

@@ -8,6 +8,19 @@ var codigo = params.get('codigo');
 var versaoAtual = 0;
 var enviando = false;
 
+// Token de professor: capacidade separada do "codigo" publico. Sem isso,
+// qualquer aluno que soubesse o codigo da sala conseguia chamar
+// api/comando.php direto e controlar a prova (achado por revisao de
+// seguranca). Vem da URL (?pt=...) na primeira visita, depois persiste em
+// localStorage pra sobreviver a um F5 sem o parametro.
+var TOKEN_PROFESSOR_CHAVE = 'quizsala_pt_' + codigo;
+var tokenProfessor = params.get('pt');
+if (tokenProfessor) {
+    localStorage.setItem(TOKEN_PROFESSOR_CHAVE, tokenProfessor);
+} else {
+    tokenProfessor = localStorage.getItem(TOKEN_PROFESSOR_CHAVE) || '';
+}
+
 var ROTULOS_ACAO = {
     iniciar: 'Iniciar prova',
     revelar: 'Revelar',
@@ -47,7 +60,12 @@ function enviarComando(acao) {
     fetch('../api/comando.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ codigo: codigo, acao: acao, versao_esperada: versaoAtual }),
+        body: JSON.stringify({
+            codigo: codigo,
+            acao: acao,
+            versao_esperada: versaoAtual,
+            token_professor: tokenProfessor,
+        }),
     })
         .then(function (resp) {
             return resp.json().then(function (dados) {
@@ -55,7 +73,9 @@ function enviarComando(acao) {
             });
         })
         .then(function (r) {
-            if (r.status !== 200) {
+            if (r.status === 403) {
+                mostrarAviso('Link sem autorização de professor. Peça o link completo de novo.');
+            } else if (r.status !== 200) {
                 mostrarAviso(r.dados.erro === 'versao' ? 'Já estava atualizado.' : 'Não foi possível.');
             }
         })

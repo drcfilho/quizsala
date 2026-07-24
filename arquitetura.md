@@ -402,6 +402,9 @@ O modelo de ameaça é honesto: **aluno determinado burla qualquer coisa no nave
 | Voto duplo | `UNIQUE (participante_id, questao_id)` |
 | Responder questão futura | alternativa validada contra a questão no ar |
 | Token em log | trafega por fragmento de URL |
+| Aluno chamar `comando.php` direto | `token_professor` opaco, checado com `hash_equals` |
+
+**Decisão revisada (pós-v1 inicial):** `codigo` da sala é público — todo aluno o digita pra entrar. Sem um segredo à parte, qualquer aluno que soubesse o `codigo` conseguia chamar `api/comando.php` direto e revelar o gabarito, pular questão ou encerrar a prova, derrubando a própria proteção do D7 (achado por revisão automática de segurança). A correção segue o mesmo padrão do D4: um token opaco (`token_professor`, `bin2hex(random_bytes(16))`), gerado por sessão, nunca exposto ao aluno. Trafega por query string (`?pt=...`, não fragmento — contexto de risco menor que o token do aluno, já que só o professor abre esse link) e persiste em `localStorage` pra sobreviver a um F5. Não é login (rede local fechada, sem cadastro de usuário) — é uma capacidade separada do `codigo` público.
 
 **Deliberadamente fora do escopo:** bloquear múltiplas abas, fingerprint de aparelho, detectar troca de rede. Custam código, geram falso positivo com aluno honesto e não param o desonesto.
 

@@ -141,6 +141,19 @@ echo "=== Caso 11: alternativa de outra questao -> 422 alternativa ==="
 COD=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d "{\"token\":\"$T1\",\"alternativa_id\":2}" "$BASE/api/responder.php")
 checar "http 422 (alternativa 2 pertence a questao 1, atual e 2)" "422" "$COD"
 
+echo "=== Caso 12: comando.php sem token_professor -> 403 ==="
+COD=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d '{"codigo":"AULA01","acao":"encerrar","versao_esperada":3}' "$BASE/api/comando.php")
+checar "http 403 sem token" "403" "$COD"
+
+echo "=== Caso 13: comando.php com token_professor errado -> 403 ==="
+COD=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d '{"codigo":"AULA01","acao":"encerrar","versao_esperada":3,"token_professor":"errado"}' "$BASE/api/comando.php")
+checar "http 403 com token errado" "403" "$COD"
+
+echo "=== Caso 14: comando.php com o token_professor certo -> aplica ==="
+PT=$(sql "SELECT token_professor FROM sessoes WHERE codigo='AULA01'")
+RESP=$(curl -s -X POST -H 'Content-Type: application/json' -d "{\"codigo\":\"AULA01\",\"acao\":\"encerrar\",\"versao_esperada\":3,\"token_professor\":\"$PT\"}" "$BASE/api/comando.php")
+checar "fase = encerrada com token certo" "encerrada" "$(campo_json "$RESP" fase)"
+
 echo ""
 echo "================================"
 echo "Passou: $PASSOU | Falhou: $FALHOU"

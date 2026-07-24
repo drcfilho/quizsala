@@ -16,6 +16,7 @@ $corpo = json_decode((string) file_get_contents('php://input'), true) ?? [];
 $codigo = (string) ($corpo['codigo'] ?? '');
 $acao = (string) ($corpo['acao'] ?? '');
 $versaoEsperada = (int) ($corpo['versao_esperada'] ?? -1);
+$tokenProfessor = (string) ($corpo['token_professor'] ?? '');
 
 if (!in_array($acao, ACOES_VALIDAS, true)) {
     jsonResponder(['erro' => 'acao'], 400);
@@ -27,6 +28,16 @@ $sessao = sessaoPorCodigo($pdo, $codigo);
 
 if ($sessao === null) {
     jsonResponder(['erro' => 'codigo'], 404);
+    exit;
+}
+
+// "codigo" e publico (todo aluno digita pra entrar) - sem checar um
+// segredo a parte aqui, qualquer aluno conseguiria revelar/pular/encerrar
+// direto pela API, derrubando a protecao do D7 (gabarito so sai apos
+// revelacao). token_professor e opaco, gerado por sessao, nunca exposto
+// ao aluno (achado por revisao de seguranca).
+if ($tokenProfessor === '' || !hash_equals((string) $sessao['token_professor'], $tokenProfessor)) {
+    jsonResponder(['erro' => 'nao_autorizado'], 403);
     exit;
 }
 
