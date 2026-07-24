@@ -49,39 +49,39 @@ Fluxo do aluno ponta a ponta. Já está no repositório.
 
 ---
 
-### F2 — Painel do projetor · ~5h
+### F2 — Painel do projetor *(código completo; validação física pendente)* · ~5h
 
 O coração do sistema. Sem isso não existe "feedback na hora".
 
 | # | Tarefa | Verificação |
 |---|---|---|
-| 2.1 | `api/painel.php` — contadores sem gate de versão | curl retorna `online`, `responderam`, `distribuicao`, `acertos`, `erros` |
-| 2.2 | `tela.php` — questão + contador ao vivo | 3 abas de aluno respondendo → contador sobe em ≤2s |
-| 2.3 | Estado de revelação com barras por alternativa | números batem com `SELECT` manual no banco |
-| 2.4 | Tipografia de projeção | legível a 8 metros; testar com o projetor real, não no monitor |
-| 2.5 | Aviso "todos responderam" | contador bate 100% → destaque visual, **sem avanço automático travando nada** |
+| 2.1 | ~~`api/painel.php` — contadores sem gate de versão~~ **feito** | curl retorna `online`, `responderam`, `distribuicao`, `acertos`, `erros` — testado, bate com o banco |
+| 2.2 | ~~`tela.php` — questão + contador ao vivo~~ **feito** | contador sobe em ≤2s — testado no navegador com aluno real fazendo poll contínuo (não só 3 abas simultâneas) |
+| 2.3 | ~~Estado de revelação com barras por alternativa~~ **feito** | números batem com `SELECT` manual no banco — testado (2 acertos, 1 erro) |
+| 2.4 | Tipografia de projeção | CSS implementado (`clamp`, alto contraste); **legibilidade a 8 metros com projetor real ainda não testada** — só validado em navegador/monitor |
+| 2.5 | ~~Aviso "todos responderam"~~ **feito** | contador bate 100% → inverte pra fundo escuro/texto branco (sem cor nova), sem avançar sozinho — testado |
 
 **Decisão embutida em 2.3:** a distribuição por alternativa só aparece *depois* da revelação. Mostrar antes enviesa quem ainda não respondeu — o aluno vê a barra grande e segue a manada.
 
-**Verificação da fase:** com 3 celulares reais, aplicar uma questão e conferir que acertos e erros na tela batem com o banco.
+**Verificação da fase:** testado com fluxo completo (aluno real no navegador + simulação via curl para volume), mas **não com 3 celulares físicos reais nem projetor de verdade** — isso fica para o ensaio (M3/T20).
 
 ---
 
-### F3 — Controle ao vivo · ~4h
+### F3 — Controle ao vivo *(3.1-3.4 feitos; falta 3.5)* · ~4h
 
 O professor precisa comandar a sessão sem voltar ao notebook.
 
 | # | Tarefa | Verificação |
 |---|---|---|
-| 3.1 | `admin/sessao.php` — três botões grandes: Revelar · Próxima · Encerrar | toque no celular → projetor muda em ≤2s |
-| 3.2 | Incremento de `versao` em toda transição | poll do aluno detecta e redesenha |
-| 3.3 | Painel de presença ("24 online, 18 responderam") | número bate com o do projetor |
-| 3.4 | Proteção contra toque duplo | dois toques rápidos em "Próxima" não pulam duas questões |
-| 3.5 | Abrir sessão: escolher prova, modo e identificação | sessão criada com código curto legível |
+| 3.1 | ~~`admin/sessao.php` — três botões grandes: Revelar · Próxima · Encerrar~~ **feito** | testado via API (curl) e navegador; toque físico num celular real ainda não |
+| 3.2 | ~~Incremento de `versao` em toda transição~~ **feito** | testado — poll do painel detecta e redesenha em ≤2s |
+| 3.3 | ~~Painel de presença ("24 online, 18 responderam")~~ **feito** | número bate com o do projetor (mesma fonte, `api/painel.php`) |
+| 3.4 | ~~Proteção contra toque duplo~~ **feito** | testado com 2 requisições paralelas de verdade — só uma aplicou |
+| 3.5 | Abrir sessão: escolher prova, modo e identificação | pendente (T08 do `tasks.md`) |
 
 **3.4 não é paranoia:** professor com celular na mão, andando pela sala, toca duas vezes. A guarda é comparar a versão esperada — o segundo toque vira no-op em vez de pular uma questão na frente da turma.
 
-**Verificação da fase:** aplicar uma prova de 3 questões inteira usando **só** o celular do professor.
+**Verificação da fase:** aplicar uma prova de 3 questões inteira usando **só** o celular do professor — feito via simulação (curl + navegador), **não com um celular físico real ainda**.
 
 ---
 

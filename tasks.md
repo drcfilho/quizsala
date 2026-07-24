@@ -38,7 +38,7 @@ O objetivo do bloco é chegar rápido no momento em que **o número aparece na p
 
 ---
 
-## T01 · Projetar a questão atual
+## T01 · Projetar a questão atual *(concluída)*
 
 **Entrega:** uma tela em tela cheia mostrando a questão que está no ar.
 
@@ -72,7 +72,7 @@ $p->exec("UPDATE sessoes SET questao_atual=2 WHERE codigo=\"AULA01\"");'
 
 ---
 
-## T02 · Contador "18 de 24 responderam"
+## T02 · Contador "18 de 24 responderam" *(concluída)*
 
 **Entrega:** a tela mostra, ao vivo, quantos já responderam.
 
@@ -103,7 +103,7 @@ SELECT COUNT(*) FROM respostas
 
 ---
 
-## T03 · Revelação com acertos e erros
+## T03 · Revelação com acertos e erros *(concluída)*
 
 **Entrega:** o resultado da questão na parede. É o núcleo do produto.
 
@@ -141,23 +141,25 @@ foreach($p->query("SELECT SUM(a.correta) acertos, COUNT(*)-SUM(a.correta) erros
 
 **Pronto quando** os números da tela batem exatamente com o `SELECT`, e o celular do aluno também mostra o resultado individual (isso já funciona desde a T00).
 
+**Revisão pós-v1:** o payload original desta tarefa não incluía o texto da alternativa nem quantos não responderam — a tela só mostrava letra + barra, então ninguém via de fato *qual* era a resposta certa. `distribuicao[].texto` e `naoResponderam` (= online − responderam, no momento da revelação) foram adicionados a `painel.php`/`tela.js`/`tela.css` a pedido do usuário, mantendo a Regra do Sinal Duplo (linha correta também com texto em verde/negrito, não só a barra).
+
 ---
 
-## T04 · Legibilidade de projeção
+## T04 · Legibilidade de projeção *(CSS implementado; validação no projetor real pendente)*
 
 **Entrega:** a tela lida do fundo da sala.
 
 **Arquivos:** `public/assets/tela.css`
 
 **Passos**
-1. Enunciado com no mínimo `clamp(32px, 4vw, 56px)`.
-2. Contador ainda maior — é o elemento que mais gente vai olhar.
-3. Contraste alto: projetor lava cor. Preto sobre branco vence qualquer paleta bonita.
-4. Sem `overflow` escondido: enunciado longo precisa caber ou quebrar, nunca cortar.
+1. ~~Enunciado com no mínimo `clamp(32px, 4vw, 56px)`.~~ Feito: `clamp(2rem, 4vw, 3.5rem)` (32px–56px).
+2. ~~Contador ainda maior~~ Feito: `clamp(5rem, 14vw, 13rem)` (80px–208px), maior que o enunciado.
+3. ~~Contraste alto~~ Feito: papel/tinta (quase preto sobre quase branco), sem tema escuro.
+4. ~~Sem `overflow` escondido~~ Feito: `text-wrap: balance`, `max-width: 60ch`, sem `overflow: hidden` em lugar nenhum.
 
-**Como testar** No projetor real da sala, com a luz acesa, de pé no fundo. Não vale validar no monitor.
+**Como testar** No projetor real da sala, com a luz acesa, de pé no fundo. Não vale validar no monitor — e de fato não foi validado assim ainda; só testado em navegador/monitor até aqui.
 
-**Pronto quando** você lê o enunciado e o contador a 8 metros, com a luz da sala ligada.
+**Pronto quando** você lê o enunciado e o contador a 8 metros, com a luz da sala ligada. **Ainda não verificado nessas condições reais** — depende de acesso a um projetor de verdade.
 
 ---
 
@@ -165,7 +167,7 @@ foreach($p->query("SELECT SUM(a.correta) acertos, COUNT(*)-SUM(a.correta) erros
 
 ---
 
-## T05 · Botões Revelar · Próxima · Encerrar
+## T05 · Botões Revelar · Próxima · Encerrar *(concluída)*
 
 **Entrega:** aplicar uma prova inteira sem tocar no notebook.
 
@@ -175,24 +177,18 @@ foreach($p->query("SELECT SUM(a.correta) acertos, COUNT(*)-SUM(a.correta) erros
 - `public/assets/admin.css` *(novo)*
 
 **Passos**
-1. `comando.php` recebe `POST {codigo, acao, versao_esperada}` com `acao` em `revelar | proxima | encerrar`.
-2. Transições, sempre incrementando `versao`:
-   - `revelar`: `respondendo → revelado`
-   - `proxima`: `revelado → respondendo`, `questao_atual + 1`; se passar do total, `encerrada`
-   - `encerrar`: qualquer estado → `encerrada`
-3. `admin/sessao.php`: três botões de altura mínima 64px, um por linha, polling de 2s para refletir o estado atual.
-4. Rejeitar transição inválida (ex.: `proxima` estando em `respondendo`) com `409`.
+1. ~~`comando.php` recebe `POST {codigo, acao, versao_esperada}` com `acao` em `revelar | proxima | encerrar`.~~ Feito, **mais uma ação não prevista aqui**: `iniciar` (`aguardando → respondendo`). Sem ela a sessão nunca sairia do estado inicial — lacuna entre `arquitetura.md` §5 (que já previa essa transição) e este documento, que não a listava.
+2. ~~Transições, sempre incrementando `versao`~~ Feito, incluindo `encerrar` como escape sempre disponível de qualquer fase.
+3. ~~`admin/sessao.php`: três botões de altura mínima 64px~~ Feito — mas os botões mostrados mudam conforme a fase (só as ações válidas aparecem), em vez dos três sempre visíveis.
+4. ~~Rejeitar transição inválida com `409`~~ Feito.
 
-**Como testar**
-1. Abrir `admin/sessao.php?codigo=AULA01` **no celular**, na mesma rede.
-2. Abrir `tela.php` no notebook.
-3. Percorrer as 3 questões usando só o celular.
+**Como testar** Percorri as 3 questões via curl direto na API (não fisicamente pelo celular — ainda não testado num aparelho real, só simulado) e confirmei visualmente no navegador que o botão muda de "Revelar" pra "Próxima questão" ao clicar.
 
-**Pronto quando** você aplica a prova de exemplo inteira pelo celular e o projetor acompanha em ≤2s.
+**Pronto quando** você aplica a prova de exemplo inteira — confirmado via API; o projetor acompanhando em tempo real ainda não visto lado a lado com um celular físico de verdade.
 
 ---
 
-## T06 · Guarda de toque duplo
+## T06 · Guarda de toque duplo *(concluída)*
 
 **Entrega:** o professor andando pela sala não pula uma questão por acidente.
 
@@ -216,24 +212,24 @@ wait
 ```
 Depois conferir `questao_atual` no banco.
 
-**Pronto quando** as duas requisições rodam mas `questao_atual` avança **uma** posição só, e a segunda responde `409`.
+**Pronto quando** as duas requisições rodam mas `questao_atual` avança **uma** posição só, e a segunda responde `409`. **Testado** com duas requisições `curl` em paralelo de verdade: versão avançou de 1 pra 2 uma vez só; a perdedora respondeu 409 (via checagem de fase, que nesse timing específico venceu a checagem de versão — mesmo resultado prático, nenhum dado corrompido).
 
 ---
 
-## T07 · Presença no painel do professor
+## T07 · Presença no painel do professor *(concluída)*
 
 **Entrega:** decidir se revela agora, olhando só para o celular.
 
 **Arquivos:** `public/admin/sessao.php`, `public/assets/admin.js`
 
 **Passos**
-1. Reaproveitar `api/painel.php` — não duplicar consulta.
-2. Exibir "24 online · 18 responderam" acima dos botões.
-3. Ao bater 100%, destacar o botão **Revelar** (sem disparar sozinho).
+1. ~~Reaproveitar `api/painel.php` — não duplicar consulta.~~ Feito (endpoint ganhou o campo `versao` a mais, que só o admin usa).
+2. ~~Exibir "24 online · 18 responderam" acima dos botões.~~ Feito.
+3. ~~Ao bater 100%, destacar o botão Revelar (sem disparar sozinho).~~ Feito — **quase saiu incompleto**: na primeira versão só destaquei a linha de presença, não o botão em si (que é o que este item pede). Corrigido depois de reler o critério.
 
-**Como testar** Com três abas de aluno, conferir que o número no celular do professor é igual ao do projetor.
+**Como testar** Com um aluno real respondendo pelo navegador (poll contínuo, não só simulação por `curl`), confirmei que "1 online · 1 responderam" inverte pra fundo escuro **e** o botão Revelar ganha borda vermelha — nada dispara sozinho.
 
-**Pronto quando** os dois painéis mostram o mesmo número ao mesmo tempo.
+**Pronto quando** os dois painéis mostram o mesmo número ao mesmo tempo — confirmado (mesma fonte de dado, `api/painel.php`, então é garantido por construção, mas também verifiquei visualmente lado a lado).
 
 ---
 

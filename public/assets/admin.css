@@ -1,0 +1,149 @@
+/* QuizSala - controle do professor (tasks.md T05-T07). Mobile-first por
+   decisao explicita: o professor comanda do proprio celular andando pela
+   sala (arquitetura.md secao 7). */
+:root {
+    --papel:   #fbfaf7;
+    --cartao:  #ffffff;
+    --tinta:   #14171c;
+    --grafite: #767c86;
+    --pauta:   #dcd9d2;
+    --marca:   #d9342b;
+    --acerto:  #1e7a34;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+body {
+    background: var(--papel);
+    color: var(--tinta);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.tela-admin {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 1rem;
+}
+
+.cartao-admin {
+    width: 100%;
+    max-width: 24rem;
+}
+
+.cabecalho-admin {
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--grafite);
+    font-size: 0.85rem;
+    margin: 0 0 1rem;
+}
+
+.presenca-admin {
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-align: center;
+    border: 1px solid var(--pauta);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    margin: 0 0 1rem;
+    transition: background-color 0.2s ease-out, color 0.2s ease-out;
+}
+.presenca-admin.completo {
+    background: var(--tinta);
+    color: #fff;
+    border-color: var(--tinta);
+}
+
+.pergunta-preview {
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.4;
+    margin: 0 0 1.5rem;
+}
+.contador-questao-admin {
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    color: var(--grafite);
+    font-size: 0.85rem;
+    margin: 0 0 0.3rem;
+}
+
+.mensagem-admin {
+    text-align: center;
+    color: var(--grafite);
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 3rem 0;
+}
+
+.botoes-admin {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.botao-acao {
+    width: 100%;
+    min-height: 64px;
+    border: 2px solid var(--tinta);
+    border-radius: 0.5rem;
+    background: var(--tinta);
+    color: #fff;
+    font-family: inherit;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+.botao-acao:disabled {
+    opacity: 0.5;
+}
+/* T07: destaque de "todos responderam" no botao Revelar - borda na cor de
+   aviso (nunca sombra, ver A Regra do Chao Plano), nunca dispara sozinho,
+   so sinaliza (design.md D6). */
+.botao-acao.em-destaque {
+    border-color: var(--marca);
+}
+
+.botao-secundario {
+    width: 100%;
+    min-height: 64px;
+    border: 2px solid var(--marca);
+    border-radius: 0.5rem;
+    background: transparent;
+    color: var(--marca);
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 700;
+}
+.botao-secundario:disabled {
+    opacity: 0.5;
+}
+
+.aviso-flutuante {
+    position: fixed;
+    left: 50%;
+    bottom: 1.5rem;
+    transform: translateX(-50%);
+    background: var(--tinta);
+    color: #fff;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.5rem;
+    font-size: 0.95rem;
+    max-width: 90vw;
+    text-align: center;
+    z-index: 100;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .presenca-admin { transition: none; }
+}
