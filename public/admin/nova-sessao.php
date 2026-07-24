@@ -17,11 +17,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $provaId = (int) ($_POST['prova_id'] ?? 0);
     $identificacao = (string) ($_POST['identificacao'] ?? 'anonimo');
 
-    $stmt = $pdo->prepare('SELECT id FROM provas WHERE id = ?');
+    $stmt = $pdo->prepare('SELECT id FROM provas WHERE id = ? AND publicada = 1');
     $stmt->execute([$provaId]);
 
     if ($stmt->fetchColumn() === false) {
-        $erro = 'Escolha uma prova.';
+        $erro = 'Escolha uma prova publicada.';
     } elseif (!in_array($identificacao, ['anonimo', 'nome'], true)) {
         $erro = 'Identificação inválida.';
     } else {
@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$provas = $pdo->query('SELECT id, titulo FROM provas ORDER BY titulo')->fetchAll();
+$provas = $pdo->query('SELECT id, titulo FROM provas WHERE publicada = 1 ORDER BY titulo')->fetchAll();
 
 ?>
 <!doctype html>
@@ -53,7 +53,7 @@ $provas = $pdo->query('SELECT id, titulo FROM provas ORDER BY titulo')->fetchAll
 <?php endif; ?>
 
 <?php if (empty($provas)): ?>
-<p class="mensagem-admin">Crie uma prova antes.</p>
+<p class="mensagem-admin">Nenhuma prova publicada ainda. Crie uma prova e clique em "Publicar".</p>
 <a class="botao-acao botao-como-link" href="provas.php">Ir para provas</a>
 <?php else: ?>
 <form method="post" class="form-questao">

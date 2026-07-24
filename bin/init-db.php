@@ -21,7 +21,7 @@ $pdo->exec((string) file_get_contents($dbDir . '/schema.sql'));
 
 $pdo->beginTransaction();
 
-$pdo->prepare('INSERT INTO provas (titulo) VALUES (?)')->execute(['Redes de computadores']);
+$pdo->prepare('INSERT INTO provas (titulo, publicada) VALUES (?, 1)')->execute(['Redes de computadores']);
 $provaId = (int) $pdo->lastInsertId();
 
 $questoes = [

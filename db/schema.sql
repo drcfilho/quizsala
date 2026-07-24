@@ -1,16 +1,23 @@
 -- QuizSala - schema SQLite (design.md secao 4)
 PRAGMA foreign_keys = ON;
 
+-- publicada: prova recem-criada comeca como rascunho (0), invisivel pro
+-- seletor de nova sessao - so aparece pro aluno/projetor/professor depois
+-- que o professor clica "Publicar" em provas.php.
 CREATE TABLE provas (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     titulo     TEXT    NOT NULL,
+    publicada  INTEGER NOT NULL DEFAULT 0 CHECK (publicada IN (0, 1)),
     criada_em  INTEGER NOT NULL DEFAULT (strftime('%s','now'))
 );
 
+-- explicacao: por que a alternativa correta esta certa - opcional, exibido
+-- so no editor (campo fica oculto ate o professor clicar pra abrir).
 CREATE TABLE questoes (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     prova_id   INTEGER NOT NULL REFERENCES provas(id) ON DELETE CASCADE,
     enunciado  TEXT    NOT NULL,
+    explicacao TEXT,
     ordem      INTEGER NOT NULL
 );
 CREATE INDEX idx_questoes_prova ON questoes(prova_id, ordem);

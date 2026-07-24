@@ -1,0 +1,4 @@
+enunciado,alternativa_a,alternativa_b,alternativa_c,alternativa_d,alternativa_e,correta,explicacao
+Qual protocolo traduz nomes de domínio em endereços IP?,HTTP,DNS,FTP,SMTP,,B,DNS (Domain Name System) resolve nomes como exemplo.com para o IP correspondente.
+Em qual camada do modelo OSI atua um switch tradicional?,Física,Enlace,Rede,Transporte,,B,Switches decidem o encaminhamento pelo endereço MAC - camada 2 (Enlace).
+Qual desses é um endereço IP privado?,8.8.8.8,192.168.1.1,1.1.1.1,200.10.10.5,,B,A faixa 192.168.0.0/16 é reservada para redes locais (RFC 1918).

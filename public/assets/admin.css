@@ -207,6 +207,23 @@ main .cartao-admin .botao-acao + form {
     color: var(--grafite);
 }
 
+/* Provas tem 4 acoes (editar/publicar/duplicar/excluir) - nao cabe numa
+   linha so no celular, empilha abaixo do link em vez de ao lado. */
+.item-prova-coluna {
+    flex-direction: column;
+    align-items: stretch;
+    min-height: 0;
+}
+.botoes-item-prova {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+.botoes-item-prova form { margin: 0; }
+.selo-publicada { color: var(--acerto); font-weight: 700; }
+.selo-rascunho { color: var(--grafite); }
+
 .item-questao {
     border: 1px solid var(--pauta);
     border-radius: 0.5rem;
@@ -223,6 +240,9 @@ main .cartao-admin .botao-acao + form {
 }
 
 .botao-pequeno {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     min-height: 44px;
     min-width: 44px;
     padding: 0 0.9rem;
@@ -232,6 +252,7 @@ main .cartao-admin .botao-acao + form {
     color: var(--tinta);
     font-family: inherit;
     font-size: 1rem;
+    text-decoration: none;
 }
 .botao-pequeno:disabled { opacity: 0.35; }
 .botao-excluir { border-color: var(--marca); color: var(--marca); margin-left: auto; }
@@ -284,6 +305,21 @@ main .cartao-admin .botao-acao + form {
     width: 1.2rem;
 }
 .linha-alternativa-admin .campo-admin { min-height: 56px; font-size: 1rem; }
+
+.detalhe-explicacao {
+    margin: 0.5rem 0 1rem;
+    border: 1px solid var(--pauta);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+}
+.detalhe-explicacao summary {
+    cursor: pointer;
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    font-size: 0.85rem;
+    color: var(--grafite);
+}
+.detalhe-explicacao[open] summary { margin-bottom: 0.5rem; }
+.detalhe-explicacao .campo-textarea { min-height: 4rem; }
 
 .erro-campo {
     color: var(--marca);

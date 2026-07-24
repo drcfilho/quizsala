@@ -225,6 +225,46 @@ CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/questoes.php?prova_id=1" 
 LOC3=$(curl -s -b /tmp/quizsala-admin.txt -o /dev/null -D - -X POST -d "acao=testar&prova_id=1&csrf=$CSRF" "$BASE/admin/questoes.php" | grep -i '^location:' | tr -d '\r')
 checar "redireciona pra sessao.php com codigo e pt" "true" "$(echo "$LOC3" | grep -q 'sessao.php?codigo=.*&pt=' && echo true || echo false)"
 
+echo "=== Caso 26: provas.php publica e despublica ==="
+CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/provas.php" | grep -o 'name="csrf" value="[^"]*"' | head -1 | sed 's/.*value="\([^"]*\)"/\1/')
+curl -s -b /tmp/quizsala-admin.txt -o /dev/null -X POST -d "acao=despublicar&prova_id=1&csrf=$CSRF" "$BASE/admin/provas.php"
+checar "prova 1 despublicada" "0" "$(sql "SELECT publicada FROM provas WHERE id=1")"
+checar "nova-sessao nao lista prova despublicada" "Nenhuma prova publicada ainda. Crie uma prova e clique em \"Publicar\"." "$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/nova-sessao.php" | grep -o 'Nenhuma prova publicada ainda[^<]*')"
+CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/provas.php" | grep -o 'name="csrf" value="[^"]*"' | head -1 | sed 's/.*value="\([^"]*\)"/\1/')
+curl -s -b /tmp/quizsala-admin.txt -o /dev/null -X POST -d "acao=publicar&prova_id=1&csrf=$CSRF" "$BASE/admin/provas.php"
+checar "prova 1 publicada de novo" "1" "$(sql "SELECT publicada FROM provas WHERE id=1")"
+
+echo "=== Caso 27: provas.php exclui so com confirmacao = 'excluir' ==="
+CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/provas.php" | grep -o 'name="csrf" value="[^"]*"' | head -1 | sed 's/.*value="\([^"]*\)"/\1/')
+curl -s -b /tmp/quizsala-admin.txt -o /dev/null -X POST -d "acao=criar&titulo=Descartavel&csrf=$CSRF" "$BASE/admin/provas.php"
+IDDESC=$(sql "SELECT id FROM provas WHERE titulo='Descartavel'")
+CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/provas.php" | grep -o 'name="csrf" value="[^"]*"' | head -1 | sed 's/.*value="\([^"]*\)"/\1/')
+curl -s -b /tmp/quizsala-admin.txt -o /dev/null -X POST -d "acao=excluir&prova_id=$IDDESC&confirmacao=&csrf=$CSRF" "$BASE/admin/provas.php"
+checar "sem confirmacao, prova continua" "1" "$(sql "SELECT COUNT(*) FROM provas WHERE id=$IDDESC")"
+CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/provas.php" | grep -o 'name="csrf" value="[^"]*"' | head -1 | sed 's/.*value="\([^"]*\)"/\1/')
+curl -s -b /tmp/quizsala-admin.txt -o /dev/null -X POST -d "acao=excluir&prova_id=$IDDESC&confirmacao=excluir&csrf=$CSRF" "$BASE/admin/provas.php"
+checar "com confirmacao certa, prova some" "0" "$(sql "SELECT COUNT(*) FROM provas WHERE id=$IDDESC")"
+
+echo "=== Caso 28: questao.php salva e recarrega o campo de explicacao ==="
+CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/questao.php?prova_id=1&id=1" | grep -o 'name="csrf" value="[^"]*"' | head -1 | sed 's/.*value="\([^"]*\)"/\1/')
+curl -s -b /tmp/quizsala-admin.txt -o /dev/null -X POST -d "prova_id=1&id=1&enunciado=Pergunta&alt0=A&alt1=B&correta=1&explicacao=Porque sim&csrf=$CSRF" "$BASE/admin/questao.php"
+checar "explicacao gravada" "Porque sim" "$(sql "SELECT explicacao FROM questoes WHERE id=1")"
+checar "editor reabre o campo automaticamente" "1" "$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/questao.php?prova_id=1&id=1" | grep -c 'detalhe-explicacao" open')"
+
+echo "=== Caso 29: importar-csv.php cria prova a partir do exemplo ==="
+CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/importar-csv.php" | grep -o 'name="csrf" value="[^"]*"' | head -1 | sed 's/.*value="\([^"]*\)"/\1/')
+curl -s -b /tmp/quizsala-admin.txt -o /dev/null -X POST -F "csrf=$CSRF" -F "titulo=Prova via CSV" -F "csv=@public/exemplos/exemplo-prova.csv;type=text/csv" "$BASE/admin/importar-csv.php"
+IDCSV=$(sql "SELECT id FROM provas WHERE titulo='Prova via CSV'")
+checar "3 questoes importadas" "3" "$(sql "SELECT COUNT(*) FROM questoes WHERE prova_id=$IDCSV")"
+checar "prova importada nasce como rascunho" "0" "$(sql "SELECT publicada FROM provas WHERE id=$IDCSV")"
+
+echo "=== Caso 30: importar-csv.php rejeita CSV com linha invalida (nada e criado) ==="
+printf 'enunciado,alternativa_a,alternativa_b,alternativa_c,alternativa_d,alternativa_e,correta,explicacao\n,X,Y,,,,A,\n' > "bin/.tmp-csv-invalido.csv"
+CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/importar-csv.php" | grep -o 'name="csrf" value="[^"]*"' | head -1 | sed 's/.*value="\([^"]*\)"/\1/')
+curl -s -b /tmp/quizsala-admin.txt -o /dev/null -X POST -F "csrf=$CSRF" -F "titulo=CSV Invalido" -F "csv=@bin/.tmp-csv-invalido.csv;type=text/csv" "$BASE/admin/importar-csv.php"
+checar "nenhuma prova criada com csv invalido" "0" "$(sql "SELECT COUNT(*) FROM provas WHERE titulo='CSV Invalido'")"
+rm -f "bin/.tmp-csv-invalido.csv"
+
 rm -f /tmp/quizsala-admin.txt /tmp/quizsala-admin-errado.txt
 
 echo ""
