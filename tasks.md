@@ -566,22 +566,22 @@ Não é código. É a tarefa que decide se a v1 acabou.
 
 ---
 
-## T21 · Microinterações — mais "placar ao vivo", sem virar jogo
+## T21 · Microinterações — mais "placar ao vivo", sem virar jogo *(concluída)*
 
 **Entrega:** os números e resultados na tela reagem de um jeito que reforça a sensação de "ao vivo" — igual ao que já existe na bolha do aluno (`estilo.css`, pop com bounce ao marcar) — mas hoje só existe ali. O resto (contadores, barras) muda de estado seco, sem transição.
 
 **Arquivos:** `public/assets/tela.js`, `public/assets/tela.css`, `public/assets/admin.js`, `public/assets/admin.css`
 
 **Passos**
-1. **Count-up nos contadores** ("N de M responderam" no projetor, "X online · Y responderam" no admin) — em vez de trocar o texto de uma vez, anima incrementando até o valor novo (~400-600ms). Pesquisa: [CSS-Tricks, Animating Number Counters](https://css-tricks.com/animating-number-counters/) — abordagem em JS puro (`requestAnimationFrame` ou `setInterval` curto), sem lib nova (D1 continua zero framework).
-2. **Revelação em cascata** — as barras de distribuição (`tela.css` `.barra-preenchida-painel`) já animam a largura; falta escalonar a entrada de cada linha com um pequeno delay (`animation-delay` por `nth-child`, ~60-80ms entre uma e outra) em vez de todas ao mesmo tempo. Pesquisa: [CSS-Tricks, Staggered Animation](https://css-tricks.com/different-approaches-for-creating-a-staggered-animation/).
-3. **Indicador de "ao vivo" na tela de espera** — um pulso sutil (opacidade ou borda, nunca cor nova) num ponto pequeno perto do QR ou do "Aguardando o professor", sinalizando que a página está de fato viva/atualizando, sem chamar mais atenção que o próprio QR.
-4. **Feedback de toque nos botões** — `botao-acao`/`botao-secundario` hoje só reagem a `:disabled`. Adicionar um `:active` com leve `scale(0.97)` (mesma família de easing do pop da bolha) — toque físico em sala precisa de confirmação visual imediata, antes mesmo da resposta do servidor chegar.
-5. **`prefers-reduced-motion`** em tudo isso, igual já é feito na bolha do aluno e nas barras do painel — não é opcional, é o padrão já estabelecido no projeto.
+1. ~~Count-up nos contadores~~ Feito, mas exigiu mais que só CSS: `tela.js`/`admin.js` redesenhavam o DOM inteiro a cada poll (2s) — um elemento recriado do zero não tem "valor anterior" pra animar a partir dele. `renderizar()` nos dois arquivos ganhou uma chave de contexto (fase+ordem da questão); enquanto ela não muda, só atualiza o número existente no lugar (mesmo padrão que o T16 já tinha aberto pro QR da tela de espera), com um `requestAnimationFrame` interpolando do valor antigo (guardado em `data-*`) até o novo em ~450ms.
+2. ~~Revelação em cascata~~ Feito — e corrigido um bug real no caminho: a largura da barra era setada *antes* de inserir o elemento no DOM, então a transição de `width` do CSS nunca tinha um "antes" pra animar (a barra só aparecia já no tamanho final, apesar do `transition: width 0.4s` já existir). Agora a largura nasce em `0%`, e um duplo `requestAnimationFrame` (garante que o navegador já pintou o 0% antes de mudar) empurra pro valor real. `.linha-barra` ganhou `animation-delay` por `nth-child` (0 a 0.28s). Como a fase `revelado` agora só redesenha uma vez (item 1), a animação toca uma vez só, não a cada poll.
+3. ~~Indicador de "ao vivo"~~ Feito — `.pulso-ao-vivo`, um ponto de 0.5em ao lado de "Aguardando o professor", só opacidade (0.3↔1, 2s), `aria-hidden`.
+4. ~~Feedback de toque~~ Feito em `admin.css` — `:active { transform: scale(0.97) }` em todos os botões, escopado dentro de `@media (prefers-reduced-motion: no-preference)`.
+5. ~~`prefers-reduced-motion`~~ Feito em tudo (JS: `animarContador`/`renderizarResultado` checam `matchMedia` antes de animar; CSS: `.linha-barra`/`.pulso-ao-vivo`/`:active` desligados no bloco `reduce` já existente).
 
-**Como testar** Visual, no navegador: revelar uma questão e ver as barras entrarem em cascata; comparar o contador "responderam" mudando de 2 pra 5 (deve contar, não pular); tocar um botão no admin (mobile emulation) e ver o feedback antes do fetch responder.
+**Como testar** `bash bin/teste.sh` continua 72/72 (nada de servidor mudou). No navegador, via `javascript_tool` (o `resize_window`/captura de frame da automação não respondeu bem neste ambiente, que roda com `prefers-reduced-motion: reduce` por padrão — o que também serviu pra confirmar que a regra de acessibilidade funciona: `getComputedStyle` do pulso mostrou `animationName: none` até eu sobrescrever `matchMedia` pra simular `no-preference`): contador de "responderam" foi de `2 de 2` pra `2 de 3` corretamente; nó DOM das barras e da presença do admin confirmado como o **mesmo elemento** antes/depois de 2 polls (`mesmoNo: true`) — prova de que parou de redesenhar à toa; zero erros no console em toda a bateria de testes manuais.
 
-**Pronto quando** os quatro pontos acima estão implementados, `prefers-reduced-motion` desliga tudo, e nenhuma cor nova foi introduzida (Regra do Sinal Duplo e paleta de `DESIGN.md` continuam intactas).
+**Pronto quando** os cinco pontos acima estão implementados, `prefers-reduced-motion` desliga tudo (confirmado empiricamente, não só por código), e nenhuma cor nova foi introduzida (Regra do Sinal Duplo e paleta de `DESIGN.md` continuam intactas).
 
 ---
 
@@ -618,7 +618,7 @@ Não é código. É a tarefa que decide se a v1 acabou.
 | B — Controle | T05–T08 | **Completo** | Aplicar prova inteira pelo celular, abrindo sessões novas pra turmas diferentes |
 | C — Admin | T09–T14, T09b–T09e | **Completo** (T14 falta validar em celular físico real) | Criar conteúdo sem tocar no banco — manual, por CSV, ou duplicando; publicar/despublicar/excluir com trava de segurança; trocar a própria senha |
 | D — Operação | T15–T20 | **Parcial** — feito: T15 (QR Code), T16 (tela de espera), T17 (scripts de partida/parada), T18 (limpar sessão), T19 (`SETUP.md`). Falta: T20 (ensaio com turma real) | Entregar para outro professor usar |
-| E — Polimento | T21–T22 | **Parcial** — feito: T22 (admin desktop-first). Falta: T21 (microinterações) | Admin de conteúdo usável num desktop de verdade; telas com mais energia de placar ao vivo (pendente) |
+| E — Polimento | T21–T22 | **Completo** | Admin de conteúdo usável num desktop de verdade; telas com mais energia de placar ao vivo, sem virar gamificação |
 
 **Além do plano original**, a pedido do usuário: T04b (placar/comprovante/agradecimento do aluno), T09b (importar CSV), T09c (explicação da resposta certa), T09d (publicar/despublicar/editar/excluir prova, com trava contra despublicar prova já iniciada), T09e (trocar a própria senha do admin), Bloco E inteiro (T21-T22, polimento visual e admin desktop-first). Documentado em cada tarefa e em `arquitetura.md` §9.
 
