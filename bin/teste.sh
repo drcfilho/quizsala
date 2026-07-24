@@ -10,15 +10,25 @@ BASE="http://127.0.0.1:$PORTA"
 cd "$RAIZ"
 php bin/init-db.php > /dev/null
 
-(cd public && php -S 127.0.0.1:$PORTA > /tmp/quizsala-teste.log 2>&1 &)
-SERVIDOR_PID=""
+cd public
+php -S 127.0.0.1:$PORTA > /tmp/quizsala-teste.log 2>&1 &
+SERVIDOR_PID=$!
+cd "$RAIZ"
+
 for i in $(seq 1 20); do
     if curl -s -o /dev/null "$BASE/index.php"; then break; fi
     sleep 0.2
 done
 
+# pkill -f nao mata de verdade um php.exe nativo do Windows via MSYS - o
+# script travava esperando o processo morrer. Mata pelo PID direto e, no
+# Windows, reforca com taskkill (kill sozinho as vezes so sinaliza o
+# wrapper do bash, nao o php.exe).
 encerrar() {
-    pkill -f "php -S 127.0.0.1:$PORTA" > /dev/null 2>&1
+    kill "$SERVIDOR_PID" > /dev/null 2>&1
+    if command -v taskkill > /dev/null 2>&1; then
+        taskkill //F //PID "$SERVIDOR_PID" > /dev/null 2>&1
+    fi
 }
 trap encerrar EXIT
 
