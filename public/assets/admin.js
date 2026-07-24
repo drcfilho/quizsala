@@ -169,6 +169,7 @@ var ROTULOS_ACAO = {
     revelar: 'Revelar',
     proxima: 'Próxima questão',
     encerrar: 'Parar prova',
+    desativar: 'Tirar do projetor',
 };
 
 function mostrarAviso(texto) {
@@ -360,6 +361,12 @@ function renderizar(dados) {
         // admin desktop (admin/index.php) - e arrumacao feita depois, na
         // mesa, nao no meio da aula. Aqui so avisa onde ir.
         mensagem(cartao, 'Prova encerrada.');
+        // O resumo fica fixo no projetor ate esse clique - "desativar" so
+        // tira a sessao do ar la, nao apaga nada (isso continua sendo so
+        // "Limpar", no admin desktop, de proposito).
+        if (dados.ativa) {
+            cartao.appendChild(criarBotoes(['desativar']));
+        }
         var dica = document.createElement('p');
         dica.className = 'dica-limpar-admin';
         dica.textContent = 'Pra limpar os dados desta sessão, use o admin no computador.';

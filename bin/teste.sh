@@ -362,9 +362,11 @@ checar "participantes da AULA01 sumiram (cascade)" "0" "$(sql "SELECT COUNT(*) F
 checar "participante de outra sessao (CODIGO2) nao foi afetado" "1" "$(sql "SELECT COUNT(*) FROM participantes")"
 checar "prova continua existindo" "1" "$(sql "SELECT COUNT(*) FROM provas WHERE id=1")"
 
-echo "=== Caso 36: api/sessao-ativa.php nunca escolhe sozinho - so devolve quem o professor ativar (T25) ==="
-# AULA01 acabou de sumir (Caso 35) - CODIGO2 (Caso 22-23) continua por ai,
-# em 'respondendo', mas ninguem marcou "Ativar no projetor" ainda.
+echo "=== Caso 36: api/sessao-ativa.php nunca escolhe sozinho - so devolve quem esta com ativa=1 (T25) ==="
+# CODIGO2 (Caso 22) ja nasceu ativa=1 (nova-sessao.php ativa a sessao no
+# projetor na criacao). Zera aqui soh pra montar o cenario "nada ativado
+# ainda" e testar sessao-ativa.php isolado dessa auto-ativacao.
+sql_exec "UPDATE sessoes SET ativa = 0"
 RESP=$(curl -s "$BASE/api/sessao-ativa.php")
 checar "nada ativado -> devolve vazio, mesmo com sessao nao-encerrada existindo" "" "$(campo_json "$RESP" codigo)"
 checar "confirma que ainda existe sessao nao-encerrada (nao e so 'banco vazio')" "1" "$(sql "SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END FROM sessoes WHERE fase != 'encerrada'")"
@@ -385,14 +387,33 @@ checar "a nova fica ativa" "1" "$(sql "SELECT ativa FROM sessoes WHERE codigo='A
 RESP=$(curl -s "$BASE/api/sessao-ativa.php")
 checar "sessao-ativa.php agora devolve a nova" "ATIV36" "$(campo_json "$RESP" codigo)"
 
-# Encerrar (qualquer via - "encerrar" explicito ou fim natural das questoes)
-# tem que desmarcar ativa - senao a sessao encerrada fica presa no projetor
-# pra sempre, mesmo o professor achando que "nada esta selecionado".
+# "Encerrar" sozinho NAO desmarca ativa - o resumo tem que ficar fixo no
+# projetor ate o professor mandar "desativar" explicitamente (pedido do
+# usuario testando de verdade: sumir sozinho escondia o resumo da turma).
 RESP=$(curl -s -X POST -H 'Content-Type: application/json' -d '{"codigo":"ATIV36","acao":"encerrar","versao_esperada":0,"token_professor":"pt-ativ36"}' "$BASE/api/comando.php")
 checar "'Encerrar' na sessao ativa -> comando.php confirma ok" "true" "$(campo_json "$RESP" ok)"
-checar "'Encerrar' na sessao ativa -> ativa vira 0 no banco" "0" "$(sql "SELECT ativa FROM sessoes WHERE codigo='ATIV36'")"
+checar "'Encerrar' sozinho NAO desmarca ativa (resumo fica fixo)" "1" "$(sql "SELECT ativa FROM sessoes WHERE codigo='ATIV36'")"
 RESP=$(curl -s "$BASE/api/sessao-ativa.php")
-checar "'Encerrar' na sessao ativa -> sessao-ativa.php volta a devolver vazio" "" "$(campo_json "$RESP" codigo)"
+checar "'Encerrar' sozinho -> sessao-ativa.php continua devolvendo o codigo" "ATIV36" "$(campo_json "$RESP" codigo)"
+RESP=$(curl -s "$BASE/api/painel.php?codigo=ATIV36")
+checar "painel.php inclui ativa=true no payload de 'encerrada'" "true" "$(campo_json "$RESP" ativa)"
+
+# "desativar" e o jeito nao-destrutivo de tirar do projetor - so depois dele
+# (nunca sozinho) e que a tela volta a procurar.
+RESP=$(curl -s -X POST -H 'Content-Type: application/json' -d '{"codigo":"ATIV36","acao":"desativar","versao_esperada":1,"token_professor":"pt-ativ36"}' "$BASE/api/comando.php")
+checar "'Tirar do projetor' -> comando.php confirma ok" "true" "$(campo_json "$RESP" ok)"
+checar "'Tirar do projetor' -> ativa vira 0 no banco" "0" "$(sql "SELECT ativa FROM sessoes WHERE codigo='ATIV36'")"
+checar "'Tirar do projetor' -> sessao continua existindo (nao apaga nada)" "1" "$(sql "SELECT COUNT(*) FROM sessoes WHERE codigo='ATIV36'")"
+RESP=$(curl -s "$BASE/api/sessao-ativa.php")
+checar "'Tirar do projetor' -> sessao-ativa.php volta a devolver vazio" "" "$(campo_json "$RESP" codigo)"
+RESP=$(curl -s "$BASE/api/painel.php?codigo=ATIV36")
+checar "painel.php passa a devolver ativa=false" "false" "$(campo_json "$RESP" ativa)"
+
+# "desativar" so vale depois de encerrada - nao da pra tirar do projetor uma
+# sessao ainda em andamento por essa acao (usar "Encerrar" primeiro).
+sql_exec "INSERT INTO sessoes (prova_id, codigo, token_professor, fase) VALUES (1, 'DESAT01', 'pt-desat01', 'aguardando')"
+RESP=$(curl -s -X POST -H 'Content-Type: application/json' -d '{"codigo":"DESAT01","acao":"desativar","versao_esperada":0,"token_professor":"pt-desat01"}' "$BASE/api/comando.php")
+checar "'desativar' fora de 'encerrada' -> erro de fase" "fase" "$(campo_json "$RESP" erro)"
 
 echo "=== Caso 37: admin/index.php 'Limpar' - saiu do controle ao vivo (T18/T23), agora e so no admin desktop ==="
 # sessao descartavel so pra este teste
