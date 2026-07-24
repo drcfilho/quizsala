@@ -84,7 +84,7 @@ abrirLayoutAdmin('Provas', 'provas');
 <span class="<?= $prova['publicada'] ? 'selo-publicada' : 'selo-rascunho' ?>"><?= $prova['publicada'] ? 'Publicada' : 'Rascunho' ?></span>
 </span>
 </a>
-<div class="botoes-item-prova">
+<div class="botoes-item-prova botoes-prova-padrao">
 <a class="botao-pequeno" href="questoes.php?prova_id=<?= (int) $prova['id'] ?>">Editar</a>
 
 <form method="post" class="form-inline">

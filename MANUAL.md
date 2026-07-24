@@ -49,9 +49,11 @@ Com a prova publicada, clique em **"Abrir sessão"** (ou vá em **Nova sessão**
 
 Guarde esse link do controle — ele tem um token de professor embutido na URL (`?pt=...`) e fica salvo no navegador do seu celular. Sem esse token, ninguém mais consegue comandar a sessão, nem mesmo sabendo o código público da sala.
 
+**Antes de projetar, ative essa sessão:** o QuizSala nunca escolhe uma sessão sozinho — nem a mais recente, nem uma "de exemplo" deixada de uma aula anterior. Vá em **Sessões** (menu lateral) e clique **"Ativar no projetor"** na sessão que você acabou de abrir. Ela ganha um selo **"● No projetor"**; é essa, e só essa, que aparece pra quem abrir o projetor sem um código na URL.
+
 ## 5. Durante a aula
 
-**No projetor:** abra `tela.php` — sem precisar informar o código, ele descobre sozinho qual é a sessão ativa mais recente (e volta a procurar automaticamente se você encerrar e limpar essa sessão e abrir outra depois, sem precisar editar a URL na mão). Se você mesmo abrir com um código específico na URL (`tela.php?codigo=X`), esse comportamento fica desligado — útil pra apontar o projetor pra uma sessão específica quando há mais de uma ativa. Antes de você iniciar, ele mostra uma tela de espera com QR Code grande + código em letras gigantes + contador de quantos já entraram — os alunos podem escanear ou digitar o código em `index.php` enquanto isso.
+**No projetor:** abra `tela.php` — sem precisar informar o código, ele mostra a sessão que você ativou no passo anterior (e volta pra tela de espera "Aguardando o início da sessão" se você encerrar e limpar essa sessão, até você ativar outra). Se você mesmo abrir com um código específico na URL (`tela.php?codigo=X`), esse comportamento fica desligado — útil pra apontar o projetor pra uma sessão específica sem depender de qual está ativada. Antes de você iniciar, ele mostra uma tela de espera com QR Code grande + código em letras gigantes + contador de quantos já entraram — os alunos podem escanear ou digitar o código em `index.php` enquanto isso.
 
 **No seu celular** (`admin/sessao.php`, o link que você guardou):
 
@@ -91,3 +93,4 @@ Pra desligar o notebook com segurança, rode `parar.bat` (Windows) ou `./parar.s
 - **Página abre mas não atualiza**: o poll é a cada 2 segundos; espere um pouco antes de assumir que travou.
 - **Prova não aparece pra abrir sessão**: ela precisa estar **publicada** (`provas.php`).
 - **Botão do controle não funciona (nada acontece)**: o link provavelmente perdeu o `?pt=...` — volte em `admin/index.php` (lista de sessões ativas) e entre pelo link de lá.
+- **Projetor preso em "Aguardando o início da sessão"**: ninguém ativou uma sessão ainda (ou a que estava ativa foi encerrada e limpa). Vá em **Sessões** e clique **"Ativar no projetor"** na sessão certa.

@@ -9,7 +9,10 @@ declare(strict_types=1);
 // iniciar.bat/ps1/sh (que abrem tela.php sem codigo, contando com a
 // descoberta automatica da T16b) caiam direto numa pergunta ja em
 // andamento, pulando a tela de espera com QR - o oposto do fluxo
-// combinado (aguardando -> Iniciar prova -> respondendo).
+// combinado (aguardando -> Iniciar prova -> respondendo). Desde a T25, nem
+// isso basta sozinho - a sessao semente tambem nasce com "ativa = 0" (nunca
+// aparece no projetor sem o professor escolher explicitamente, ver
+// admin/index.php).
 
 $dbDir = __DIR__ . '/../db';
 $caminho = $dbDir . '/quizsala.sqlite';
@@ -64,6 +67,9 @@ foreach ($questoes as $indiceQuestao => $questao) {
 
 $tokenProfessor = bin2hex(random_bytes(16));
 
+// "ativa" fica de fora da lista de colunas de proposito - o DEFAULT 0 do
+// schema entra sozinho. Nem a sessao semente aparece no projetor sem o
+// professor escolher em admin/index.php ("Ativar no projetor").
 $pdo->prepare(
     'INSERT INTO sessoes (prova_id, codigo, token_professor, modo, identificacao, questao_atual, fase, versao)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)'

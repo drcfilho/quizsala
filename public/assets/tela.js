@@ -231,6 +231,11 @@ function renderizarEspera(container, dados) {
     container.appendChild(entrada);
 }
 
+// T25: essa tela nao e mais so um estado transitorio de "ainda procurando" -
+// e a tela de repouso padrao sempre que nenhuma sessao foi marcada "Ativar
+// no projetor" (admin/index.php). O servidor nunca escolhe uma sozinho
+// (nem a mais recente, nem a semente do bin/init-db.php), entao e normal
+// ficar aqui por bastante tempo logo depois do servidor subir.
 function renderizarProcurando(container) {
     var titulo = document.createElement('p');
     titulo.className = 'titulo-espera';
@@ -238,7 +243,7 @@ function renderizarProcurando(container) {
     pulso.className = 'pulso-ao-vivo';
     pulso.setAttribute('aria-hidden', 'true');
     titulo.appendChild(pulso);
-    titulo.appendChild(document.createTextNode('Procurando uma sessão ativa...'));
+    titulo.appendChild(document.createTextNode('Aguardando o início da sessão'));
     container.appendChild(titulo);
 }
 

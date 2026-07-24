@@ -32,11 +32,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $erro = 'Essa sessão não está encerrada — não dá pra limpar.';
         }
+    } elseif ($acao === 'ativar') {
+        // T25: quem decide o que aparece no projetor sem "?codigo=" na URL e
+        // essa acao, nunca o servidor sozinho (nem a mais recente, nem a
+        // semente do bin/init-db.php).
+        ativarSessao($pdo, $sessaoId);
     }
 }
 
 $sessoes = $pdo->query(
-    "SELECT s.codigo, s.token_professor, s.fase, p.titulo,
+    "SELECT s.id, s.codigo, s.token_professor, s.fase, s.ativa, p.titulo,
             (SELECT COUNT(*) FROM participantes WHERE sessao_id = s.id) AS total_participantes
      FROM sessoes s JOIN provas p ON p.id = s.prova_id
      WHERE s.fase != 'encerrada'
@@ -63,13 +68,29 @@ abrirLayoutAdmin('Sessões', 'sessoes');
 <?php if (empty($sessoes)): ?>
 <p class="mensagem-admin">Nenhuma sessão ativa.</p>
 <?php else: ?>
+<p class="nota-ativa-projetor">O projetor (<code>tela.php</code> sem código na URL) mostra a sessão marcada "No projetor" abaixo. Nenhuma escolhida ainda? Ele fica na tela de espera até você ativar uma.</p>
 <ul class="lista-provas">
 <?php foreach ($sessoes as $sessao): ?>
-<li class="item-prova">
+<li class="item-prova item-prova-coluna">
 <a class="link-prova" href="sessao.php?codigo=<?= urlencode($sessao['codigo']) ?>&pt=<?= urlencode($sessao['token_professor']) ?>">
 <span class="titulo-prova"><?= htmlspecialchars($sessao['titulo']) ?> — <?= htmlspecialchars($sessao['codigo']) ?></span>
-<span class="contagem-prova"><?= (int) $sessao['total_participantes'] ?> participantes · <?= htmlspecialchars($sessao['fase']) ?></span>
+<span class="contagem-prova">
+<?= (int) $sessao['total_participantes'] ?> participantes · <?= htmlspecialchars($sessao['fase']) ?>
+<?php if ((int) $sessao['ativa'] === 1): ?>
+ · <span class="selo-ativa-projetor">● No projetor</span>
+<?php endif; ?>
+</span>
 </a>
+<?php if ((int) $sessao['ativa'] !== 1): ?>
+<div class="botoes-item-prova">
+<form method="post" class="form-inline">
+<input type="hidden" name="csrf" value="<?= htmlspecialchars(tokenCsrf()) ?>">
+<input type="hidden" name="acao" value="ativar">
+<input type="hidden" name="sessao_id" value="<?= (int) $sessao['id'] ?>">
+<button type="submit" class="botao-pequeno">Ativar no projetor</button>
+</form>
+</div>
+<?php endif; ?>
 </li>
 <?php endforeach; ?>
 </ul>

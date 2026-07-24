@@ -73,6 +73,12 @@ sql_exec() {
     ' "$RAIZ/db/quizsala.sqlite" "$1"
 }
 
+# T25: logo apos o banco ser recriado, ninguem ativou nenhuma sessao ainda -
+# o servidor nunca "chuta" uma sozinho, nem a semente AULA01. Confere isso
+# antes de qualquer acao de teste tocar no banco.
+RESP=$(curl -s "$BASE/api/sessao-ativa.php")
+checar "banco recem-criado -> nenhuma sessao ativa no projetor ainda" "" "$(campo_json "$RESP" codigo)"
+
 # A sessao semente nasce 'aguardando' (mesmo estado de uma sessao real -
 # achado testando de verdade: iniciar.bat/ps1/sh abriam a tela.php direto
 # numa pergunta em andamento, pulando a tela de espera com QR). Os casos
@@ -353,17 +359,28 @@ checar "participantes da AULA01 sumiram (cascade)" "0" "$(sql "SELECT COUNT(*) F
 checar "participante de outra sessao (CODIGO2) nao foi afetado" "1" "$(sql "SELECT COUNT(*) FROM participantes")"
 checar "prova continua existindo" "1" "$(sql "SELECT COUNT(*) FROM provas WHERE id=1")"
 
-echo "=== Caso 36: api/sessao-ativa.php devolve uma sessao nao-encerrada de verdade (ou null) ==="
-# AULA01 acabou de sumir (linha acima) - CODIGO2 (Caso 22-23) continua por
-# ai. Checagem robusta ao estado exato: o codigo devolvido (se houver) tem
-# que ser uma sessao nao-encerrada de verdade no banco; sem codigo, tem que
-# ser porque nao sobrou nenhuma.
-CODIGO_ATIVO=$(curl -s "$BASE/api/sessao-ativa.php" | php -r '$d=json_decode(file_get_contents("php://stdin"),true); echo $d["codigo"] ?? "";')
-if [ -z "$CODIGO_ATIVO" ]; then
-    checar "sem sessao ativa -> banco nao tem nenhuma nao-encerrada" "0" "$(sql "SELECT COUNT(*) FROM sessoes WHERE fase != 'encerrada'")"
-else
-    checar "codigo devolvido ($CODIGO_ATIVO) existe e nao esta encerrado" "1" "$(sql "SELECT COUNT(*) FROM sessoes WHERE codigo='$CODIGO_ATIVO' AND fase != 'encerrada'")"
-fi
+echo "=== Caso 36: api/sessao-ativa.php nunca escolhe sozinho - so devolve quem o professor ativar (T25) ==="
+# AULA01 acabou de sumir (Caso 35) - CODIGO2 (Caso 22-23) continua por ai,
+# em 'respondendo', mas ninguem marcou "Ativar no projetor" ainda.
+RESP=$(curl -s "$BASE/api/sessao-ativa.php")
+checar "nada ativado -> devolve vazio, mesmo com sessao nao-encerrada existindo" "" "$(campo_json "$RESP" codigo)"
+checar "confirma que ainda existe sessao nao-encerrada (nao e so 'banco vazio')" "1" "$(sql "SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END FROM sessoes WHERE fase != 'encerrada'")"
+
+IDCODIGO2=$(sql "SELECT id FROM sessoes WHERE codigo='$CODIGO2'")
+CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/index.php" | grep -o 'name="csrf" value="[^"]*"' | head -1 | sed 's/.*value="\([^"]*\)"/\1/')
+curl -s -b /tmp/quizsala-admin.txt -o /dev/null -X POST -d "acao=ativar&sessao_id=$IDCODIGO2&csrf=$CSRF" "$BASE/admin/index.php"
+RESP=$(curl -s "$BASE/api/sessao-ativa.php")
+checar "'Ativar no projetor' -> sessao-ativa.php passa a devolver esse codigo" "$CODIGO2" "$(campo_json "$RESP" codigo)"
+
+# Ativar uma segunda sessao tem que desativar a primeira - so uma por vez.
+sql_exec "INSERT INTO sessoes (prova_id, codigo, token_professor, fase) VALUES (1, 'ATIV36', 'pt-ativ36', 'aguardando')"
+IDATIV36=$(sql "SELECT id FROM sessoes WHERE codigo='ATIV36'")
+CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/index.php" | grep -o 'name="csrf" value="[^"]*"' | head -1 | sed 's/.*value="\([^"]*\)"/\1/')
+curl -s -b /tmp/quizsala-admin.txt -o /dev/null -X POST -d "acao=ativar&sessao_id=$IDATIV36&csrf=$CSRF" "$BASE/admin/index.php"
+checar "ativar a nova desativa a anterior (so uma ativa por vez)" "0" "$(sql "SELECT ativa FROM sessoes WHERE codigo='$CODIGO2'")"
+checar "a nova fica ativa" "1" "$(sql "SELECT ativa FROM sessoes WHERE codigo='ATIV36'")"
+RESP=$(curl -s "$BASE/api/sessao-ativa.php")
+checar "sessao-ativa.php agora devolve a nova" "ATIV36" "$(campo_json "$RESP" codigo)"
 
 echo "=== Caso 37: admin/index.php 'Limpar' - saiu do controle ao vivo (T18/T23), agora e so no admin desktop ==="
 # sessao descartavel so pra este teste

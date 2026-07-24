@@ -691,6 +691,28 @@ Não é código. É a tarefa que decide se a v1 acabou.
 
 ---
 
+## T25 · Sessão ativa escolhida pelo professor, nunca pelo servidor *(concluída)*
+
+**Não estava no plano original — pedido do usuário depois de reparar que `iniciar.bat`/`iniciar.ps1`/`iniciar.sh` abriam o projetor já numa sessão específica (a semente `AULA01`) sem nenhuma ação do professor. A T24 já tinha corrigido a fase inicial (`aguardando`, não `respondendo`) mas não essa parte: a descoberta automática da T16b (`api/sessao-ativa.php` = "sessão não-encerrada mais recente") continuava escolhendo sozinha, sem o professor pedir.**
+
+**Entrega:** o servidor nunca "chuta" uma sessão pro projetor — nem a mais recente, nem a semente. Existe uma sessão **ativa** por vez, escolhida por um clique explícito do professor (**"Ativar no projetor"**, em `admin/index.php`); sem nenhuma escolhida, o projetor mostra uma tela neutra "Aguardando o início da sessão". Confirmado com o usuário via `AskUserQuestion`: a ativação é um **botão separado**, não algo que acontece sozinho ao só abrir o link do controle (`admin/sessao.php`) — mais um clique manual, mas sem risco de ativar sem querer.
+
+**Arquivos:** `db/schema.sql`, `bin/init-db.php`, `src/util.php`, `public/api/sessao-ativa.php`, `public/admin/index.php`, `public/assets/admin.css`, `public/assets/tela.js`, `bin/teste.sh`
+
+**Passos**
+1. ~~Coluna `sessoes.ativa`~~ Feito — `INTEGER NOT NULL DEFAULT 0`. A sessão semente do `bin/init-db.php` nasce com `ativa = 0` (coluna nem listada no INSERT, o `DEFAULT` já resolve) — nem ela aparece no projetor sozinha.
+2. ~~`ativarSessao()`~~ Feito, em `src/util.php` — dentro de uma transação, zera `ativa` em todas as sessões antes de marcar a escolhida, garantindo que só uma fica ativa por vez (sem constraint `UNIQUE` parcial no SQLite pra isso, a exclusividade é garantida na aplicação).
+3. ~~`api/sessao-ativa.php`~~ Trocado de `SELECT ... WHERE fase != 'encerrada' ORDER BY id DESC LIMIT 1` (a "mais recente") pra `SELECT ... WHERE ativa = 1` (a escolhida). Sem nenhuma ativa, devolve `{"codigo":null}` — antes isso só acontecia se o banco estivesse genuinamente vazio de sessões não-encerradas.
+4. ~~Botão "Ativar no projetor"~~ Feito em `admin/index.php` — aparece em cada sessão da lista "Sessões ativas" que **não** for a ativa no momento; a que já está ativa mostra o selo "● No projetor" no lugar do botão (Regra do Sinal Duplo: texto, não só cor). Achado no meio do caminho: um `?>` de PHP engolindo a quebra de linha seguinte deixava "aguardando· No projetor" grudado sem espaço — corrigido com um espaço explícito antes do `·`.
+5. ~~Tela de repouso do projetor~~ `tela.js` reaproveita a tela que já existia pra "procurando sessão" (T16b) — só trocou o texto de "Procurando uma sessão ativa..." pra "Aguardando o início da sessão", já que agora essa é a tela padrão de repouso (pode ficar bastante tempo nela), não um estado transitório de poucos segundos.
+6. ~~Largura fixa dos botões não podia ser genérica~~ Achado ao ligar as pontas: a regra de largura fixa dos botões de `provas.php` (achado visual anterior, `telas/erro.png`) estava aplicada a **todo** `.botoes-item-prova`, incluindo o novo botão "Ativar no projetor" (rótulo bem mais longo que "Despublicar"). Escopada com uma classe extra (`botoes-prova-padrao`) só pra fileira de `provas.php` — o resto (`admin/index.php`) volta a ter largura pelo próprio texto.
+
+**Como testar** `bash bin/teste.sh` — 104/104 (Caso 36 reescrito do zero: confirma banco recém-criado sem nenhuma sessão ativa mesmo com sessões não-encerradas existindo, ativa uma pelo fluxo real de `admin/index.php` e confere que `api/sessao-ativa.php` passa a devolver ela, depois ativa uma segunda e confere que a primeira foi desativada — só uma por vez). Testado manualmente no navegador: servidor novo → projetor mostra "Aguardando o início da sessão" mesmo com `AULA01` existindo em `aguardando` → `admin/index.php` mostra "Ativar no projetor" → clique → selo "● No projetor" aparece, espaçamento correto → projetor (mesma aba, sem recarregar) muda sozinho pra tela de espera com QR da `AULA01`.
+
+**Pronto quando** o projetor nunca mostra uma sessão sem o professor ter clicado "Ativar no projetor" (nem a semente, nem a mais recente), só uma sessão fica ativa por vez, e `bin/teste.sh` passa 100%. **Confirmado.**
+
+---
+
 ## Resumo
 
 | Bloco | Tarefas | Status | Você consegue, ao terminar |
@@ -699,9 +721,9 @@ Não é código. É a tarefa que decide se a v1 acabou.
 | B — Controle | T05–T08 | **Completo** | Aplicar prova inteira pelo celular, abrindo sessões novas pra turmas diferentes |
 | C — Admin | T09–T14, T09b–T09e | **Completo** (T14 falta validar em celular físico real) | Criar conteúdo sem tocar no banco — manual, por CSV, ou duplicando; publicar/despublicar/excluir com trava de segurança; trocar a própria senha |
 | D — Operação | T15–T20 | **Parcial** — feito: T15 (QR Code), T16 (tela de espera), T17 (scripts de partida/parada), T18 (limpar sessão), T19 (`SETUP.md`). Falta: T20 (ensaio com turma real) | Entregar para outro professor usar |
-| E — Polimento | T21–T24 | **Completo** | Admin de conteúdo usável num desktop de verdade; telas com mais energia de placar ao vivo; layout adaptado de referências externas sem virar gamificação; ciclo completo do projetor com cronômetro, explicação e resumo final |
+| E — Polimento | T21–T25 | **Completo** | Admin de conteúdo usável num desktop de verdade; telas com mais energia de placar ao vivo; layout adaptado de referências externas sem virar gamificação; ciclo completo do projetor com cronômetro, explicação e resumo final; projetor nunca escolhe sessão sozinho |
 
-**Além do plano original**, a pedido do usuário: T04b (placar/comprovante/agradecimento do aluno), T09b (importar CSV), T09c (explicação da resposta certa), T09d (publicar/despublicar/editar/excluir prova, com trava contra despublicar prova já iniciada), T09e (trocar a própria senha do admin), Bloco E inteiro (T21-T24, polimento visual, admin desktop-first, ideias de layout do graphify sobre `telas/`, e o ciclo completo do projetor com cronômetro/explicação/resumo/timeout do aluno). Documentado em cada tarefa e em `arquitetura.md` §9.
+**Além do plano original**, a pedido do usuário: T04b (placar/comprovante/agradecimento do aluno), T09b (importar CSV), T09c (explicação da resposta certa), T09d (publicar/despublicar/editar/excluir prova, com trava contra despublicar prova já iniciada), T09e (trocar a própria senha do admin), Bloco E inteiro (T21-T25, polimento visual, admin desktop-first, ideias de layout do graphify sobre `telas/`, o ciclo completo do projetor com cronômetro/explicação/resumo/timeout do aluno, e a sessão ativa escolhida explicitamente pelo professor). Documentado em cada tarefa e em `arquitetura.md` §9.
 
 **Também pendente, fora da numeração T01–T20:**
 - ~~Timer configurável por questão~~ **Entregue na T24** — duração definida no editor, não revela sozinho ao esgotar (só avisa), "não respondeu" já saía implícito da ausência de resposta e agora aparece explícito no resumo final. Única diferença do pedido original: o cronômetro começa junto com a questão (`fase_iniciada_em`), sem um botão separado de "Iniciar tempo" — comportamento confirmado com o usuário antes de implementar.

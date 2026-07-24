@@ -290,14 +290,25 @@ main .cartao-admin .botao-acao + form {
 /* Achado visual (telas/erro.png): Editar/Publicar-Despublicar/Duplicar/
    Excluir tinham cada um a largura do proprio texto - fileira desalinhada,
    "Despublicar" bem mais largo que "Duplicar"/"Excluir". Largura fixa (cabe
-   "Despublicar", a maior label do grupo) padroniza a fileira inteira, aqui
-   e em admin/index.php ("Limpar" fica no mesmo tamanho por consistencia). */
-.botoes-item-prova .botao-pequeno {
+   "Despublicar", a maior label do grupo) padroniza a fileira inteira.
+   Escopado so pra essa fileira especifica (classe extra em provas.php) -
+   outros usos de .botoes-item-prova tem botoes com texto bem mais longo
+   ("Ativar no projetor", T25) que nao cabe nesse tamanho. */
+.botoes-prova-padrao .botao-pequeno {
     width: 7.5rem;
     flex: 0 0 auto;
 }
 .selo-publicada { color: var(--acerto); font-weight: 700; }
 .selo-rascunho { color: var(--grafite); }
+
+/* T25: qual sessao aparece no projetor sem "?codigo=" na URL - o professor
+   escolhe explicitamente aqui, nunca e escolhida sozinha pelo servidor. */
+.nota-ativa-projetor {
+    color: var(--grafite);
+    font-size: 0.85rem;
+    margin: -0.5rem 0 1rem;
+}
+.selo-ativa-projetor { color: var(--acerto); font-weight: 700; }
 
 .item-questao {
     border: 1px solid var(--pauta);
