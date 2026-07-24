@@ -108,8 +108,12 @@ switch ($acao) {
 // a sessao entre a leitura acima e este UPDATE, a linha nao bate e
 // rowCount() vem 0. Sem essa guarda, dois toques rapidos em "Proxima"
 // pulariam duas questoes na frente da turma.
+// fase_iniciada_em reseta em toda transicao - inofensivo quando o destino
+// nao e "respondendo" (nada le a coluna nesse caso), correto quando e
+// (base do cronometro da questao nova).
 $stmt = $pdo->prepare(
-    'UPDATE sessoes SET fase = ?, questao_atual = ?, versao = versao + 1 WHERE codigo = ? AND versao = ?'
+    "UPDATE sessoes SET fase = ?, questao_atual = ?, fase_iniciada_em = strftime('%s','now'), versao = versao + 1
+     WHERE codigo = ? AND versao = ?"
 );
 $stmt->execute([$novaFase, $novaQuestao, $codigo, $versaoEsperada]);
 

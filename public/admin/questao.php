@@ -24,6 +24,7 @@ if ($prova === false) {
 
 $enunciado = '';
 $explicacao = '';
+$duracaoSegundos = '';
 $alternativas = ['', '', '', '', ''];
 $corretaIndice = null;
 $erros = [];
@@ -40,6 +41,7 @@ if ($questaoId > 0) {
 
     $enunciado = $questao['enunciado'];
     $explicacao = (string) ($questao['explicacao'] ?? '');
+    $duracaoSegundos = $questao['duracao_segundos'] !== null ? (string) $questao['duracao_segundos'] : '';
     foreach (alternativasDaQuestao($pdo, $questaoId) as $i => $alt) {
         $alternativas[$i] = $alt['texto'];
         if ((int) $alt['correta'] === 1) {
@@ -52,6 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exigirCsrf();
     $enunciado = trim((string) ($_POST['enunciado'] ?? ''));
     $explicacao = trim((string) ($_POST['explicacao'] ?? ''));
+    $duracaoSegundos = trim((string) ($_POST['duracao_segundos'] ?? ''));
     for ($i = 0; $i < 5; $i++) {
         $alternativas[$i] = trim((string) ($_POST['alt' . $i] ?? ''));
     }
@@ -60,7 +63,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $erros = validarQuestao($enunciado, $alternativas, $corretaIndice);
 
     if (empty($erros)) {
-        salvarQuestao($pdo, $provaId, $questaoId, $enunciado, $alternativas, $corretaIndice, $explicacao !== '' ? $explicacao : null);
+        // Em branco ou 0 vira NULL (sem cronometro) - sem caminho de erro
+        // de validacao novo, qualquer valor nao-positivo so desliga.
+        $duracaoValida = (int) $duracaoSegundos > 0 ? (int) $duracaoSegundos : null;
+        salvarQuestao($pdo, $provaId, $questaoId, $enunciado, $alternativas, $corretaIndice, $explicacao !== '' ? $explicacao : null, $duracaoValida);
         header('Location: questoes.php?prova_id=' . $provaId);
         exit;
     }
@@ -107,6 +113,12 @@ abrirLayoutAdmin('Editor de questão', 'provas');
 <details class="detalhe-explicacao" <?= $explicacao !== '' ? 'open' : '' ?>>
 <summary>+ Explicação (por que a resposta certa está certa)</summary>
 <textarea class="campo-admin campo-textarea" name="explicacao" rows="2" placeholder="Opcional - só o professor vê isso no editor."><?= htmlspecialchars($explicacao) ?></textarea>
+</details>
+
+<details class="detalhe-explicacao" <?= $duracaoSegundos !== '' ? 'open' : '' ?>>
+<summary>+ Cronômetro (mostra contagem regressiva no projetor)</summary>
+<label class="rotulo" for="duracao_segundos">Segundos</label>
+<input class="campo-admin" type="number" min="0" step="5" id="duracao_segundos" name="duracao_segundos" value="<?= htmlspecialchars($duracaoSegundos) ?>" placeholder="Sem cronômetro">
 </details>
 
 <button type="submit" class="botao-acao">Salvar questão</button>

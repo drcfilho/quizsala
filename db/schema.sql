@@ -13,12 +13,16 @@ CREATE TABLE provas (
 
 -- explicacao: por que a alternativa correta esta certa - opcional, exibido
 -- so no editor (campo fica oculto ate o professor clicar pra abrir).
+-- duracao_segundos: cronometro opcional por questao (NULL/0 = sem
+-- cronometro). So avisa visualmente ao zerar - a revelacao continua
+-- sempre manual, nunca dispara sozinha (mesmo espirito do D6).
 CREATE TABLE questoes (
-    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    prova_id   INTEGER NOT NULL REFERENCES provas(id) ON DELETE CASCADE,
-    enunciado  TEXT    NOT NULL,
-    explicacao TEXT,
-    ordem      INTEGER NOT NULL
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    prova_id         INTEGER NOT NULL REFERENCES provas(id) ON DELETE CASCADE,
+    enunciado        TEXT    NOT NULL,
+    explicacao       TEXT,
+    duracao_segundos INTEGER,
+    ordem            INTEGER NOT NULL
 );
 CREATE INDEX idx_questoes_prova ON questoes(prova_id, ordem);
 
@@ -49,6 +53,10 @@ CREATE TABLE sessoes (
     identificacao    TEXT    NOT NULL DEFAULT 'anonimo'  CHECK (identificacao IN ('anonimo', 'nome')),
     questao_atual    INTEGER NOT NULL DEFAULT 1,
     fase             TEXT    NOT NULL DEFAULT 'aguardando' CHECK (fase IN ('aguardando', 'respondendo', 'revelado', 'encerrada')),
+    -- Carimbo de quando a fase atual comecou - base do cronometro (calculado
+    -- no servidor, nao so no cliente, pra projetor e celular do professor
+    -- concordarem mesmo que um dos dois recarregue no meio da questao).
+    fase_iniciada_em INTEGER NOT NULL DEFAULT (strftime('%s','now')),
     versao           INTEGER NOT NULL DEFAULT 0,
     criada_em        INTEGER NOT NULL DEFAULT (strftime('%s','now'))
 );
