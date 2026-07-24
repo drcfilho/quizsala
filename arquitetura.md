@@ -283,7 +283,7 @@ Validações, em ordem:
 
 O passo 3 impede que um cliente adulterado responda a uma questão futura. Verificado em teste.
 
-`INSERT OR IGNORE` + o `UNIQUE` resolvem o reenvio sem transação explícita. `gravou: false` significa "já tinha respondido" — não é erro, e o cliente trata como sucesso.
+**Decisão revisada (pós-v1 inicial):** o aluno pode trocar de resposta na mesma questão enquanto ela seguir em `fase = respondendo` — não é mais só a primeira gravação que vale. `INSERT ... ON CONFLICT (participante_id, questao_id) DO UPDATE` substitui o `INSERT OR IGNORE` original; o `UNIQUE` continua garantindo uma linha só por questão, só que agora ela se atualiza em vez de travar. Quem trava a resposta definitivamente é a transição de fase pra `revelado` (passo 2 acima), não mais a primeira escolha.
 
 ### `GET /api/painel.php` *(a implementar)*
 

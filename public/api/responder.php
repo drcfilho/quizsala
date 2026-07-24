@@ -38,18 +38,20 @@ if ($stmt->fetch() === false) {
     exit;
 }
 
-// INSERT OR IGNORE + UNIQUE(participante_id, questao_id) resolvem o
-// reenvio sem transacao explicita - gravou:false so significa "ja tinha
-// respondido", nao e erro.
+// O aluno pode trocar de ideia na mesma questao enquanto ela seguir no ar
+// (fase = respondendo, ja checado acima) - UPSERT em vez de INSERT OR
+// IGNORE. UNIQUE(participante_id, questao_id) continua garantindo uma
+// linha so por questao; o ON CONFLICT so troca a alternativa e recarrega
+// o timestamp. Assim que o professor revela, a checagem de fase no topo
+// deste arquivo passa a rejeitar com 409 - e isso que trava a resposta,
+// nao mais a primeira gravacao.
 $stmt = $pdo->prepare(
-    'INSERT OR IGNORE INTO respostas (sessao_id, participante_id, questao_id, alternativa_id)
-     VALUES (?, ?, ?, ?)'
+    "INSERT INTO respostas (sessao_id, participante_id, questao_id, alternativa_id)
+     VALUES (?, ?, ?, ?)
+     ON CONFLICT (participante_id, questao_id) DO UPDATE SET
+        alternativa_id = excluded.alternativa_id,
+        criada_em = strftime('%s','now')"
 );
 $stmt->execute([$sessao['id'], $participante['id'], $questaoAtual['id'], $alternativaId]);
-$gravou = $stmt->rowCount() > 0;
 
-$stmt = $pdo->prepare('SELECT alternativa_id FROM respostas WHERE participante_id = ? AND questao_id = ?');
-$stmt->execute([$participante['id'], $questaoAtual['id']]);
-$escolhida = (int) $stmt->fetchColumn();
-
-jsonResponder(['ok' => true, 'gravou' => $gravou, 'escolhida' => $escolhida]);
+jsonResponder(['ok' => true, 'gravou' => true, 'escolhida' => $alternativaId]);

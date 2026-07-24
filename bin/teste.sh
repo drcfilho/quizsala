@@ -102,12 +102,14 @@ checar "T1 gravou (correta)" "true" "$(campo_json "$RESP" gravou)"
 RESP=$(curl -s -X POST -H 'Content-Type: application/json' -d "{\"token\":\"$T2\",\"alternativa_id\":1}" "$BASE/api/responder.php")
 checar "T2 gravou (errada)" "true" "$(campo_json "$RESP" gravou)"
 
-echo "=== Caso 5: resposta duplicada -> gravou:false, sem duplicata ==="
+echo "=== Caso 5: aluno troca de resposta na mesma questao (enquanto no ar) ==="
 RESP=$(curl -s -X POST -H 'Content-Type: application/json' -d "{\"token\":\"$T1\",\"alternativa_id\":3}" "$BASE/api/responder.php")
-checar "T1 segunda tentativa nao grava" "false" "$(campo_json "$RESP" gravou)"
-checar "escolhida continua a original" "2" "$(campo_json "$RESP" escolhida)"
+checar "T1 troca pra alternativa 3" "true" "$(campo_json "$RESP" gravou)"
+checar "escolhida agora e 3" "3" "$(campo_json "$RESP" escolhida)"
 QTD=$(sql "SELECT COUNT(*) FROM respostas WHERE participante_id = (SELECT id FROM participantes WHERE token = '$T1') AND questao_id = 1")
-checar "so 1 resposta gravada pra T1/questao1" "1" "$QTD"
+checar "continua 1 linha so (upsert, nao duplicou)" "1" "$QTD"
+RESP=$(curl -s -X POST -H 'Content-Type: application/json' -d "{\"token\":\"$T1\",\"alternativa_id\":2}" "$BASE/api/responder.php")
+checar "T1 troca de volta pra alternativa 2 (a certa)" "2" "$(campo_json "$RESP" escolhida)"
 
 echo "=== Caso 6: contagem acerto/erro -> 1 acerto, 1 erro ==="
 LINHA=$(sql "SELECT SUM(a.correta), COUNT(*) - SUM(a.correta) FROM respostas r JOIN alternativas a ON a.id = r.alternativa_id WHERE r.questao_id = 1")
