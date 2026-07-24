@@ -184,6 +184,58 @@ function moverQuestao(PDO $pdo, int $provaId, int $questaoId, int $direcao): voi
     $pdo->commit();
 }
 
+// Resultado final do aluno (fase encerrada): placar e, por questao, o que
+// ele respondeu vs a correta - base tanto do placar quanto do comprovante.
+function resultadoParticipante(PDO $pdo, int $provaId, int $participanteId): array
+{
+    $stmt = $pdo->prepare('SELECT * FROM questoes WHERE prova_id = ? ORDER BY ordem');
+    $stmt->execute([$provaId]);
+    $questoes = $stmt->fetchAll();
+
+    $stmtResposta = $pdo->prepare(
+        'SELECT alternativa_id FROM respostas WHERE participante_id = ? AND questao_id = ?'
+    );
+
+    $itens = [];
+    $acertos = 0;
+
+    foreach ($questoes as $questao) {
+        $alternativas = alternativasDaQuestao($pdo, (int) $questao['id']);
+        $stmtResposta->execute([$participanteId, (int) $questao['id']]);
+        $escolhidaId = $stmtResposta->fetchColumn();
+        $escolhidaId = $escolhidaId !== false ? (int) $escolhidaId : null;
+
+        $escolhidaTexto = null;
+        $corretaTexto = null;
+        $acertou = false;
+
+        foreach ($alternativas as $i => $alt) {
+            $letra = letraAlternativa($i);
+            if ((int) $alt['id'] === $escolhidaId) {
+                $escolhidaTexto = $letra . ') ' . $alt['texto'];
+            }
+            if ((int) $alt['correta'] === 1) {
+                $corretaTexto = $letra . ') ' . $alt['texto'];
+                $acertou = $escolhidaId === (int) $alt['id'];
+            }
+        }
+
+        if ($acertou) {
+            $acertos++;
+        }
+
+        $itens[] = [
+            'ordem' => (int) $questao['ordem'],
+            'enunciado' => $questao['enunciado'],
+            'escolhida' => $escolhidaTexto,
+            'correta' => $corretaTexto,
+            'acertou' => $acertou,
+        ];
+    }
+
+    return ['acertos' => $acertos, 'total' => count($questoes), 'questoes' => $itens];
+}
+
 // D5: apelido sequencial no modo anonimo - so pro painel ter o que exibir.
 function proximoApelidoAnonimo(PDO $pdo, int $sessaoId): string
 {

@@ -83,7 +83,7 @@ function renderizarEstado(dados) {
     }
 
     if (dados.fase === 'encerrada') {
-        mensagemEstado('Prova encerrada. Obrigado!');
+        renderizarPlacar(dados);
         return;
     }
 
@@ -107,6 +107,107 @@ function renderizarEstado(dados) {
     });
 
     container.appendChild(lista);
+}
+
+function criarBotao(texto, classe, aoClicar) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = classe;
+    btn.textContent = texto;
+    btn.addEventListener('click', aoClicar);
+    return btn;
+}
+
+// Tela final: placar + opcao de comprovante em PDF. Sem lib nenhuma - o
+// dialogo nativo de impressao do navegador ja tem "salvar como PDF" em
+// qualquer sistema, e funciona sem internet (design.md D-restricoes).
+function renderizarPlacar(dados) {
+    var container = limparConteudo();
+    var resultado = dados.resultado;
+
+    var placar = document.createElement('div');
+    placar.className = 'placar-final';
+
+    var numero = document.createElement('p');
+    numero.className = 'numero-placar';
+    numero.textContent = resultado.acertos + ' / ' + resultado.total;
+    placar.appendChild(numero);
+
+    var rotulo = document.createElement('p');
+    rotulo.className = 'rotulo-placar';
+    rotulo.textContent = 'respostas certas';
+    placar.appendChild(rotulo);
+
+    container.appendChild(placar);
+
+    var acoes = document.createElement('div');
+    acoes.className = 'acoes-final';
+    acoes.appendChild(criarBotao('Salvar comprovante em PDF', 'botao-principal', function () {
+        prepararComprovante(dados);
+        window.print();
+        renderizarAgradecimento();
+    }));
+    acoes.appendChild(criarBotao('Concluir', 'botao-secundario-final', renderizarAgradecimento));
+    container.appendChild(acoes);
+}
+
+function renderizarAgradecimento() {
+    var container = limparConteudo();
+    var p = document.createElement('p');
+    p.className = 'mensagem-agradecimento';
+    p.textContent = 'Obrigado por participar!';
+    container.appendChild(p);
+}
+
+// Monta o conteudo so-de-impressao (fora de #conteudo-prova, escondido na
+// tela via CSS, visivel so em @media print) com todas as questoes - o
+// "comprovante" que o aluno pede pra guardar.
+function prepararComprovante(dados) {
+    var existente = document.getElementById('comprovante-impressao');
+    if (existente) existente.remove();
+
+    var doc = document.createElement('div');
+    doc.id = 'comprovante-impressao';
+
+    var titulo = document.createElement('h1');
+    titulo.textContent = 'Comprovante de participação — QuizSala';
+    doc.appendChild(titulo);
+
+    var meta = document.createElement('p');
+    meta.className = 'meta-comprovante';
+    meta.textContent = (dados.nome || 'Aluno') + ' · ' + new Date().toLocaleString('pt-BR');
+    doc.appendChild(meta);
+
+    var placarTexto = document.createElement('p');
+    placarTexto.className = 'placar-comprovante';
+    placarTexto.textContent = 'Resultado: ' + dados.resultado.acertos + ' de ' + dados.resultado.total + ' certas';
+    doc.appendChild(placarTexto);
+
+    var lista = document.createElement('ol');
+    dados.resultado.questoes.forEach(function (q) {
+        var li = document.createElement('li');
+        li.className = q.acertou ? 'item-certo' : 'item-errado';
+
+        var enun = document.createElement('p');
+        enun.className = 'enunciado-comprovante';
+        enun.textContent = q.enunciado;
+        li.appendChild(enun);
+
+        var resp = document.createElement('p');
+        resp.textContent = 'Sua resposta: ' + (q.escolhida || 'não respondeu');
+        li.appendChild(resp);
+
+        if (!q.acertou) {
+            var certa = document.createElement('p');
+            certa.textContent = 'Resposta certa: ' + q.correta;
+            li.appendChild(certa);
+        }
+
+        lista.appendChild(li);
+    });
+    doc.appendChild(lista);
+
+    document.body.appendChild(doc);
 }
 
 // Marcacao otimista (design.md secao 7): preenche a bolha na hora, antes da

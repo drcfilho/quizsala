@@ -163,6 +163,24 @@ foreach($p->query("SELECT SUM(a.correta) acertos, COUNT(*)-SUM(a.correta) erros
 
 ---
 
+## T04b · Tela final do aluno: placar, comprovante em PDF e agradecimento *(concluída)*
+
+**Não estava no plano original — pedido do usuário depois do T07.**
+
+**Entrega:** ao encerrar a prova, o aluno vê quantas acertou, pode salvar um comprovante em PDF com todas as questões (resposta dele vs a certa) e depois uma tela de agradecimento.
+
+**Arquivos:** `src/util.php` (`resultadoParticipante()`), `public/api/estado.php`, `public/assets/aluno.js`, `public/assets/estilo.css`
+
+**Passos**
+1. `estado.php` inclui `resultado: {acertos, total, questoes: [...]}` no payload quando `fase = encerrada`.
+2. `aluno.js` mostra um placar (`X / Y respostas certas`) com dois botões: "Salvar comprovante em PDF" e "Concluir".
+3. **PDF sem biblioteca nenhuma** — o botão monta um bloco `#comprovante-impressao` (escondido na tela, só visível em `@media print`) e chama `window.print()`; "salvar como PDF" já é nativo em qualquer navegador, funciona sem internet, e evita vendorizar uma lib JS de PDF que contrariaria o D1 (zero framework).
+4. Depois de imprimir (ou ao clicar "Concluir" direto), mostra "Obrigado por participar!".
+
+**Como testar** `bash bin/teste.sh` (Caso 15) confere `resultado.acertos`/`resultado.total`/questão sem resposta pelo `api/estado.php`. Testado também no navegador: placar "1 / 3", `#comprovante-impressao` com as 3 questões (certa, errada com o gabarito, e "não respondeu"), e a tela de agradecimento após "Concluir".
+
+---
+
 # Bloco B — Controle pelo celular
 
 ---

@@ -154,26 +154,32 @@ PT=$(sql "SELECT token_professor FROM sessoes WHERE codigo='AULA01'")
 RESP=$(curl -s -X POST -H 'Content-Type: application/json' -d "{\"codigo\":\"AULA01\",\"acao\":\"encerrar\",\"versao_esperada\":3,\"token_professor\":\"$PT\"}" "$BASE/api/comando.php")
 checar "fase = encerrada com token certo" "encerrada" "$(campo_json "$RESP" fase)"
 
-echo "=== Caso 15: admin/provas.php sem sessao -> 401 (tela de login) ==="
+echo "=== Caso 15: estado.php na fase encerrada -> placar e comprovante do aluno ==="
+RESP=$(curl -s "$BASE/api/estado.php?token=$T1&v=1")
+checar "acertos = 1 (so respondeu a questao 1, certa)" "1" "$(campo_json "$RESP" resultado.acertos)"
+checar "total = 3" "3" "$(campo_json "$RESP" resultado.total)"
+checar "questao 3 sem resposta -> nao respondeu" "" "$(campo_json "$RESP" resultado.questoes.2.escolhida)"
+
+echo "=== Caso 16: admin/provas.php sem sessao -> 401 (tela de login) ==="
 COD=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/admin/provas.php")
 checar "http 401 sem sessao" "401" "$COD"
 
-echo "=== Caso 16: admin/provas.php com senha errada -> continua 401 ==="
+echo "=== Caso 17: admin/provas.php com senha errada -> continua 401 ==="
 COD=$(curl -s -c /tmp/quizsala-admin-errado.txt -o /dev/null -w '%{http_code}' -X POST -d "senha_admin=errada" "$BASE/admin/provas.php")
 checar "http 401 com senha errada" "401" "$COD"
 
-echo "=== Caso 17: admin/provas.php com senha certa -> autentica e libera ==="
+echo "=== Caso 18: admin/provas.php com senha certa -> autentica e libera ==="
 SENHA_ADMIN=$(cat "$RAIZ/db/admin.senha")
 COD=$(curl -s -c /tmp/quizsala-admin.txt -o /dev/null -w '%{http_code}' -X POST -d "senha_admin=$SENHA_ADMIN" "$BASE/admin/provas.php")
 checar "http 302 (redireciona apos autenticar)" "302" "$COD"
 COD=$(curl -s -b /tmp/quizsala-admin.txt -o /dev/null -w '%{http_code}' "$BASE/admin/provas.php")
 checar "http 200 com sessao valida" "200" "$COD"
 
-echo "=== Caso 18: admin/provas.php autenticado mas sem csrf -> 403 ==="
+echo "=== Caso 19: admin/provas.php autenticado mas sem csrf -> 403 ==="
 COD=$(curl -s -b /tmp/quizsala-admin.txt -o /dev/null -w '%{http_code}' -X POST -d "acao=criar&titulo=Sem CSRF" "$BASE/admin/provas.php")
 checar "http 403 sem csrf" "403" "$COD"
 
-echo "=== Caso 19: admin/provas.php autenticado com csrf certo -> cria ==="
+echo "=== Caso 20: admin/provas.php autenticado com csrf certo -> cria ==="
 CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/provas.php" | grep -o 'name="csrf" value="[^"]*"' | head -1 | sed 's/.*value="\([^"]*\)"/\1/')
 COD=$(curl -s -b /tmp/quizsala-admin.txt -o /dev/null -w '%{http_code}' -X POST -d "acao=criar&titulo=Prova via teste&csrf=$CSRF" "$BASE/admin/provas.php")
 checar "http 302 (criou)" "302" "$COD"
