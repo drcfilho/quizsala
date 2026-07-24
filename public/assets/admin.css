@@ -161,6 +161,25 @@ body {
     margin: 0.5rem 0 1.5rem;
 }
 
+.form-titulo-prova {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0.5rem 0 1.5rem;
+}
+.campo-titulo-prova {
+    flex: 1;
+    min-height: 44px;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+.form-titulo-prova .botao-pequeno { flex-shrink: 0; }
+
+main .cartao-admin form + .botao-acao,
+main .cartao-admin form + form,
+main .cartao-admin .botao-acao + form {
+    margin-top: 0.75rem;
+}
+
 .lista-provas, .lista-questoes {
     list-style: none;
     margin: 0 0 1.5rem;

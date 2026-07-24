@@ -49,7 +49,8 @@ $provas = $pdo->query(
 <body>
 <main class="tela-admin tela-admin-lista">
 <div class="cartao-admin">
-<p class="cabecalho-admin">Provas</p>
+<p class="cabecalho-admin"><a class="link-voltar" href="index.php">&larr; Sessões</a></p>
+<h1 class="titulo-pagina">Provas</h1>
 
 <?php if ($erro !== null): ?>
 <p class="erro-campo"><?= htmlspecialchars($erro) ?></p>

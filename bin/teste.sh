@@ -215,6 +215,16 @@ curl -s -X POST -H 'Content-Type: application/json' -d "{\"token\":\"$T4\",\"alt
 SESSOES_COM_RESPOSTA=$(sql "SELECT COUNT(DISTINCT sessao_id) FROM respostas")
 checar "2 sessoes distintas com resposta, sem mistura" "2" "$SESSOES_COM_RESPOSTA"
 
+echo "=== Caso 24: questoes.php renomeia a prova ==="
+CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/questoes.php?prova_id=1" | grep -o 'name="csrf" value="[^"]*"' | head -1 | sed 's/.*value="\([^"]*\)"/\1/')
+curl -s -b /tmp/quizsala-admin.txt -o /dev/null -X POST -d "acao=renomear&prova_id=1&titulo=Redes - Renomeada&csrf=$CSRF" "$BASE/admin/questoes.php"
+checar "titulo atualizado no banco" "Redes - Renomeada" "$(sql "SELECT titulo FROM provas WHERE id=1")"
+
+echo "=== Caso 25: questoes.php 'testar prova' cria sessao e redireciona pro painel ==="
+CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/questoes.php?prova_id=1" | grep -o 'name="csrf" value="[^"]*"' | head -1 | sed 's/.*value="\([^"]*\)"/\1/')
+LOC3=$(curl -s -b /tmp/quizsala-admin.txt -o /dev/null -D - -X POST -d "acao=testar&prova_id=1&csrf=$CSRF" "$BASE/admin/questoes.php" | grep -i '^location:' | tr -d '\r')
+checar "redireciona pra sessao.php com codigo e pt" "true" "$(echo "$LOC3" | grep -q 'sessao.php?codigo=.*&pt=' && echo true || echo false)"
+
 rm -f /tmp/quizsala-admin.txt /tmp/quizsala-admin-errado.txt
 
 echo ""

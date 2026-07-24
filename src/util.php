@@ -34,6 +34,22 @@ function letraAlternativa(int $indice): string
     return chr(65 + $indice);
 }
 
+// T08: abre sessao nova pra uma prova (usada por nova-sessao.php e pelo
+// "Testar prova" de questoes.php) - codigo + token_professor gerados aqui,
+// fase/questao_atual/versao ficam no default do schema (aguardando).
+function criarSessao(PDO $pdo, int $provaId, string $identificacao = 'anonimo'): array
+{
+    $codigo = gerarCodigoSala($pdo);
+    $tokenProfessor = gerarToken();
+
+    $pdo->prepare(
+        'INSERT INTO sessoes (prova_id, codigo, token_professor, modo, identificacao)
+         VALUES (?, ?, ?, ?, ?)'
+    )->execute([$provaId, $codigo, $tokenProfessor, 'sincrono', $identificacao]);
+
+    return ['codigo' => $codigo, 'token_professor' => $tokenProfessor];
+}
+
 // T08: codigo de 6 caracteres sem ambiguidade visual (sem 0 O 1 I 5 S) -
 // alguem vai ler isso projetado do fundo da sala. Regenera em caso de
 // colisao contra o UNIQUE (codigo).

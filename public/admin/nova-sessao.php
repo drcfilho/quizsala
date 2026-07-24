@@ -25,15 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (!in_array($identificacao, ['anonimo', 'nome'], true)) {
         $erro = 'Identificação inválida.';
     } else {
-        $codigo = gerarCodigoSala($pdo);
-        $tokenProfessor = gerarToken();
-
-        $pdo->prepare(
-            'INSERT INTO sessoes (prova_id, codigo, token_professor, modo, identificacao)
-             VALUES (?, ?, ?, ?, ?)'
-        )->execute([$provaId, $codigo, $tokenProfessor, 'sincrono', $identificacao]);
-
-        header('Location: sessao.php?codigo=' . $codigo . '&pt=' . $tokenProfessor);
+        $sessao = criarSessao($pdo, $provaId, $identificacao);
+        header('Location: sessao.php?codigo=' . $sessao['codigo'] . '&pt=' . $sessao['token_professor']);
         exit;
     }
 }
