@@ -430,40 +430,63 @@ foreach($p->query("SELECT ordem, enunciado FROM questoes WHERE prova_id=2 ORDER 
 
 ---
 
+## T09e · Trocar a senha do admin *(concluída)*
+
+**Não estava no plano original — pedido do usuário.**
+
+**Entrega:** o professor troca a senha do admin por uma que ele escolhe, em vez de ficar preso à senha aleatória gerada uma vez por `bin/init-db.php`.
+
+**Arquivos:** `public/admin/senha.php` *(novo)*, `public/admin/index.php`, `public/assets/admin.css`
+
+**Decisão de escopo (perguntei antes de mexer):** o pedido original era "cadastro de usuário e senha", mas isso reverteria uma decisão já registrada de propósito (`arquitetura.md` §9 e `plan.md` §10 — "Login de professor: rede local fechada, senha atrapalha mais que protege", um professor só, sem conceito de conta). Confirmado com o usuário: continua **1 senha única, sem usuário** — só trocável pelo próprio professor em vez de fixa em `db/admin.senha`.
+
+**Como:**
+- `senha.php` pede senha atual + nova senha + confirmação, tudo validado no servidor (`exigirAdmin()` + CSRF, igual ao resto do admin).
+- Mínimo de 6 caracteres pra nova senha. `exigirAdmin()` não tem limite de tentativas — a senha aleatória original (16 hex, 64 bits) resistia a isso só pelo tamanho; uma senha curta escolhida a mão precisa de um piso mínimo pra não virar adivinhação fácil na mesma rede.
+- Sessão já autenticada continua valendo depois da troca (a troca não desloga quem já estava logado) — só o próximo login exige a senha nova.
+
+**Como testar** `bash bin/teste.sh` Caso 34: senha atual errada não troca nada; nova senha curta demais é rejeitada; confirmação que não bate é rejeitada; troca válida atualiza `db/admin.senha`, derruba a senha antiga (login com ela vira 401) e a nova funciona. O teste restaura a senha original no final — `bin/teste.sh` mexe direto no arquivo real do projeto, não numa cópia.
+
+**Pronto quando** o professor consegue trocar a senha sem editar `db/admin.senha` na mão, e a troca é refletida imediatamente (sem precisar recriar o banco).
+
+---
+
 # Bloco D — Operação em sala
 
 ---
 
-## T15 · QR Code gerado offline
+## T15 · QR Code gerado offline *(concluída)*
 
 **Entrega:** ninguém digita endereço IP.
 
-**Arquivos:** `src/qrcode.php` *(biblioteca de arquivo único)*, `public/api/qr.php` *(novo)*
+**Arquivos:** `src/qrcode.php` *(novo — biblioteca de arquivo único)*, `src/config.php` *(novo)*, `public/api/qr.php` *(novo)*
 
 **Passos**
-1. Biblioteca **local**. API de QR na internet é exatamente a dependência que quebra na hora da aula.
-2. `qr.php?codigo=AULA01` devolve PNG de `http://<ip-do-servidor>:8080/index.php?s=AULA01`.
-3. Detectar o IP com `$_SERVER['SERVER_ADDR']`, com opção de fixar em config — em máquina com várias interfaces a detecção erra.
+1. ~~Biblioteca **local**.~~ Feito — sem API de QR na internet, exatamente a dependência que quebraria na hora da aula. Não existe porte PHP oficial da lib de referência (Nayuki QR-Code-generator, MIT); portei o algoritmo Python pra PHP em `src/qrcode.php`, restrito ao modo Byte (qualquer URL tem letra minúscula, então nunca cabe no modo alfanumérico do padrão QR mesmo — os modos Numérico/Kanji/ECI do original ficaram de fora de propósito, não teriam uso aqui).
+2. ~~`qr.php?codigo=AULA01` devolve PNG~~ Feito.
+3. **Divergência do passo original:** `$_SERVER['SERVER_ADDR']` não é preenchido pelo `php -S` (servidor embutido, o único usado neste projeto) — fica vazio. Troquei para `$_SERVER['HTTP_HOST']`, que sempre existe nesse servidor e reflete exatamente o endereço que o navegador usou pra abrir a página que pediu o QR (a tela é aberta pelo IP da rede, então o `<img>` nela herda esse mesmo IP). `IP_FIXO` em `src/config.php` continua sendo a válvula de escape manual.
 
-**Como testar** Apontar a câmera de um celular que **nunca** usou o sistema e chegar direto na tela de entrada.
+**Como testar** `bash bin/teste.sh` Caso 33: confere `200`, `Content-Type: image/png`, assinatura PNG (`89 50 4E 47`) e — quando há `python3`+`opencv` disponíveis (não faz parte do ambiente da sala, então o check é pulado sem eles) — decodifica o QR de verdade e confere que a URL bate com IP:porta+código. Também gerei QRs com strings de tamanhos variados (cruzando a fronteira de versão 9→10 do padrão QR) e decodifiquei todos com OpenCV pra validar a biblioteca antes de integrar no endpoint.
 
-**Pronto quando** entrar exige zero digitação.
-
----
-
-## T16 · Tela de espera com QR grande
-
-**Arquivos:** `public/tela.php`
-
-**Passos** Na fase `aguardando`: QR ocupando ~40% da altura, código em monoespaçada gigante como alternativa, e contador de quantos já entraram.
-
-**Como testar** Do fundo da sala: dá para escanear e dá para ler o código.
-
-**Pronto quando** ambos funcionam a 8 metros.
+**Pronto quando** entrar exige zero digitação. **Testado via decodificação real do PNG gerado** (curl + OpenCV); apontar a câmera de um celular físico ainda não foi feito — depende de estar na mesma rede Wi-Fi, fora do escopo de teste automatizado.
 
 ---
 
-## T17 · Script de partida *(concluída)*
+## T16 · Tela de espera com QR grande *(concluída)*
+
+**Arquivos:** `public/assets/tela.js`, `public/assets/tela.css`, `public/api/painel.php`
+
+**Passos** ~~Na fase `aguardando`: QR ocupando ~40% da altura, código em monoespaçada gigante como alternativa, e contador de quantos já entraram.~~ Feito. `painel.php` ganhou o campo `online` também na fase `aguardando` (antes só existia em `respondendo`/`revelado` — mas `entrar.php` não bloqueia por fase, então já tem gente em `participantes` antes do professor iniciar).
+
+**Bug achado testando de verdade (não estava no plano):** `tela.js` redesenha tudo a cada poll (2s) por decisão original do design (D3 — custo irrelevante numa tela só). Isso é inofensivo pra texto, mas recriar o `<img>` do QR a cada poll faz ele *recarregar* — e piscar na tela — a cada 2 segundos, sem necessidade (o QR não muda enquanto a fase continua `aguardando`). Corrigido: `renderizar()` agora, quando a fase já era `aguardando` no poll anterior e continua sendo, só atualiza o texto do contador (`.contador-entrada`) e não toca no `<img>`. Confirmado via `javascript_tool` no navegador: o `src` do QR é o mesmo objeto de imagem antes e depois do poll (`mesmaImg: true`), e o contador vai de "0 pessoas entraram" pra "1 pessoa entrou" no poll seguinte a alguém entrar.
+
+**Como testar** Testado no navegador (Chrome via automação): tela `aguardando` mostra QR (740×740px, escala do T15) + código `AULA01` gigante + contador; entrar um aluno via `api/entrar.php` reflete no contador em ≤2s sem recarregar a imagem. Do fundo da sala, com projetor de verdade — ainda não testado (mesma pendência do T04).
+
+**Pronto quando** ambos funcionam a 8 metros. **Escanear e ler o código já foi validado** (T15, decodificação real via OpenCV); a distância de 8 metros com projetor físico continua pendente.
+
+---
+
+## T17 · Script de partida e de parada *(concluída)*
 
 **Arquivos:** `iniciar.bat`, `iniciar.ps1` — pedido do usuário trocou `iniciar.sh` por `iniciar.ps1` (ambiente é Windows; o `.bat` só chama o `.ps1`, pra não duplicar a lógica de detecção de IP/PHP em dois dialetos de shell).
 
@@ -472,6 +495,13 @@ foreach($p->query("SELECT ordem, enunciado FROM questoes WHERE prova_id=2 ORDER 
 **Como testar** Rodei via `Start-Job` (sem travar o terminal no `php -S` final) e confirmei no log: detectou PHP 8.3.32, criou o banco, detectou o IP de rede correto (`192.168.0.2`, não a interface virtual do Hyper-V que também aparece na máquina), abriu o navegador de verdade (as requisições de `tela.php`/`tela.css`/`tela.js`/`painel.php` aparecem no log do servidor). Processo `php.exe` encerrado limpo depois.
 
 **Pronto quando** você não precisa lembrar de nenhum comando.
+
+---
+
+**Ampliação pós-v1 (pedido do usuário):** dois problemas de operação em sala apareceram depois desta tarefa "concluída" — nenhum dos dois estava no escopo original do T17.
+
+1. **Parar o servidor com segurança antes de desligar o notebook.** `iniciar.ps1` fica bloqueado no `php -S` final — fechar a janela (ou desligar a máquina sem fechar) mata o processo sem aviso. O SQLite em modo WAL já é resistente a um kill abrupto (não corrompe por si só), mas um `php.exe` pendurado em segundo plano pode segurar a porta 8080 e os arquivos `-wal`/`-shm`. `parar.bat`/`parar.ps1` *(novos)* acham o processo escutando na porta 8080 (`Get-NetTCPConnection`), confirmam que é mesmo um `php` antes de mexer, e encerram. **Testado de verdade**: subi um servidor, rodei `parar.ps1`, confirmei via `curl` que a porta parou de responder; rodei de novo sem servidor no ar e confirmou "nada a fazer" sem erro.
+2. **O projeto roda num PC com Linux?** Sim — é PHP puro + SQLite + JS sem build step, nada específico de Windows no código (`bin/init-db.php` já trata `chmod` como no-op inofensivo fora do Linux/Mac; `bin/teste.sh` já roda em bash puro e só usa `taskkill` como fallback opcional). Só faltavam os scripts de conveniência. `iniciar.sh`/`parar.sh` *(novos)* espelham a mesma lógica do lado Windows: checam PHP 8.2+, e diferente do `.ps1` também checam as extensões `pdo_sqlite`/`gd` (em várias distros o `php-cli` vem sem elas por padrão — pacotes separados; no Windows isso já tinha me pegado uma vez com o `php.ini` do winget). Detecção de IP via `hostname -I`, abre o navegador com `xdg-open` se existir. **Não testado num Linux de verdade** (ambiente de desenvolvimento é Windows) — só validado sintaxe (`bash -n`) e o caminho "nada rodando" do `parar.sh`, que não depende de nenhuma ferramenta específica de Linux.
 
 ---
 
@@ -538,10 +568,12 @@ Não é código. É a tarefa que decide se a v1 acabou.
 | A — Projetor | T01–T04, T04b | **Completo** (T04 falta validar em projetor físico real) | Aplicar uma questão avulsa, comandando pelo notebook; aluno vê placar/comprovante/agradecimento ao final |
 | B — Controle | T05–T08 | **Completo** | Aplicar prova inteira pelo celular, abrindo sessões novas pra turmas diferentes |
 | C — Admin | T09–T14, T09b–T09d | **Completo** (T14 falta validar em celular físico real) | Criar conteúdo sem tocar no banco — manual, por CSV, ou duplicando; publicar/despublicar/excluir com trava de segurança |
-| D — Operação | T15–T20 | **Parcial** — feito: T17 (scripts de partida), T19 (`SETUP.md`). Falta: T15–T16 (QR Code), T18 (encerrar/limpar sessão pelo admin), T20 (ensaio com turma real) | Entregar para outro professor usar |
+| D — Operação | T15–T20 | **Parcial** — feito: T15 (QR Code), T16 (tela de espera), T17 (scripts de partida/parada), T19 (`SETUP.md`). Falta: T18 (encerrar/limpar sessão pelo admin), T20 (ensaio com turma real) | Entregar para outro professor usar |
 
 **Além do plano original**, a pedido do usuário: T04b (placar/comprovante/agradecimento do aluno), T09b (importar CSV), T09c (explicação da resposta certa), T09d (publicar/despublicar/editar/excluir prova, com trava contra despublicar prova já iniciada). Documentado em cada tarefa e em `arquitetura.md` §9.
 
-**Também pendente, fora da numeração T01–T20:** timer configurável por questão (duração definida no editor, botão "Iniciar tempo", bloqueia resposta até iniciar, não revela sozinho ao esgotar, marca "não respondeu" no banco) — pedido do usuário antes do Bloco C, adiado explicitamente pra depois do editor de questões existir. Ainda não implementado.
+**Também pendente, fora da numeração T01–T20:**
+- Timer configurável por questão (duração definida no editor, botão "Iniciar tempo", bloqueia resposta até iniciar, não revela sozinho ao esgotar, marca "não respondeu" no banco) — pedido do usuário antes do Bloco C, adiado explicitamente pra depois do editor de questões existir. Ainda não implementado.
+- Log de acesso à página da prova com hash de identificação do aparelho (celular/PC/tablet) — pedido do usuário, registrado no backlog (`plan.md` §8) com a ressalva de design que precisa resolver antes de implementar: o hash tem que identificar o aparelho sem identificar a pessoa, pra não contradizer a decisão de anonimato já tomada pro projeto (`plan.md` §10). Ainda não implementado.
 
 O ponto de decisão real já passou: **T03** (revelação com acertos/erros) está no ar desde cedo — é o teste com a turma real (**T20**) que falta pra confirmar se a ideia funciona fora do ambiente de desenvolvimento.

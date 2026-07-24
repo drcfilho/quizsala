@@ -17,7 +17,7 @@
 <body>
 
 <h1>QuizSala — Mapa de URLs de teste</h1>
-<p class="nota">Só URLs de teste local por enquanto (servidor <code>php -S</code> na própria máquina). Gerado em 2026-07-24 rodando <code>bin/init-db.php</code> — código de sala, token do professor e senha do admin <strong>mudam toda vez que o banco é recriado</strong>. Rode <code>php bin/init-db.php</code> e olhe a saída no console pra pegar valores atualizados.</p>
+<p class="nota">Só URLs de teste local por enquanto (servidor <code>php -S</code> na própria máquina). Gerado em 2026-07-24 rodando <code>bin/init-db.php</code> — código de sala e token do professor mudam toda vez que o banco é recriado; a <strong>senha do admin não muda</strong> (só é gerada na primeira vez, ver seção 4). Rode <code>php bin/init-db.php</code> e olhe a saída no console pra pegar o token atualizado.</p>
 
 <div class="aviso">
 Servidor de teste: <code>cd public &amp;&amp; php -S 127.0.0.1:8080</code>. Todas as URLs abaixo assumem esse endereço.
@@ -34,15 +34,19 @@ Servidor de teste: <code>cd public &amp;&amp; php -S 127.0.0.1:8080</code>. Toda
 
 <h2>3. Controle do professor (sessão)</h2>
 <p class="nota">Token de sessão — muda a cada <code>bin/init-db.php</code>. Valor de agora:</p>
-<a class="url" href="http://127.0.0.1:8080/admin/sessao.php?codigo=AULA01&pt=425c13b4575ef8394fb2a4728919033a">http://127.0.0.1:8080/admin/sessao.php?codigo=AULA01&amp;pt=425c13b4575ef8394fb2a4728919033a</a>
+<a class="url" href="http://127.0.0.1:8080/admin/sessao.php?codigo=AULA01&pt=ae3d686c3e6b2bd05b0b35dd4f2752f2">http://127.0.0.1:8080/admin/sessao.php?codigo=AULA01&amp;pt=ae3d686c3e6b2bd05b0b35dd4f2752f2</a>
 <p class="nota">Sem o <code>?pt=...</code> correto, o painel carrega mas nenhum botão funciona (403).</p>
 
 <h2>4. Admin (provas e sessões)</h2>
-<p class="nota">Protegido por senha única (<code>db/admin.senha</code>, fora do git). Valor de agora: <code>158f3d6b19361f95</code>.</p>
+<p class="nota">Protegido por senha única (<code>db/admin.senha</code>, fora do git). <strong>Essa senha é estável</strong> — <code>bin/init-db.php</code> só gera uma nova se o arquivo não existir, então continua valendo mesmo depois de recriar o banco. Valor de agora: <code>55c2c99472b4af40</code>.</p>
 <a class="url" href="http://127.0.0.1:8080/admin/index.php">http://127.0.0.1:8080/admin/index.php</a> — sessões ativas
 <a class="url" href="http://127.0.0.1:8080/admin/provas.php">http://127.0.0.1:8080/admin/provas.php</a> — listar/criar/publicar/excluir provas
 <a class="url" href="http://127.0.0.1:8080/admin/nova-sessao.php">http://127.0.0.1:8080/admin/nova-sessao.php</a> — abrir sessão nova
 <a class="url" href="http://127.0.0.1:8080/admin/importar-csv.php">http://127.0.0.1:8080/admin/importar-csv.php</a> — importar prova de CSV
+
+<h2>5. QR Code (T15)</h2>
+<p class="nota">PNG gerado na hora, sem depender de internet. Aponta pra <code>index.php?s=CODIGO</code> usando o mesmo host:porta que carregou a página.</p>
+<a class="url" href="http://127.0.0.1:8080/api/qr.php?codigo=AULA01">http://127.0.0.1:8080/api/qr.php?codigo=AULA01</a>
 
 </body>
 </html>
