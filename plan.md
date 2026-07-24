@@ -110,8 +110,8 @@ O que transforma código em ferramenta usável.
 
 | # | Tarefa | Verificação |
 |---|---|---|
-| 5.1 | QR Code do endereço, gerado offline | celular real entra pelo QR, sem digitar nada |
-| 5.2 | Tela de espera com QR grande + código | legível do fundo da sala |
+| 5.1 | ~~QR Code do endereço, gerado offline~~ **feito** | celular real entra pelo QR, sem digitar nada — testado via decodificação real do PNG (curl + OpenCV); celular físico ainda não |
+| 5.2 | ~~Tela de espera com QR grande + código~~ **feito** | legível do fundo da sala — testado no navegador (contador ao vivo, QR estável sem recarregar); projetor real ainda não |
 | 5.3 | Script de start (`iniciar.bat` / `iniciar.sh`) | duplo clique sobe o servidor e abre o projetor |
 | 5.4 | Documento de setup do roteador e IP fixo | outra pessoa consegue montar seguindo o passo a passo |
 | 5.5 | Encerrar sessão e limpar participantes | `CASCADE` remove tudo; prova permanece |
@@ -214,10 +214,13 @@ Priorizado por valor sobre custo, não por ordem de ideia.
 | Média | Captive portal | 5h | Resolve o "sem internet" de vez, mas exige controle do roteador |
 | Média | Questão com imagem | 4h | Necessário para geografia, biologia, gráficos |
 | Média | Importar prova de texto/CSV | 3h | Aproveita banco de questões existente |
+| Média | Log de acesso à prova, com hash de identificação do aparelho | 3h | Pedido do usuário. Sistema de captura de stats: cada acesso à página da prova vira uma linha de log, com um hash que identifica aquele celular/PC/tablet especificamente |
 | Baixa | Tempo de resposta por aluno | 2h | Vira competição; contraria o objetivo de diagnóstico honesto |
 | Baixa | Múltiplas salas simultâneas | 4h | Só faz sentido com mais de um professor no mesmo servidor |
 
 O "tempo de resposta" está registrado como baixa prioridade **de propósito**. É a primeira coisa que se pensa em adicionar e a que mais distorce o que o sistema mede: aluno com medo de errar rápido responde qualquer coisa.
+
+**Sobre o log de hash de aparelho:** encaixa bem no diagnóstico técnico do piloto (T20 já mede manualmente "quantos aparelhos caíram pro 4G" e "quantos alunos entraram sem ajuda" — um log automatizado cobre isso sem precisar de observação humana durante a aula). Mas esbarra numa decisão de design já tomada: o valor da v1 está em parte no anonimato (§10 — "Histórico entre aulas: exigiria cadastro de aluno, e o valor está no anonimato"). Pra não contradizer isso, o hash tem que identificar o **aparelho**, não a **pessoa** — não pode ser cruzável com nome/token do aluno nem persistir entre aulas diferentes de forma rastreável. Como gerar esse hash (IP+User-Agent com sal por sessão? algo no `localStorage` do navegador, que o aluno pode limpar?) e onde gravar o log (arquivo separado do banco principal, pra não misturar dado operacional com dado de diagnóstico) ficam em aberto — resolver antes de implementar, não no meio.
 
 ---
 

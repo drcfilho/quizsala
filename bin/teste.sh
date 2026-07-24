@@ -283,6 +283,51 @@ CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/provas.php" | grep -o 'na
 curl -s -b /tmp/quizsala-admin.txt -o /dev/null -X POST -d "acao=despublicar&prova_id=$IDCSV&csrf=$CSRF" "$BASE/admin/provas.php"
 checar "prova sem sessao iniciada despublica normalmente" "0" "$(sql "SELECT publicada FROM provas WHERE id=$IDCSV")"
 
+echo "=== Caso 33: api/qr.php devolve um PNG valido apontando pro index.php?s=CODIGO ==="
+COD=$(curl -s -o /tmp/quizsala-qr.png -w '%{http_code}' -H "Host: 192.168.0.2:$PORTA" "$BASE/api/qr.php?codigo=AULA01")
+checar "http 200" "200" "$COD"
+CONTENT_TYPE=$(curl -s -o /dev/null -D - -H "Host: 192.168.0.2:$PORTA" "$BASE/api/qr.php?codigo=AULA01" | grep -i '^content-type:' | tr -d '\r')
+checar "content-type image/png" "Content-Type: image/png" "$CONTENT_TYPE"
+ASSINATURA=$(php -r 'echo bin2hex(substr(file_get_contents($argv[1]), 0, 4));' /tmp/quizsala-qr.png)
+checar "assinatura PNG" "89504e47" "$ASSINATURA"
+# Decodificacao de verdade (nao so "e um PNG") e opcional aqui - exige
+# python3+opencv, que nao faz parte do ambiente da sala de aula. Roda so
+# se achar as duas coisas; sem elas, os 3 checks acima ja cobrem o essencial.
+if command -v python3 > /dev/null 2>&1 && python3 -c "import cv2" > /dev/null 2>&1; then
+    QR_DECODIFICADO=$(python3 -c '
+import sys, cv2
+img = cv2.imread(sys.argv[1])
+det = cv2.QRCodeDetector()
+data, _, _ = det.detectAndDecode(img)
+print(data)
+' /tmp/quizsala-qr.png 2>/dev/null)
+    checar "QR decodifica pra URL com IP e codigo certos" "http://192.168.0.2:$PORTA/index.php?s=AULA01" "$QR_DECODIFICADO"
+fi
+rm -f /tmp/quizsala-qr.png
+
+echo "=== Caso 34: admin/senha.php troca a senha unica do admin ==="
+SENHA_ORIGINAL=$(cat "$RAIZ/db/admin.senha")
+CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/senha.php" | grep -o 'name="csrf" value="[^"]*"' | head -1 | sed 's/.*value="\([^"]*\)"/\1/')
+RESP=$(curl -s -b /tmp/quizsala-admin.txt -X POST -d "senha_atual=errada&nova_senha=senhaboa&confirmar_senha=senhaboa&csrf=$CSRF" "$BASE/admin/senha.php")
+checar "senha atual errada -> nao troca" "1" "$(echo "$RESP" | grep -c 'Senha atual incorreta')"
+checar "arquivo nao mudou" "$SENHA_ORIGINAL" "$(cat "$RAIZ/db/admin.senha")"
+RESP=$(curl -s -b /tmp/quizsala-admin.txt -X POST -d "senha_atual=$SENHA_ORIGINAL&nova_senha=curta&confirmar_senha=curta&csrf=$CSRF" "$BASE/admin/senha.php")
+checar "senha nova curta demais -> nao troca" "1" "$(echo "$RESP" | grep -c 'pelo menos 6 caracteres')"
+RESP=$(curl -s -b /tmp/quizsala-admin.txt -X POST -d "senha_atual=$SENHA_ORIGINAL&nova_senha=aaa111&confirmar_senha=bbb222&csrf=$CSRF" "$BASE/admin/senha.php")
+checar "confirmacao nao bate -> nao troca" "1" "$(echo "$RESP" | grep -c 'não são iguais')"
+RESP=$(curl -s -b /tmp/quizsala-admin.txt -X POST -d "senha_atual=$SENHA_ORIGINAL&nova_senha=senhaboa&confirmar_senha=senhaboa&csrf=$CSRF" "$BASE/admin/senha.php")
+checar "troca valida -> mensagem de sucesso" "1" "$(echo "$RESP" | grep -c 'mensagem-sucesso')"
+checar "arquivo db/admin.senha atualizado" "senhaboa" "$(cat "$RAIZ/db/admin.senha")"
+COD=$(curl -s -c /tmp/quizsala-admin-nova.txt -o /dev/null -w '%{http_code}' -X POST -d "senha_admin=senhaboa" "$BASE/admin/index.php")
+checar "login com a senha nova funciona" "302" "$COD"
+COD=$(curl -s -b /tmp/quizsala-admin-nova.txt -o /dev/null -w '%{http_code}' "$BASE/admin/index.php")
+checar "sessao autenticada com a senha nova" "200" "$COD"
+# Restaura a senha original - teste.sh mexe direto em db/admin.senha (nao
+# uma copia), sem isso toda proxima execucao (e o mapa-urls-teste.html)
+# ficaria com a senha errada.
+printf '%s' "$SENHA_ORIGINAL" > "$RAIZ/db/admin.senha"
+rm -f /tmp/quizsala-admin-nova.txt
+
 rm -f /tmp/quizsala-admin.txt /tmp/quizsala-admin-errado.txt
 
 echo ""

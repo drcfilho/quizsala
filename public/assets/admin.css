@@ -331,4 +331,11 @@ main .cartao-admin .botao-acao + form {
     margin: 0 0 0.5rem;
 }
 
+.mensagem-sucesso {
+    color: var(--acerto);
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin: 0 0 0.5rem;
+}
+
 .form-inline { margin: 0; }

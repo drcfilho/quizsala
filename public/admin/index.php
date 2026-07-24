@@ -48,6 +48,7 @@ $sessoes = $pdo->query(
 <?php endif; ?>
 
 <a class="botao-acao botao-como-link" href="nova-sessao.php">Nova sessão</a>
+<a class="botao-secundario botao-como-link" href="senha.php">Trocar senha do admin</a>
 
 </div>
 </main>

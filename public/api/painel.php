@@ -41,6 +41,13 @@ if (!$admin && $fase !== 'encerrada') {
 // mandar em comando.php (guarda de toque duplo, T06) - nao duplica consulta.
 $payload = ['fase' => $fase, 'versao' => (int) $sessao['versao']];
 
+// T16: a fase "aguardando" tambem mostra quantos ja entraram (tela de
+// espera com QR) - entrar.php nao bloqueia por fase, entao ja tem gente
+// em "participantes" antes do professor iniciar.
+if (in_array($fase, ['aguardando', 'respondendo', 'revelado'], true)) {
+    $payload['online'] = contarOnline($pdo, (int) $sessao['id']);
+}
+
 if (in_array($fase, ['respondendo', 'revelado'], true)) {
     $questaoAtual = questaoPorOrdem($pdo, (int) $sessao['prova_id'], (int) $sessao['questao_atual']);
 
@@ -50,7 +57,6 @@ if (in_array($fase, ['respondendo', 'revelado'], true)) {
             'total' => totalQuestoes($pdo, (int) $sessao['prova_id']),
             'enunciado' => $questaoAtual['enunciado'],
         ];
-        $payload['online'] = contarOnline($pdo, (int) $sessao['id']);
         $payload['responderam'] = contarResponderam($pdo, (int) $sessao['id'], (int) $questaoAtual['id']);
 
         // D7: distribuicao (e a letra "correta") so existe a partir da
