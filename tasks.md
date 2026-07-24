@@ -251,7 +251,7 @@ Depois conferir `questao_atual` no banco.
 
 ---
 
-## T08 · Abrir uma sessão nova
+## T08 · Abrir uma sessão nova *(concluída)*
 
 **Entrega:** aplicar a mesma prova em outra turma sem mexer no banco.
 
@@ -273,7 +273,7 @@ php -r '$p=new PDO("sqlite:db/quizsala.sqlite");
 foreach($p->query("SELECT sessao_id, COUNT(*) FROM respostas GROUP BY sessao_id") as $r) print_r($r);'
 ```
 
-**Pronto quando** duas sessões da mesma prova rodam com contagens independentes.
+**Pronto quando** duas sessões da mesma prova rodam com contagens independentes. **Testado**: Caso 21 (`bin/teste.sh`) gera 100 códigos e confirma que nenhum usa `0 O 1 I 5 S`; Casos 22-23 criam sessão via `nova-sessao.php`, iniciam, respondem e confirmam que as respostas ficam em `sessao_id` distintos. Também confirmado visualmente no navegador (lista de sessões ativas com contagem de participantes, formulário de criação, redirecionamento pro painel do professor já com `token_professor`). `admin/index.php`/`nova-sessao.php` protegidos por `exigirAdmin()` + CSRF, igual ao Bloco C.
 
 ---
 
@@ -368,6 +368,66 @@ foreach($p->query("SELECT ordem, enunciado FROM questoes WHERE prova_id=2 ORDER 
 
 **Pronto quando** dá para fazer isso sem irritação. Todos os alvos de toque de T09-T13 já saíram com 44px+ (botões pequenos: subir/descer/duplicar) ou 64px (ações primárias), sem zoom horizontal, `textarea` com `resize: vertical`. **Ainda não testado num celular físico de verdade** — só em viewport reduzido no navegador.
 
+**Achados no teste real do T14 (pedidos do usuário testando pelo celular), todos concluídos:**
+- `provas.php` não tinha link de volta pra `index.php` — corrigido.
+- Faltava um jeito de renomear a prova, testar ela na hora e fechar a edição — `questoes.php` ganhou título editável (`acao=renomear`), botão "Testar prova" (cria uma sessão na hora e já cai no painel do professor) e "Salvar prova e voltar".
+
+---
+
+## T09b · Importar prova de um CSV *(concluída)*
+
+**Não estava no plano original — pedido do usuário.**
+
+**Entrega:** montar uma prova inteira colando conteúdo de uma planilha, sem digitar questão por questão no editor.
+
+**Arquivos:** `public/admin/importar-csv.php` *(novo)*, `public/exemplos/exemplo-prova.csv` *(novo, modelo pra baixar)*, `src/util.php` (`importarProvaCsv()`, `validarQuestao()`, `salvarQuestao()`)
+
+**Formato:** uma linha por questão — `enunciado, alternativa_a..e, correta (letra A-E), explicacao`. `alternativa_e` e `explicacao` são opcionais. O título da prova vem de um campo separado no formulário (não do CSV), pra não repetir a mesma string em toda linha.
+
+**Validação:** cada linha passa pela mesma `validarQuestao()` do editor manual (T11) — enunciado obrigatório, mínimo 2 alternativas, `correta` tem que apontar pra uma alternativa preenchida. **Um CSV com qualquer linha inválida não cria nada** (tudo dentro de uma transação) — erro lista o número da linha. Prova importada nasce como rascunho (`publicada=0`), igual à criação manual.
+
+**Como testar** `bash bin/teste.sh` Casos 29-30: importa `exemplo-prova.csv` (3 questões, todas com explicação) e confirma que fica em rascunho; depois testa um CSV com uma linha sem enunciado e uma com `correta` inválida — confirma que nenhuma prova é criada.
+
+**Pronto quando** um CSV bem formado vira uma prova completa, e um CSV ruim não cria nada pela metade.
+
+---
+
+## T09c · Explicação da resposta certa (campo oculto no editor) *(concluída)*
+
+**Não estava no plano original — pedido do usuário.**
+
+**Entrega:** o professor pode registrar por que a alternativa correta está certa, sem isso poluir o editor por padrão.
+
+**Arquivos:** `db/schema.sql` (`questoes.explicacao`), `public/admin/questao.php`, `src/util.php`
+
+**Como:** `<details>`/`<summary>` nativo do HTML — zero JavaScript. Fica fechado por padrão; abre sozinho se a questão já tem explicação salva. Campo é opcional em todos os fluxos (editor manual e CSV).
+
+**Como testar** `bash bin/teste.sh` Caso 28: salva uma explicação, confirma no banco, confirma que o `<details>` volta aberto ao recarregar o editor.
+
+**Pronto quando** o campo não aparece por padrão, mas está lá pra quem clicar.
+
+---
+
+## T09d · Publicar/despublicar, editar e excluir prova *(concluída)*
+
+**Não estava no plano original — pedido do usuário.**
+
+**Entrega:** ciclo de vida da prova além de criar/duplicar — controlar quando ela fica disponível pra virar sessão, e apagar o que não serve mais.
+
+**Arquivos:** `db/schema.sql` (`provas.publicada`), `public/admin/provas.php`, `public/admin/nova-sessao.php`
+
+**Como:**
+- Prova nasce como rascunho (`publicada=0`) — criada manualmente, duplicada ou importada de CSV, não importa a origem.
+- Botão "Publicar"/"Despublicar" em `provas.php` alterna o campo. `nova-sessao.php` só lista provas publicadas — é assim que uma prova "aparece pro aluno, pro projetor e pro professor": sem sessão não existe tela nenhuma dessas, e sem publicar não dá pra abrir sessão pelo fluxo normal. ("Testar prova" em `questoes.php` continua funcionando em rascunho — é o canal do professor pra conferir antes de publicar.)
+- "Editar" é só um atalho visível pro que clicar no título já fazia (vai pra `questoes.php`).
+- "Excluir" pede dupla confirmação: um `confirm()` e depois digitar a palavra "excluir" num `prompt()`. O servidor confere de novo (`$_POST['confirmacao'] === 'excluir'`) — um POST direto sem passar pelo `onsubmit` não apaga nada.
+- **Despublicar afeta sessão já em andamento, não só a criação de sessão nova.** Achado em teste real: o professor precisa de um jeito de tirar a prova do ar na hora, não só travar sessões futuras. `api/painel.php` (sem `?admin=1`, ou seja pro projetor) e `api/estado.php` (aluno) mostram `fase=aguardando` quando a prova da sessão está despublicada, mesmo que a sessão de verdade esteja em `respondendo`/`revelado`. `admin/sessao.php` manda `?admin=1` e continua vendo o estado real — o professor precisa saber o que está de fato acontecendo pra decidir. Publicar/despublicar incrementa `sessoes.versao` pra isso chegar no próximo poll (≤2s), sem esperar a próxima ação real do professor.
+- **Mas não deixa despublicar prova já iniciada** (`provaTemSessaoIniciada()`) — despublicar só funciona se nenhuma sessão dessa prova estiver em `respondendo`/`revelado`. Puxar o tapete no meio da aplicação seria pior que deixar rodar até encerrar. `aguardando` (sessão criada, não iniciada) e `encerrada` não travam.
+
+**Como testar** `bash bin/teste.sh` Casos 26-27: publica/despublica e confirma que `nova-sessao.php` reage; exclui sem confirmação (prova continua) e com confirmação certa (prova some, cascade leva questões/sessões). Casos 31-32: despublicar é bloqueado com sessão em `respondendo` (painel do projetor não muda) e funciona normalmente sem sessão iniciada.
+
+**Pronto quando** só provas publicadas viram sessão, despublicar reflete na tela ativa sem quebrar uma aplicação em andamento, e excluir exige duas confirmações antes de apagar de verdade.
+
 ---
 
 # Bloco D — Operação em sala
@@ -403,13 +463,13 @@ foreach($p->query("SELECT ordem, enunciado FROM questoes WHERE prova_id=2 ORDER 
 
 ---
 
-## T17 · Script de partida
+## T17 · Script de partida *(concluída)*
 
-**Arquivos:** `iniciar.bat`, `iniciar.sh`
+**Arquivos:** `iniciar.bat`, `iniciar.ps1` — pedido do usuário trocou `iniciar.sh` por `iniciar.ps1` (ambiente é Windows; o `.bat` só chama o `.ps1`, pra não duplicar a lógica de detecção de IP/PHP em dois dialetos de shell).
 
-**Passos** Sobe o servidor, abre `tela.php` no navegador, imprime o IP no console. Um clique.
+**Passos** ~~Sobe o servidor, abre `tela.php` no navegador, imprime o IP no console.~~ Feito, e mais: testa se o PHP está instalado e na versão certa (8.2+) antes de tentar rodar qualquer coisa, com mensagem de erro clara e link de download se não achar. Cria o banco na primeira vez, se ainda não existir (sem sobrescrever numa segunda execução).
 
-**Como testar** Reiniciar o notebook e subir tudo só com o duplo clique.
+**Como testar** Rodei via `Start-Job` (sem travar o terminal no `php -S` final) e confirmei no log: detectou PHP 8.3.32, criou o banco, detectou o IP de rede correto (`192.168.0.2`, não a interface virtual do Hyper-V que também aparece na máquina), abriu o navegador de verdade (as requisições de `tela.php`/`tela.css`/`tela.js`/`painel.php` aparecem no log do servidor). Processo `php.exe` encerrado limpo depois.
 
 **Pronto quando** você não precisa lembrar de nenhum comando.
 
@@ -436,20 +496,22 @@ foreach($p->query("SELECT (SELECT COUNT(*) FROM provas) provas,
 
 ---
 
-## T19 · Documento de setup
+## T19 · Documento de setup *(concluída)*
 
 **Arquivos:** `SETUP.md`
 
 **Conteúdo**
-1. Configurar o roteador: SSID aberto, DHCP, sem senha.
-2. IP fixo no notebook (ex.: `192.168.0.10`).
-3. Liberar a porta 8080 no firewall — **é aqui que trava na primeira vez**, e o sintoma engana: funciona no `localhost` e não funciona em nenhum celular.
-4. Desativar suspensão automática.
-5. Checklist de aula.
+1. ~~Configurar o roteador: SSID aberto, DHCP, sem senha.~~ Feito.
+2. ~~IP fixo no notebook (ex.: `192.168.0.10`).~~ Feito.
+3. ~~Liberar a porta 8080 no firewall~~ Feito, com o comando `New-NetFirewallRule` pronto pra copiar/colar.
+4. ~~Desativar suspensão automática.~~ Feito.
+5. ~~Checklist de aula.~~ Feito, incluindo conferir que a prova está **publicada** (T09d) antes de começar.
 
-**Como testar** Outra pessoa monta tudo seguindo só o documento, sem perguntar nada.
+Também ganhou uma seção "O que precisa estar instalado" (PHP 8.2+, onde baixar, como confirmar) que não estava no escopo original — sem isso o documento pressupõe que a pessoa já sabe instalar PHP, o que não é dado.
 
-**Pronto quando** ela consegue.
+**Como testar** Ainda não testado por outra pessoa de verdade (esse teste exige alguém sem contexto do projeto). Revisão própria: os passos batem com o que os scripts (`iniciar.bat`/`.ps1`) realmente fazem, e o comando de firewall foi copiado exatamente da sintaxe do PowerShell (não testado em execução real — exige administrador, fora do escopo de teste automatizado).
+
+**Pronto quando** ela consegue. **Não verificado com uma pessoa real ainda.**
 
 ---
 

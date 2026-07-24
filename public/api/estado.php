@@ -31,11 +31,21 @@ if ($vCliente === $versaoAtual) {
     exit;
 }
 
+// Prova despublicada trava sessao ja em andamento tambem, nao so impede
+// abrir sessao nova - o professor precisa de um jeito de tirar a prova do
+// ar na hora (achado de teste, T09d). provas.php ja incrementa "versao" ao
+// publicar/despublicar, entao o poll pega essa mudanca sem esperar a
+// proxima acao real do professor.
+$stmt = $pdo->prepare('SELECT publicada FROM provas WHERE id = ?');
+$stmt->execute([(int) $sessao['prova_id']]);
+$publicada = (bool) $stmt->fetchColumn();
+$fase = (!$publicada && $sessao['fase'] !== 'encerrada') ? 'aguardando' : $sessao['fase'];
+
 $questao = null;
 $escolhida = null;
 $correta = null;
 
-if (in_array($sessao['fase'], ['respondendo', 'revelado'], true)) {
+if (in_array($fase, ['respondendo', 'revelado'], true)) {
     $questaoAtual = questaoPorOrdem($pdo, (int) $sessao['prova_id'], (int) $sessao['questao_atual']);
 
     if ($questaoAtual !== null) {
@@ -59,7 +69,7 @@ if (in_array($sessao['fase'], ['respondendo', 'revelado'], true)) {
         $escolhida = $stmt->fetchColumn();
         $escolhida = $escolhida !== false ? (int) $escolhida : null;
 
-        if ($sessao['fase'] === 'revelado') {
+        if ($fase === 'revelado') {
             foreach ($alternativas as $a) {
                 if ((int) $a['correta'] === 1) {
                     $correta = (int) $a['id'];
@@ -72,17 +82,17 @@ if (in_array($sessao['fase'], ['respondendo', 'revelado'], true)) {
 
 $payload = [
     'v' => $versaoAtual,
-    'fase' => $sessao['fase'],
+    'fase' => $fase,
     'nome' => $participante['nome'],
     'questao' => $questao,
     'escolhida' => $escolhida,
 ];
 
-if ($sessao['fase'] === 'revelado') {
+if ($fase === 'revelado') {
     $payload['correta'] = $correta;
 }
 
-if ($sessao['fase'] === 'encerrada') {
+if ($fase === 'encerrada') {
     $payload['resultado'] = resultadoParticipante($pdo, (int) $sessao['prova_id'], (int) $participante['id']);
 }
 

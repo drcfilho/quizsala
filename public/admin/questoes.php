@@ -20,6 +20,8 @@ if ($prova === false) {
     exit;
 }
 
+$erro = null;
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exigirCsrf();
     $acao = (string) ($_POST['acao'] ?? '');
@@ -31,10 +33,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         moverQuestao($pdo, $provaId, $questaoId, -1);
     } elseif ($acao === 'descer') {
         moverQuestao($pdo, $provaId, $questaoId, 1);
+    } elseif ($acao === 'renomear') {
+        $titulo = trim((string) ($_POST['titulo'] ?? ''));
+        if ($titulo === '') {
+            $erro = 'Dê um título pra prova.';
+        } else {
+            $pdo->prepare('UPDATE provas SET titulo = ? WHERE id = ?')->execute([$titulo, $provaId]);
+            $prova['titulo'] = $titulo;
+        }
+    } elseif ($acao === 'testar') {
+        $sessao = criarSessao($pdo, $provaId);
+        header('Location: sessao.php?codigo=' . $sessao['codigo'] . '&pt=' . $sessao['token_professor']);
+        exit;
     }
 
-    header('Location: questoes.php?prova_id=' . $provaId);
-    exit;
+    if ($erro === null) {
+        header('Location: questoes.php?prova_id=' . $provaId);
+        exit;
+    }
 }
 
 $stmt = $pdo->prepare('SELECT * FROM questoes WHERE prova_id = ? ORDER BY ordem');
@@ -54,7 +70,18 @@ $questoes = $stmt->fetchAll();
 <main class="tela-admin tela-admin-lista">
 <div class="cartao-admin">
 <p class="cabecalho-admin"><a class="link-voltar" href="provas.php">&larr; Provas</a></p>
-<h1 class="titulo-pagina"><?= htmlspecialchars($prova['titulo']) ?></h1>
+
+<?php if ($erro !== null): ?>
+<p class="erro-campo"><?= htmlspecialchars($erro) ?></p>
+<?php endif; ?>
+
+<form method="post" class="form-titulo-prova">
+<input type="hidden" name="csrf" value="<?= htmlspecialchars(tokenCsrf()) ?>">
+<input type="hidden" name="acao" value="renomear">
+<input type="hidden" name="prova_id" value="<?= $provaId ?>">
+<input class="campo-admin campo-titulo-prova" type="text" name="titulo" value="<?= htmlspecialchars($prova['titulo']) ?>">
+<button type="submit" class="botao-pequeno">Salvar título</button>
+</form>
 
 <?php if (empty($questoes)): ?>
 <p class="mensagem-admin">Nenhuma questão ainda.</p>
@@ -81,6 +108,16 @@ $questoes = $stmt->fetchAll();
 <?php endif; ?>
 
 <a class="botao-acao botao-como-link" href="questao.php?prova_id=<?= $provaId ?>">Nova questão</a>
+
+<?php if (!empty($questoes)): ?>
+<form method="post">
+<input type="hidden" name="csrf" value="<?= htmlspecialchars(tokenCsrf()) ?>">
+<input type="hidden" name="acao" value="testar">
+<button type="submit" class="botao-secundario">Testar prova (abre uma sessão)</button>
+</form>
+<?php endif; ?>
+
+<a class="botao-acao botao-como-link" href="provas.php">Salvar prova e voltar</a>
 
 </div>
 </main>

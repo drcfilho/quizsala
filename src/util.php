@@ -34,6 +34,40 @@ function letraAlternativa(int $indice): string
     return chr(65 + $indice);
 }
 
+// T08: abre sessao nova pra uma prova (usada por nova-sessao.php e pelo
+// "Testar prova" de questoes.php) - codigo + token_professor gerados aqui,
+// fase/questao_atual/versao ficam no default do schema (aguardando).
+function criarSessao(PDO $pdo, int $provaId, string $identificacao = 'anonimo'): array
+{
+    $codigo = gerarCodigoSala($pdo);
+    $tokenProfessor = gerarToken();
+
+    $pdo->prepare(
+        'INSERT INTO sessoes (prova_id, codigo, token_professor, modo, identificacao)
+         VALUES (?, ?, ?, ?, ?)'
+    )->execute([$provaId, $codigo, $tokenProfessor, 'sincrono', $identificacao]);
+
+    return ['codigo' => $codigo, 'token_professor' => $tokenProfessor];
+}
+
+// T08: codigo de 6 caracteres sem ambiguidade visual (sem 0 O 1 I 5 S) -
+// alguem vai ler isso projetado do fundo da sala. Regenera em caso de
+// colisao contra o UNIQUE (codigo).
+function gerarCodigoSala(PDO $pdo): string
+{
+    $alfabeto = '2346789ABCDEFGHJKLMNPQRTUVWXYZ';
+
+    do {
+        $codigo = '';
+        for ($i = 0; $i < 6; $i++) {
+            $codigo .= $alfabeto[random_int(0, strlen($alfabeto) - 1)];
+        }
+        $existe = sessaoPorCodigo($pdo, $codigo) !== null;
+    } while ($existe);
+
+    return $codigo;
+}
+
 function sessaoPorCodigo(PDO $pdo, string $codigo): ?array
 {
     $stmt = $pdo->prepare('SELECT * FROM sessoes WHERE codigo = ?');
@@ -94,6 +128,20 @@ function contarResponderam(PDO $pdo, int $sessaoId, int $questaoId): int
     return (int) $stmt->fetchColumn();
 }
 
+// T09d: uma prova com sessao ja em "respondendo"/"revelado" nao pode ser
+// despublicada - tirar do ar no meio da aplicacao derrubaria quem ja esta
+// respondendo. "aguardando" (sessao criada mas nao iniciada) e "encerrada"
+// (ja acabou) nao travam.
+function provaTemSessaoIniciada(PDO $pdo, int $provaId): bool
+{
+    $stmt = $pdo->prepare(
+        "SELECT COUNT(*) FROM sessoes WHERE prova_id = ? AND fase IN ('respondendo', 'revelado')"
+    );
+    $stmt->execute([$provaId]);
+
+    return (int) $stmt->fetchColumn() > 0;
+}
+
 // T13: duplica prova inteira (questoes + alternativas) com IDs novos -
 // titulo original preservado, so a copia leva o sufixo.
 function duplicarProva(PDO $pdo, int $provaId): int
@@ -115,13 +163,15 @@ function duplicarProva(PDO $pdo, int $provaId): int
     $stmt->execute([$provaId]);
     $questoes = $stmt->fetchAll();
 
-    $inserirQuestao = $pdo->prepare('INSERT INTO questoes (prova_id, enunciado, ordem) VALUES (?, ?, ?)');
+    $inserirQuestao = $pdo->prepare(
+        'INSERT INTO questoes (prova_id, enunciado, explicacao, ordem) VALUES (?, ?, ?, ?)'
+    );
     $inserirAlternativa = $pdo->prepare(
         'INSERT INTO alternativas (questao_id, texto, correta, ordem) VALUES (?, ?, ?, ?)'
     );
 
     foreach ($questoes as $questao) {
-        $inserirQuestao->execute([$novaProvaId, $questao['enunciado'], $questao['ordem']]);
+        $inserirQuestao->execute([$novaProvaId, $questao['enunciado'], $questao['explicacao'], $questao['ordem']]);
         $novaQuestaoId = (int) $pdo->lastInsertId();
 
         foreach (alternativasDaQuestao($pdo, (int) $questao['id']) as $alt) {
@@ -234,6 +284,139 @@ function resultadoParticipante(PDO $pdo, int $provaId, int $participanteId): arr
     }
 
     return ['acertos' => $acertos, 'total' => count($questoes), 'questoes' => $itens];
+}
+
+// T11: mesma regra de validacao usada pelo editor manual (questao.php) e
+// pela importacao CSV - um so lugar pra nao dessincronizar as duas.
+function validarQuestao(string $enunciado, array $alternativas, ?int $corretaIndice): array
+{
+    $erros = [];
+
+    if ($enunciado === '') {
+        $erros['enunciado'] = 'Escreva o enunciado.';
+    }
+
+    $preenchidas = array_filter($alternativas, fn (string $t) => trim($t) !== '');
+    if (count($preenchidas) < 2) {
+        $erros['alternativas'] = 'Preencha pelo menos 2 alternativas.';
+    }
+
+    if ($corretaIndice === null || !isset($alternativas[$corretaIndice]) || trim($alternativas[$corretaIndice]) === '') {
+        $erros['correta'] = 'Marque qual alternativa é a certa.';
+    }
+
+    return $erros;
+}
+
+// Cria (questaoId = 0) ou atualiza uma questao + suas alternativas.
+// Chamador ja validou com validarQuestao() antes de chegar aqui.
+function salvarQuestao(
+    PDO $pdo,
+    int $provaId,
+    int $questaoId,
+    string $enunciado,
+    array $alternativas,
+    int $corretaIndice,
+    ?string $explicacao
+): int {
+    if ($questaoId > 0) {
+        $pdo->prepare('UPDATE questoes SET enunciado = ?, explicacao = ? WHERE id = ?')
+            ->execute([$enunciado, $explicacao, $questaoId]);
+        $pdo->prepare('DELETE FROM alternativas WHERE questao_id = ?')->execute([$questaoId]);
+    } else {
+        $stmt = $pdo->prepare('SELECT COALESCE(MAX(ordem), 0) FROM questoes WHERE prova_id = ?');
+        $stmt->execute([$provaId]);
+        $ordem = (int) $stmt->fetchColumn() + 1;
+
+        $pdo->prepare('INSERT INTO questoes (prova_id, enunciado, explicacao, ordem) VALUES (?, ?, ?, ?)')
+            ->execute([$provaId, $enunciado, $explicacao, $ordem]);
+        $questaoId = (int) $pdo->lastInsertId();
+    }
+
+    $inserirAlternativa = $pdo->prepare(
+        'INSERT INTO alternativas (questao_id, texto, correta, ordem) VALUES (?, ?, ?, ?)'
+    );
+    $ordemAlt = 1;
+    foreach ($alternativas as $i => $texto) {
+        $texto = trim($texto);
+        if ($texto === '') {
+            continue;
+        }
+        $inserirAlternativa->execute([$questaoId, $texto, $i === $corretaIndice ? 1 : 0, $ordemAlt]);
+        $ordemAlt++;
+    }
+
+    return $questaoId;
+}
+
+// Importa uma prova inteira de um CSV: enunciado, alternativa_a..e, correta
+// (letra A-E), explicacao (opcional). Uma linha invalida cancela o import
+// inteiro (nada fica pela metade) - erros trazem o numero da linha.
+function importarProvaCsv(PDO $pdo, string $titulo, string $caminhoArquivo): array
+{
+    $fp = fopen($caminhoArquivo, 'r');
+    if ($fp === false) {
+        return ['ok' => false, 'prova_id' => null, 'erros' => ['Não foi possível ler o arquivo.']];
+    }
+
+    fgetcsv($fp); // cabecalho, descartado
+
+    $numeroLinha = 1;
+    $erros = [];
+    $questoesValidas = [];
+
+    while (($linha = fgetcsv($fp)) !== false) {
+        $numeroLinha++;
+
+        if (count(array_filter($linha, fn ($c) => trim((string) $c) !== '')) === 0) {
+            continue;
+        }
+
+        $enunciado = trim((string) ($linha[0] ?? ''));
+        $alternativas = [
+            trim((string) ($linha[1] ?? '')),
+            trim((string) ($linha[2] ?? '')),
+            trim((string) ($linha[3] ?? '')),
+            trim((string) ($linha[4] ?? '')),
+            trim((string) ($linha[5] ?? '')),
+        ];
+        $letraCorreta = strtoupper(trim((string) ($linha[6] ?? '')));
+        $explicacao = trim((string) ($linha[7] ?? ''));
+        $explicacao = $explicacao !== '' ? $explicacao : null;
+
+        $corretaIndice = (strlen($letraCorreta) === 1 && $letraCorreta >= 'A' && $letraCorreta <= 'E')
+            ? (ord($letraCorreta) - 65)
+            : null;
+
+        $errosLinha = validarQuestao($enunciado, $alternativas, $corretaIndice);
+        if (!empty($errosLinha)) {
+            $erros[] = 'Linha ' . $numeroLinha . ': ' . implode(' ', $errosLinha);
+            continue;
+        }
+
+        $questoesValidas[] = [$enunciado, $alternativas, $corretaIndice, $explicacao];
+    }
+    fclose($fp);
+
+    if (empty($questoesValidas) && empty($erros)) {
+        $erros[] = 'O arquivo não tem nenhuma questão.';
+    }
+
+    if (!empty($erros)) {
+        return ['ok' => false, 'prova_id' => null, 'erros' => $erros];
+    }
+
+    $pdo->beginTransaction();
+    $pdo->prepare('INSERT INTO provas (titulo) VALUES (?)')->execute([$titulo]);
+    $provaId = (int) $pdo->lastInsertId();
+
+    foreach ($questoesValidas as [$enunciado, $alternativas, $corretaIndice, $explicacao]) {
+        salvarQuestao($pdo, $provaId, 0, $enunciado, $alternativas, $corretaIndice, $explicacao);
+    }
+
+    $pdo->commit();
+
+    return ['ok' => true, 'prova_id' => $provaId, 'erros' => []];
 }
 
 // D5: apelido sequencial no modo anonimo - so pro painel ter o que exibir.

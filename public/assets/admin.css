@@ -161,6 +161,25 @@ body {
     margin: 0.5rem 0 1.5rem;
 }
 
+.form-titulo-prova {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0.5rem 0 1.5rem;
+}
+.campo-titulo-prova {
+    flex: 1;
+    min-height: 44px;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+.form-titulo-prova .botao-pequeno { flex-shrink: 0; }
+
+main .cartao-admin form + .botao-acao,
+main .cartao-admin form + form,
+main .cartao-admin .botao-acao + form {
+    margin-top: 0.75rem;
+}
+
 .lista-provas, .lista-questoes {
     list-style: none;
     margin: 0 0 1.5rem;
@@ -188,6 +207,23 @@ body {
     color: var(--grafite);
 }
 
+/* Provas tem 4 acoes (editar/publicar/duplicar/excluir) - nao cabe numa
+   linha so no celular, empilha abaixo do link em vez de ao lado. */
+.item-prova-coluna {
+    flex-direction: column;
+    align-items: stretch;
+    min-height: 0;
+}
+.botoes-item-prova {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+.botoes-item-prova form { margin: 0; }
+.selo-publicada { color: var(--acerto); font-weight: 700; }
+.selo-rascunho { color: var(--grafite); }
+
 .item-questao {
     border: 1px solid var(--pauta);
     border-radius: 0.5rem;
@@ -204,6 +240,9 @@ body {
 }
 
 .botao-pequeno {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     min-height: 44px;
     min-width: 44px;
     padding: 0 0.9rem;
@@ -213,9 +252,14 @@ body {
     color: var(--tinta);
     font-family: inherit;
     font-size: 1rem;
+    text-decoration: none;
 }
 .botao-pequeno:disabled { opacity: 0.35; }
-.botao-excluir { border-color: var(--marca); color: var(--marca); margin-left: auto; }
+.botao-excluir { border-color: var(--marca); color: var(--marca); }
+/* So empurra pro canto quando as 3 acoes dividem UM form (questoes.php,
+   subir/descer/excluir) - em provas.php cada botao e seu proprio form
+   dentro de .botoes-item-prova, onde essa margem so criava um buraco. */
+.botoes-questao .botao-excluir { margin-left: auto; }
 
 .botao-como-link {
     display: block;
@@ -265,6 +309,21 @@ body {
     width: 1.2rem;
 }
 .linha-alternativa-admin .campo-admin { min-height: 56px; font-size: 1rem; }
+
+.detalhe-explicacao {
+    margin: 0.5rem 0 1rem;
+    border: 1px solid var(--pauta);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+}
+.detalhe-explicacao summary {
+    cursor: pointer;
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    font-size: 0.85rem;
+    color: var(--grafite);
+}
+.detalhe-explicacao[open] summary { margin-bottom: 0.5rem; }
+.detalhe-explicacao .campo-textarea { min-height: 4rem; }
 
 .erro-campo {
     color: var(--marca);

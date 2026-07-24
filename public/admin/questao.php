@@ -22,6 +22,7 @@ if ($prova === false) {
 }
 
 $enunciado = '';
+$explicacao = '';
 $alternativas = ['', '', '', '', ''];
 $corretaIndice = null;
 $erros = [];
@@ -37,6 +38,7 @@ if ($questaoId > 0) {
     }
 
     $enunciado = $questao['enunciado'];
+    $explicacao = (string) ($questao['explicacao'] ?? '');
     foreach (alternativasDaQuestao($pdo, $questaoId) as $i => $alt) {
         $alternativas[$i] = $alt['texto'];
         if ((int) $alt['correta'] === 1) {
@@ -48,53 +50,16 @@ if ($questaoId > 0) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exigirCsrf();
     $enunciado = trim((string) ($_POST['enunciado'] ?? ''));
+    $explicacao = trim((string) ($_POST['explicacao'] ?? ''));
     for ($i = 0; $i < 5; $i++) {
         $alternativas[$i] = trim((string) ($_POST['alt' . $i] ?? ''));
     }
     $corretaIndice = isset($_POST['correta']) && $_POST['correta'] !== '' ? (int) $_POST['correta'] : null;
 
-    if ($enunciado === '') {
-        $erros['enunciado'] = 'Escreva o enunciado.';
-    }
-
-    $preenchidas = array_filter($alternativas, fn (string $t) => $t !== '');
-    if (count($preenchidas) < 2) {
-        $erros['alternativas'] = 'Preencha pelo menos 2 alternativas.';
-    }
-
-    if ($corretaIndice === null || $alternativas[$corretaIndice] === '') {
-        $erros['correta'] = 'Marque qual alternativa é a certa.';
-    }
+    $erros = validarQuestao($enunciado, $alternativas, $corretaIndice);
 
     if (empty($erros)) {
-        $pdo->beginTransaction();
-
-        if ($questaoId > 0) {
-            $pdo->prepare('UPDATE questoes SET enunciado = ? WHERE id = ?')->execute([$enunciado, $questaoId]);
-            $pdo->prepare('DELETE FROM alternativas WHERE questao_id = ?')->execute([$questaoId]);
-        } else {
-            $stmt = $pdo->prepare('SELECT COALESCE(MAX(ordem), 0) FROM questoes WHERE prova_id = ?');
-            $stmt->execute([$provaId]);
-            $ordem = (int) $stmt->fetchColumn() + 1;
-
-            $pdo->prepare('INSERT INTO questoes (prova_id, enunciado, ordem) VALUES (?, ?, ?)')
-                ->execute([$provaId, $enunciado, $ordem]);
-            $questaoId = (int) $pdo->lastInsertId();
-        }
-
-        $inserirAlternativa = $pdo->prepare(
-            'INSERT INTO alternativas (questao_id, texto, correta, ordem) VALUES (?, ?, ?, ?)'
-        );
-        $ordemAlt = 1;
-        foreach ($alternativas as $i => $texto) {
-            if ($texto === '') {
-                continue;
-            }
-            $inserirAlternativa->execute([$questaoId, $texto, $i === $corretaIndice ? 1 : 0, $ordemAlt]);
-            $ordemAlt++;
-        }
-
-        $pdo->commit();
+        salvarQuestao($pdo, $provaId, $questaoId, $enunciado, $alternativas, $corretaIndice, $explicacao !== '' ? $explicacao : null);
         header('Location: questoes.php?prova_id=' . $provaId);
         exit;
     }
@@ -140,6 +105,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <input class="campo-admin" type="text" name="alt<?= $i ?>" value="<?= htmlspecialchars($alternativas[$i]) ?>" placeholder="Alternativa <?= chr(65 + $i) ?>">
 </div>
 <?php endfor; ?>
+
+<?php
+// Campo oculto por padrao - so abre se ja tinha explicacao salva ou se o
+// professor clicar. <details> e nativo, sem JS nenhum (ladder: recurso da
+// plataforma antes de escrever codigo).
+?>
+<details class="detalhe-explicacao" <?= $explicacao !== '' ? 'open' : '' ?>>
+<summary>+ Explicação (por que a resposta certa está certa)</summary>
+<textarea class="campo-admin campo-textarea" name="explicacao" rows="2" placeholder="Opcional - só o professor vê isso no editor."><?= htmlspecialchars($explicacao) ?></textarea>
+</details>
 
 <button type="submit" class="botao-acao">Salvar questão</button>
 </form>

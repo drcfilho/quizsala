@@ -182,7 +182,7 @@ function renderizar(dados) {
 }
 
 function poll() {
-    fetch('../api/painel.php?codigo=' + encodeURIComponent(codigo))
+    fetch('../api/painel.php?codigo=' + encodeURIComponent(codigo) + '&admin=1')
         .then(function (resp) { return resp.json(); })
         .then(renderizar)
         .catch(function () {
