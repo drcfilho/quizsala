@@ -475,7 +475,7 @@ main .cartao-admin .botao-acao + form {
    :disabled, pensado pra toque. Mouse e teclado precisam de feedback antes
    do clique. Transicao sutil, nunca sombra (Regra do Chao Plano). */
 .botao-acao, .botao-secundario, .botao-pequeno, .link-menu-admin {
-    transition: opacity 0.15s ease-out, background-color 0.15s ease-out;
+    transition: opacity 0.15s ease-out, background-color 0.15s ease-out, transform 0.1s ease-out;
 }
 .botao-acao:hover:not(:disabled) { opacity: 0.85; }
 .botao-secundario:hover:not(:disabled) { background: var(--papel); }
@@ -487,6 +487,18 @@ main .cartao-admin .botao-acao + form {
 .link-menu-admin:focus-visible {
     outline: 2px solid var(--marca);
     outline-offset: 2px;
+}
+
+/* T21 passo 4: toque fisico em sala precisa de confirmacao visual
+   imediata, antes mesmo da resposta do servidor chegar - so entra com
+   prefers-reduced-motion:no-preference (ver bloco no fim do arquivo), pra
+   nao empurrar um "salto" de escala pra quem pediu menos movimento. */
+@media (prefers-reduced-motion: no-preference) {
+    .botao-acao:active:not(:disabled),
+    .botao-secundario:active:not(:disabled),
+    .botao-pequeno:active:not(:disabled) {
+        transform: scale(0.97);
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
