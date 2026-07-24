@@ -58,6 +58,16 @@ CREATE TABLE sessoes (
     -- concordarem mesmo que um dos dois recarregue no meio da questao).
     fase_iniciada_em INTEGER NOT NULL DEFAULT (strftime('%s','now')),
     versao           INTEGER NOT NULL DEFAULT 0,
+    -- Qual sessao aparece no projetor quando tela.php abre sem "?codigo="
+    -- (T16b). Nasce sempre 0 - nem a sessao semente do bin/init-db.php e
+    -- ativada sozinha - o professor tem que escolher explicitamente em
+    -- admin/index.php ("Ativar no projetor"), nunca e escolhida so por ter
+    -- sido criada ou por ser a mais recente (pedido do usuario: o servidor
+    -- nao pode "chutar" uma sessao sozinho). So uma linha pode estar com
+    -- ativa=1 por vez - garantido na aplicacao (ativarSessao() em
+    -- src/util.php zera todas antes de marcar a escolhida), nao por
+    -- constraint do SQLite (nao tem UNIQUE parcial facil aqui).
+    ativa            INTEGER NOT NULL DEFAULT 0 CHECK (ativa IN (0, 1)),
     criada_em        INTEGER NOT NULL DEFAULT (strftime('%s','now'))
 );
 

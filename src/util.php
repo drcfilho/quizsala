@@ -120,6 +120,21 @@ function limparSessao(PDO $pdo, int $sessaoId): void
     $pdo->prepare('DELETE FROM sessoes WHERE id = ?')->execute([$sessaoId]);
 }
 
+// T25: qual sessao aparece no projetor quando tela.php abre sem "?codigo="
+// (api/sessao-ativa.php). Pedido do usuario: o servidor nunca escolhe
+// sozinho (nem a mais recente, nem a semente) - o professor tem que
+// clicar "Ativar no projetor" em admin/index.php. So uma sessao fica
+// ativa por vez - zera todas antes de marcar a escolhida, numa transacao
+// (sem isso, uma corrida entre dois cliques quase simultaneos poderia
+// deixar duas sessoes com ativa=1).
+function ativarSessao(PDO $pdo, int $sessaoId): void
+{
+    $pdo->beginTransaction();
+    $pdo->exec('UPDATE sessoes SET ativa = 0');
+    $pdo->prepare('UPDATE sessoes SET ativa = 1 WHERE id = ?')->execute([$sessaoId]);
+    $pdo->commit();
+}
+
 // Online = visto nos ultimos 6s (3x o intervalo de poll, tolera 1 poll
 // perdido). Presenca por heartbeat, nunca trava avanco (design.md D6).
 function contarOnline(PDO $pdo, int $sessaoId): int
