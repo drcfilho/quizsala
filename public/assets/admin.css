@@ -87,6 +87,13 @@ body {
     margin: 3rem 0;
 }
 
+.dica-limpar-admin {
+    text-align: center;
+    color: var(--grafite);
+    font-size: 0.9rem;
+    margin: -2rem 0 3rem;
+}
+
 .botoes-admin {
     display: flex;
     flex-direction: column;
@@ -177,6 +184,12 @@ body {
 .titulo-pagina {
     font-size: 1.3rem;
     margin: 0.5rem 0 1.5rem;
+}
+
+.subtitulo-pagina {
+    font-size: 1.05rem;
+    color: var(--grafite);
+    margin: 2rem 0 1rem;
 }
 
 .form-titulo-prova {
