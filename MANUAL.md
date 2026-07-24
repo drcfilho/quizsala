@@ -67,7 +67,7 @@ Um toque duplo sem querer não pula questão: o servidor só aplica o comando se
 
 ## 6. Depois da aula
 
-Na tela "Prova encerrada", aparece o botão **"Encerrar e limpar"**. Isso apaga a sessão inteira — participantes e respostas somem, **a prova continua existindo** pra usar de novo com outra turma. Pede confirmação dupla (confirmar + digitar "limpar"), porque é definitivo: se você ainda quer analisar os dados dessa aplicação, não limpe ainda.
+O controle ao vivo não some sozinho ao encerrar — ele só avisa "Prova encerrada." e te manda pro admin no computador. É lá, na lista de **Sessões** (menu lateral → Sessões → seção "Sessões encerradas"), que fica o botão **Limpar**: apaga a sessão inteira — participantes e respostas somem, **a prova continua existindo** pra usar de novo com outra turma. Pede confirmação dupla (confirmar + digitar "limpar"), porque é definitivo: se você ainda quer analisar os dados dessa aplicação, não limpe ainda. É de propósito que essa ação não fica no celular — é arrumação pra fazer com calma, na mesa, não uma decisão pra tomar no meio da aula.
 
 Pra desligar o notebook com segurança, rode `parar.bat` (Windows) ou `./parar.sh` (Linux) antes — ele encerra o servidor sem deixar processo pendurado. Ver [`SETUP.md`](SETUP.md) pro resto do checklist de aula.
 

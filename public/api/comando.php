@@ -54,7 +54,7 @@ if ($acao === 'limpar') {
         exit;
     }
 
-    $pdo->prepare('DELETE FROM sessoes WHERE id = ?')->execute([(int) $sessao['id']]);
+    limparSessao($pdo, (int) $sessao['id']);
 
     jsonResponder(['ok' => true, 'limpo' => true]);
     exit;

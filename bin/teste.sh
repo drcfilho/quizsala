@@ -356,6 +356,23 @@ else
     checar "codigo devolvido ($CODIGO_ATIVO) existe e nao esta encerrado" "1" "$(sql "SELECT COUNT(*) FROM sessoes WHERE codigo='$CODIGO_ATIVO' AND fase != 'encerrada'")"
 fi
 
+echo "=== Caso 37: admin/index.php 'Limpar' - saiu do controle ao vivo (T18/T23), agora e so no admin desktop ==="
+# sessao descartavel so pra este teste
+CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/nova-sessao.php" | grep -o 'name="csrf" value="[^"]*"' | head -1 | sed 's/.*value="\([^"]*\)"/\1/')
+LOC3=$(curl -s -b /tmp/quizsala-admin.txt -o /dev/null -D - -X POST -d "prova_id=1&identificacao=anonimo&csrf=$CSRF" "$BASE/admin/nova-sessao.php" | grep -i '^location:' | tr -d '\r')
+CODIGO3=$(echo "$LOC3" | sed -n 's/.*codigo=\([A-Z0-9]*\).*/\1/p')
+SESSAO_ID3=$(sql "SELECT id FROM sessoes WHERE codigo='$CODIGO3'")
+
+CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/index.php" | grep -o 'name="csrf" value="[^"]*"' | head -1 | sed 's/.*value="\([^"]*\)"/\1/')
+curl -s -b /tmp/quizsala-admin.txt -o /dev/null -X POST -d "acao=limpar&sessao_id=$SESSAO_ID3&csrf=$CSRF" "$BASE/admin/index.php"
+checar "sessao ainda 'aguardando' -> Limpar nao apaga" "1" "$(sql "SELECT COUNT(*) FROM sessoes WHERE id=$SESSAO_ID3")"
+
+sql_exec "UPDATE sessoes SET fase='encerrada' WHERE id=$SESSAO_ID3"
+checar "sessao encerrada aparece na lista de admin/index.php" "1" "$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/index.php" | grep -c "$CODIGO3")"
+CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/index.php" | grep -o 'name="csrf" value="[^"]*"' | head -1 | sed 's/.*value="\([^"]*\)"/\1/')
+curl -s -b /tmp/quizsala-admin.txt -o /dev/null -X POST -d "acao=limpar&sessao_id=$SESSAO_ID3&csrf=$CSRF" "$BASE/admin/index.php"
+checar "sessao encerrada some depois de Limpar pelo admin desktop" "0" "$(sql "SELECT COUNT(*) FROM sessoes WHERE id=$SESSAO_ID3")"
+
 rm -f /tmp/quizsala-admin.txt /tmp/quizsala-admin-errado.txt
 
 echo ""

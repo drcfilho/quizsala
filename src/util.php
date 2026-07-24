@@ -108,6 +108,18 @@ function totalQuestoes(PDO $pdo, int $provaId): int
     return (int) $stmt->fetchColumn();
 }
 
+// T18: apaga a sessao inteira (CASCADE leva participantes e respostas) - a
+// prova (questoes/alternativas) nao e tocada. Usada tanto por
+// api/comando.php (acao "limpar", autenticada por token_professor, pro
+// controle ao vivo) quanto por admin/index.php (autenticado por
+// exigirAdmin(), pra arrumacao feita depois, na mesa - pedido do usuario
+// pra tirar essa acao do controle ao vivo mobile). Quem chama e
+// responsavel por confirmar que a fase e "encerrada" antes.
+function limparSessao(PDO $pdo, int $sessaoId): void
+{
+    $pdo->prepare('DELETE FROM sessoes WHERE id = ?')->execute([$sessaoId]);
+}
+
 // Online = visto nos ultimos 6s (3x o intervalo de poll, tolera 1 poll
 // perdido). Presenca por heartbeat, nunca trava avanco (design.md D6).
 function contarOnline(PDO $pdo, int $sessaoId): int
