@@ -543,6 +543,20 @@ foreach($p->query("SELECT ordem, enunciado FROM questoes WHERE prova_id=2 ORDER 
 
 ---
 
+**Revisão pós-T23, a pedido do usuário:** "Limpar" saiu do controle ao vivo (`admin/sessao.php`, mobile) e virou uma opção no admin desktop (`admin/index.php`). Motivo: é arrumação feita depois, na mesa, não uma decisão pra tomar no meio da aula andando pela sala — diferente de "Encerrar", que continua em `sessao.php` como escape hatch sempre disponível (decisão travada em `arquitetura.md` §7, não mexida).
+
+**Como:**
+- `src/util.php` ganhou `limparSessao(PDO $pdo, int $sessaoId): void` — a lógica de `DELETE FROM sessoes` saiu de dentro de `comando.php` pra um helper compartilhado, já que agora tem dois chamadores.
+- `api/comando.php` continua com a ação `limpar` (autenticada por `token_professor`) exatamente como estava — não foi removida, só deixou de ter um botão na UI do controle ao vivo. Ainda testada pelo Caso 35.
+- `admin/index.php` ganhou uma seção "Sessões encerradas" (nova consulta, `WHERE fase = 'encerrada'`) com um botão "Limpar" por sessão — autenticado por `exigirAdmin()` + CSRF (o modelo do admin desktop), não por `token_professor`. Mesma confirmação dupla (`confirm()` + digitar "limpar"). Guarda no servidor: só apaga se a sessão já estiver `encerrada`, senão devolve erro sem tocar em nada.
+- `admin/sessao.php` (mobile), na fase `encerrada`, agora só mostra "Prova encerrada." + um aviso ("Pra limpar os dados desta sessão, use o admin no computador.") — sem botão nenhum ali.
+
+**Como testar** `bash bin/teste.sh` Caso 37: tentar limpar uma sessão que ainda não está encerrada não apaga (guarda do servidor); a sessão encerrada aparece na lista nova de `admin/index.php`; "Limpar" por lá remove a sessão. Testado também no navegador: `admin/sessao.php` na fase encerrada não mostra mais botão de limpar, só o aviso; `admin/index.php` mostra a seção "Sessões encerradas" com o botão ao lado de cada uma.
+
+**Pronto quando** "Limpar" só existe no admin desktop, "Encerrar" continua disponível a qualquer momento no controle ao vivo, e nenhuma lógica de guarda (só depois de encerrada) foi perdida na mudança. **Confirmado.**
+
+---
+
 ## T19 · Documento de setup *(concluída)*
 
 **Arquivos:** `SETUP.md`
