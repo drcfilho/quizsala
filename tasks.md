@@ -283,7 +283,9 @@ Até aqui o conteúdo vinha do seed. Este bloco tira o banco do caminho.
 
 ---
 
-## T09 · Listar e criar provas
+## T09 · Listar e criar provas *(concluída)*
+
+**Revisão de segurança pós-implementação:** `provas.php`/`questoes.php`/`questao.php` foram ao ar sem checagem nenhuma — qualquer aluno digitando a URL criava/editava/apagava questão. Corrigido com `exigirAdmin()` (senha única, gerada por `bin/init-db.php` em `db/admin.senha`, fora do git) + token CSRF por sessão (`tokenCsrf()`/`exigirCsrf()`) em todos os formulários de mutação. Ver `arquitetura.md` §9. Casos 15-19 em `bin/teste.sh` cobrem isso.
 
 **Arquivos:** `public/admin/provas.php` *(novo)*
 
@@ -291,11 +293,11 @@ Até aqui o conteúdo vinha do seed. Este bloco tira o banco do caminho.
 
 **Como testar** Criar "Aula 2 — Segurança", ver aparecer com "0 questões".
 
-**Pronto quando** a prova nova aparece na lista e no seletor da T08.
+**Pronto quando** a prova nova aparece na lista e no seletor da T08. **Testado** via curl (POST direto) e visualmente no navegador — lista mostra título + contagem de questões, form de criação com `INSERT` real.
 
 ---
 
-## T10 · Editor de questão
+## T10 · Editor de questão *(concluída)*
 
 **Entrega:** montar conteúdo real, pelo celular.
 
@@ -309,11 +311,11 @@ Até aqui o conteúdo vinha do seed. Este bloco tira o banco do caminho.
 
 **Como testar** Criar 3 questões na prova nova pelo celular, abrir uma sessão dela e aplicar ponta a ponta.
 
-**Pronto quando** você aplica uma prova criada 100% pela interface, sem `INSERT` manual.
+**Pronto quando** você aplica uma prova criada 100% pela interface, sem `INSERT` manual. **Testado** via curl (criar/editar questão, conferi enunciado + 3 alternativas + `correta` gravados certos no banco) e visualmente no navegador (editor carrega a questão existente com a alternativa certa pré-marcada).
 
 ---
 
-## T11 · Validação do editor
+## T11 · Validação do editor *(concluída)*
 
 **Passos**
 1. Enunciado não vazio.
@@ -323,11 +325,11 @@ Até aqui o conteúdo vinha do seed. Este bloco tira o banco do caminho.
 
 **Como testar** Tentar salvar sem correta, sem enunciado, e com uma alternativa só.
 
-**Pronto quando** cada erro diz o que fazer, e nada do que foi digitado se perde.
+**Pronto quando** cada erro diz o que fazer, e nada do que foi digitado se perde. **Testado** via curl: POST sem `correta` → 200 (não redireciona, fica na tela com erro); POST sem `enunciado` → mensagem "Escreva o enunciado." O que já foi digitado volta pro formulário porque os campos são re-renderizados a partir do próprio `$_POST`, não recarregados do banco.
 
 ---
 
-## T12 · Reordenar e excluir questões
+## T12 · Reordenar e excluir questões *(concluída)*
 
 **Entrega:** corrigir a prova sem recriar tudo.
 
@@ -344,27 +346,27 @@ foreach($p->query("SELECT ordem, enunciado FROM questoes WHERE prova_id=2 ORDER 
   echo $r["ordem"]," | ",substr($r["enunciado"],0,40),PHP_EOL;'
 ```
 
-**Pronto quando** `ordem` fica contígua (1, 2, 3) e a sessão percorre todas sem tela em branco.
+**Pronto quando** `ordem` fica contígua (1, 2, 3) e a sessão percorre todas sem tela em branco. **Testado** via curl: subir a questão 2 troca a `ordem` com a 1; excluir a do meio deixa 1, 2 contíguos (era 1, 3 antes da renumeração). Também confirmado visualmente (setas desabilitadas nos extremos, confirmação antes de excluir).
 
 ---
 
-## T13 · Duplicar prova
+## T13 · Duplicar prova *(concluída)*
 
 **Passos** Copiar prova, questões e alternativas com novos IDs. Título recebe sufixo "(cópia)".
 
 **Como testar** Duplicar, editar a cópia, conferir que a original não mudou.
 
-**Pronto quando** as duas são independentes.
+**Pronto quando** as duas são independentes. **Testado** via curl: duplicar "Aula 2 — Segurança" gerou "Aula 2 — Segurança (cópia)" com as mesmas questões em nova `prova_id`, IDs de questão/alternativa novos, título original preservado.
 
 ---
 
-## T14 · Revisão mobile do admin
+## T14 · Revisão mobile do admin *(CSS mobile-first desde a T09; sessão real num aparelho físico ainda não feita)*
 
 **Passos** Percorrer todo o admin num celular real: alvos de 44px+, sem zoom horizontal, `textarea` que não some atrás do teclado.
 
 **Como testar** Criar uma prova de 5 questões inteira pelo celular, em pé.
 
-**Pronto quando** dá para fazer isso sem irritação.
+**Pronto quando** dá para fazer isso sem irritação. Todos os alvos de toque de T09-T13 já saíram com 44px+ (botões pequenos: subir/descer/duplicar) ou 64px (ações primárias), sem zoom horizontal, `textarea` com `resize: vertical`. **Ainda não testado num celular físico de verdade** — só em viewport reduzido no navegador.
 
 ---
 
