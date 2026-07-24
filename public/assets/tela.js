@@ -54,6 +54,93 @@ function animarContador(elemento, valoresAntigos, valoresNovos, formatar) {
     requestAnimationFrame(passo);
 }
 
+// T-novo: cronometro por questao. O poll de 2s so traz um "restante" novo
+// a cada 2s, mas queremos contar segundo a segundo - um setInterval local
+// de 1s reinterpola a partir do ultimo valor do servidor, sem nunca tocar
+// o DOM alem do proprio texto/classe do cronometro. Nunca mexe em
+// "container" nem em "contextoRenderizado" - por isso nao briga com a
+// otimizacao do T21 (fast path so recalibra o estado, nunca redesenha).
+var temporizadorEstado = null;
+var temporizadorIntervalo = null;
+
+function formatarTempo(segundos) {
+    var m = Math.floor(segundos / 60);
+    var s = segundos % 60;
+    return m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+function pararTemporizadorLocal() {
+    if (temporizadorIntervalo) {
+        clearInterval(temporizadorIntervalo);
+        temporizadorIntervalo = null;
+    }
+    temporizadorEstado = null;
+}
+
+function atualizarExibicaoTemporizador(elemento) {
+    if (!temporizadorEstado) {
+        return;
+    }
+    var decorrido = Math.floor((Date.now() - temporizadorEstado.capturadoEm) / 1000);
+    var restanteAtual = Math.max(0, temporizadorEstado.restante - decorrido);
+    var esgotado = restanteAtual <= 0;
+
+    var numero = elemento.querySelector('.numero-temporizador');
+    if (numero) {
+        numero.textContent = formatarTempo(restanteAtual);
+    }
+    var rotulo = elemento.querySelector('.rotulo-temporizador');
+    if (rotulo) {
+        // Sinal Duplo tambem aqui: o rotulo muda de texto, nao so a cor da
+        // borda (.esgotado no CSS) - "so avisa", nunca revela sozinho.
+        rotulo.textContent = esgotado ? 'Tempo esgotado' : 'Tempo restante';
+    }
+    elemento.classList.toggle('esgotado', esgotado);
+
+    if (esgotado && temporizadorIntervalo) {
+        clearInterval(temporizadorIntervalo);
+        temporizadorIntervalo = null;
+    }
+}
+
+function iniciarTemporizadorLocal(elemento, dadosTemporizador) {
+    temporizadorEstado = { restante: dadosTemporizador.restante, capturadoEm: Date.now() };
+    atualizarExibicaoTemporizador(elemento);
+    temporizadorIntervalo = setInterval(function () {
+        atualizarExibicaoTemporizador(elemento);
+    }, 1000);
+}
+
+// Fast path (mesma questao, so o placar mudou): so recalibra o ponto de
+// referencia a partir do valor fresco do servidor - nunca recria o
+// elemento nem reinicia o intervalo.
+function recalibrarTemporizadorLocal(elemento, dadosTemporizador) {
+    if (!temporizadorEstado) {
+        iniciarTemporizadorLocal(elemento, dadosTemporizador);
+        return;
+    }
+    temporizadorEstado.restante = dadosTemporizador.restante;
+    temporizadorEstado.capturadoEm = Date.now();
+    atualizarExibicaoTemporizador(elemento);
+}
+
+function renderizarTemporizador(container, dadosTemporizador) {
+    var painel = document.createElement('p');
+    painel.className = 'temporizador-painel';
+
+    var rotulo = document.createElement('span');
+    rotulo.className = 'rotulo-temporizador';
+    rotulo.textContent = 'Tempo restante';
+    painel.appendChild(rotulo);
+
+    var numero = document.createElement('span');
+    numero.className = 'numero-temporizador';
+    painel.appendChild(numero);
+
+    container.appendChild(painel);
+    iniciarTemporizadorLocal(painel, dadosTemporizador);
+}
+
 function mensagem(container, texto) {
     var p = document.createElement('p');
     p.className = 'mensagem-painel';
@@ -100,6 +187,11 @@ function atualizarContadorRespondendo(container, dados) {
     });
     numero.dataset.responderam = String(dados.responderam);
     numero.dataset.online = String(dados.online);
+
+    var temporizadorEl = container.querySelector('.temporizador-painel');
+    if (dados.temporizador && temporizadorEl) {
+        recalibrarTemporizadorLocal(temporizadorEl, dados.temporizador);
+    }
 }
 
 // T16: tela de espera - QR grande (api/qr.php ja aponta pro index.php do
@@ -150,19 +242,16 @@ function renderizarProcurando(container) {
     container.appendChild(titulo);
 }
 
-function renderizarResultado(container, dados) {
-    var resumo = document.createElement('p');
-    resumo.className = 'resumo-resultado';
-    resumo.textContent = dados.acertos + ' acertos · ' + dados.erros + ' erros · ' + dados.naoResponderam + ' não responderam';
-    container.appendChild(resumo);
-
-    var maximo = Math.max.apply(null, dados.distribuicao.map(function (d) { return d.n; }).concat([1]));
+// Extraida de renderizarResultado() pra ser reaproveitada no resumo final
+// (uma vez por questao, nao so pra questao atual).
+function criarBarrasDistribuicao(distribuicao) {
+    var maximo = Math.max.apply(null, distribuicao.map(function (d) { return d.n; }).concat([1]));
 
     var barras = document.createElement('div');
     barras.className = 'barras-distribuicao';
     var barrasPreenchidas = [];
 
-    dados.distribuicao.forEach(function (d) {
+    distribuicao.forEach(function (d) {
         var linha = document.createElement('div');
         linha.className = 'linha-barra' + (d.correta ? ' linha-correta' : '');
 
@@ -196,8 +285,6 @@ function renderizarResultado(container, dados) {
         barras.appendChild(linha);
     });
 
-    container.appendChild(barras);
-
     if (prefereReduzirMovimento()) {
         barrasPreenchidas.forEach(function (item) {
             item.elemento.style.width = item.largura + '%';
@@ -211,6 +298,78 @@ function renderizarResultado(container, dados) {
             });
         });
     }
+
+    return barras;
+}
+
+function renderizarResultado(container, dados) {
+    var resumo = document.createElement('p');
+    resumo.className = 'resumo-resultado';
+    resumo.textContent = dados.acertos + ' acertos · ' + dados.erros + ' erros · ' + dados.naoResponderam + ' não responderam';
+    container.appendChild(resumo);
+
+    container.appendChild(criarBarrasDistribuicao(dados.distribuicao));
+
+    // T09c: so aparece se o professor preencheu explicacao no editor -
+    // mesmo idioma de campo opcional que "temporizador"/"distribuicao" ja
+    // usam (o campo simplesmente nao vem no payload quando nao se aplica).
+    if (dados.explicacao) {
+        var callout = document.createElement('div');
+        callout.className = 'callout-explicacao';
+
+        var rotuloExp = document.createElement('p');
+        rotuloExp.className = 'rotulo-explicacao';
+        rotuloExp.textContent = 'Por que essa é a resposta certa';
+        callout.appendChild(rotuloExp);
+
+        var textoExp = document.createElement('p');
+        textoExp.className = 'texto-explicacao';
+        textoExp.textContent = dados.explicacao;
+        callout.appendChild(textoExp);
+
+        container.appendChild(callout);
+    }
+}
+
+// Fase "encerrada": participantes+questoes no topo, depois uma lista por
+// questao (acertos/erros/nao-responderam + as mesmas barras da revelacao,
+// reaproveitadas via criarBarrasDistribuicao).
+function renderizarResumoFinal(container, dados) {
+    var resumo = dados.resumo;
+
+    var titulo = document.createElement('p');
+    titulo.className = 'titulo-espera';
+    titulo.textContent = 'Prova encerrada';
+    container.appendChild(titulo);
+
+    var totalP = document.createElement('p');
+    totalP.className = 'resumo-resultado';
+    totalP.textContent = resumo.totalParticipantes + (resumo.totalParticipantes === 1 ? ' participante' : ' participantes') +
+        ' · ' + resumo.totalQuestoes + (resumo.totalQuestoes === 1 ? ' questão' : ' questões');
+    container.appendChild(totalP);
+
+    var lista = document.createElement('div');
+    lista.className = 'lista-resumo-questoes';
+
+    resumo.questoes.forEach(function (q) {
+        var bloco = document.createElement('div');
+        bloco.className = 'bloco-questao-resumo';
+
+        var cabecalho = document.createElement('p');
+        cabecalho.className = 'cabecalho-questao-resumo';
+        cabecalho.textContent = q.ordem + '. ' + q.enunciado;
+        bloco.appendChild(cabecalho);
+
+        var mini = document.createElement('p');
+        mini.className = 'mini-resumo-questao';
+        mini.textContent = q.acertos + ' acertos · ' + q.erros + ' erros · ' + q.naoResponderam + ' não responderam';
+        bloco.appendChild(mini);
+
+        bloco.appendChild(criarBarrasDistribuicao(q.distribuicao));
+        lista.appendChild(bloco);
+    });
+
+    container.appendChild(lista);
 }
 
 function renderizar(dados) {
@@ -230,7 +389,13 @@ function renderizar(dados) {
 
     // T21: chave da questao+fase atual - usada pra saber se e so o placar
     // mudando (atualiza no lugar) ou uma transicao de verdade (redesenha).
-    var chaveAtual = !dados.erro && dados.questao ? (dados.fase + ':' + dados.questao.ordem) : null;
+    // "encerrada" tambem precisa de uma chave estavel (nunca muda depois de
+    // calculada) - sem isso o resumo final seria redesenhado do zero
+    // (barras animadas incluidas) a cada poll de 2s, pra sempre, ja que
+    // "dados.questao" nunca existe nessa fase.
+    var chaveAtual = !dados.erro && dados.questao
+        ? (dados.fase + ':' + dados.questao.ordem)
+        : (!dados.erro && dados.fase === 'encerrada' ? 'encerrada' : null);
 
     if (dados.fase === 'respondendo' && chaveAtual !== null && chaveAtual === contextoRenderizado) {
         atualizarContadorRespondendo(container, dados);
@@ -243,6 +408,15 @@ function renderizar(dados) {
     if (dados.fase === 'revelado' && chaveAtual !== null && chaveAtual === contextoRenderizado) {
         return;
     }
+
+    if (dados.fase === 'encerrada' && chaveAtual !== null && chaveAtual === contextoRenderizado) {
+        return;
+    }
+
+    // Transicao de verdade: qualquer cronometro da questao anterior para
+    // aqui, antes de limpar o container - senao vaza um setInterval batendo
+    // num no que ja saiu do DOM.
+    pararTemporizadorLocal();
 
     while (container.firstChild) {
         container.removeChild(container.firstChild);
@@ -272,7 +446,11 @@ function renderizar(dados) {
     }
 
     if (dados.fase === 'encerrada') {
-        mensagem(container, 'Prova encerrada.');
+        if (dados.resumo) {
+            renderizarResumoFinal(container, dados);
+        } else {
+            mensagem(container, 'Prova encerrada.');
+        }
         return;
     }
 
@@ -291,6 +469,9 @@ function renderizar(dados) {
     container.appendChild(enunciado);
 
     if (dados.fase === 'respondendo') {
+        if (dados.temporizador) {
+            renderizarTemporizador(container, dados.temporizador);
+        }
         renderizarContador(container, dados);
     } else if (dados.fase === 'revelado') {
         renderizarResultado(container, dados);

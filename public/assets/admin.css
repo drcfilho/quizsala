@@ -66,6 +66,41 @@ body {
     border-color: var(--tinta);
 }
 
+/* T-novo: cronometro por questao - selo compacto acima da presenca, mesmo
+   tratamento visual (borda + tabular-nums). */
+.temporizador-admin {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.5rem;
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    text-align: center;
+    border: 1px solid var(--pauta);
+    border-radius: 0.5rem;
+    padding: 0.6rem;
+    margin: 0 0 0.75rem;
+}
+.rotulo-temporizador-admin {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--grafite);
+    font-size: 0.75rem;
+}
+.numero-temporizador-admin {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+/* Regra do Sinal Duplo: esgotado muda a borda E o texto do rotulo (via
+   JS) - nunca so a cor. */
+.temporizador-admin.esgotado {
+    border-color: var(--marca);
+}
+.temporizador-admin.esgotado .rotulo-temporizador-admin,
+.temporizador-admin.esgotado .numero-temporizador-admin {
+    color: var(--marca);
+}
+
 .pergunta-preview {
     font-size: 1.15rem;
     font-weight: 600;

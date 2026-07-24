@@ -59,43 +59,45 @@ if (in_array($fase, ['respondendo', 'revelado'], true)) {
         ];
         $payload['responderam'] = contarResponderam($pdo, (int) $sessao['id'], (int) $questaoAtual['id']);
 
+        // Cronometro (opcional por questao): so aparece no payload se a
+        // questao tem duracao configurada - mesmo idioma do D7 abaixo (campo
+        // nem existe quando nao se aplica). "restante" calculado no servidor
+        // (fase_iniciada_em), nao no cliente, pra projetor e celular do
+        // professor concordarem mesmo que um dos dois recarregue no meio.
+        if ($fase === 'respondendo') {
+            $duracao = (int) ($questaoAtual['duracao_segundos'] ?? 0);
+            if ($duracao > 0) {
+                $restante = $duracao - (time() - (int) $sessao['fase_iniciada_em']);
+                $payload['temporizador'] = ['duracao' => $duracao, 'restante' => max(0, $restante)];
+            }
+        }
+
         // D7: distribuicao (e a letra "correta") so existe a partir da
         // revelacao - antes disso o campo nem aparece no payload.
         if ($fase === 'revelado') {
-            $alternativas = alternativasDaQuestao($pdo, (int) $questaoAtual['id']);
-            $stmtContagem = $pdo->prepare(
-                'SELECT COUNT(*) FROM respostas WHERE questao_id = ? AND alternativa_id = ?'
-            );
+            $r = distribuicaoQuestao($pdo, $questaoAtual);
 
-            $distribuicao = [];
-            $acertos = 0;
-            $erros = 0;
-
-            foreach ($alternativas as $i => $alternativa) {
-                $stmtContagem->execute([$questaoAtual['id'], $alternativa['id']]);
-                $n = (int) $stmtContagem->fetchColumn();
-                $ehCorreta = (int) $alternativa['correta'] === 1;
-
-                $distribuicao[] = [
-                    'letra' => letraAlternativa($i),
-                    'texto' => $alternativa['texto'],
-                    'n' => $n,
-                    'correta' => $ehCorreta,
-                ];
-
-                if ($ehCorreta) {
-                    $acertos += $n;
-                } else {
-                    $erros += $n;
-                }
-            }
-
-            $payload['distribuicao'] = $distribuicao;
-            $payload['acertos'] = $acertos;
-            $payload['erros'] = $erros;
+            $payload['distribuicao'] = $r['distribuicao'];
+            $payload['acertos'] = $r['acertos'];
+            $payload['erros'] = $r['erros'];
             $payload['naoResponderam'] = max(0, $payload['online'] - $payload['responderam']);
+
+            // T09c: explicacao so existia pro professor no editor - agora
+            // aparece no projetor no momento da revelacao. Opcional, so
+            // entra no payload se o professor preencheu.
+            if (($questaoAtual['explicacao'] ?? '') !== '') {
+                $payload['explicacao'] = $questaoAtual['explicacao'];
+            }
         }
     }
+}
+
+// Resumo por questao (acertos/erros/nao-responderam + distribuicao) - os
+// dados ja estao congelados nesse ponto (responder.php bloqueia escrita
+// fora de "respondendo"), so somem de verdade se o professor rodar
+// "Limpar" depois (T18), la no admin desktop.
+if ($fase === 'encerrada') {
+    $payload['resumo'] = resumoSessaoEncerrada($pdo, (int) $sessao['id'], (int) $sessao['prova_id']);
 }
 
 jsonResponder($payload);

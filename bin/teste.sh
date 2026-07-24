@@ -373,6 +373,87 @@ CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/index.php" | grep -o 'nam
 curl -s -b /tmp/quizsala-admin.txt -o /dev/null -X POST -d "acao=limpar&sessao_id=$SESSAO_ID3&csrf=$CSRF" "$BASE/admin/index.php"
 checar "sessao encerrada some depois de Limpar pelo admin desktop" "0" "$(sql "SELECT COUNT(*) FROM sessoes WHERE id=$SESSAO_ID3")"
 
+echo "=== Caso 38: questao.php salva e limpa o campo de duracao (cronometro) ==="
+CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/questao.php?prova_id=1&id=2" | grep -o 'name="csrf" value="[^"]*"' | head -1 | sed 's/.*value="\([^"]*\)"/\1/')
+curl -s -b /tmp/quizsala-admin.txt -o /dev/null -X POST -d "prova_id=1&id=2&enunciado=Pergunta 2&alt0=A&alt1=B&correta=1&duracao_segundos=30&csrf=$CSRF" "$BASE/admin/questao.php"
+checar "duracao gravada" "30" "$(sql "SELECT duracao_segundos FROM questoes WHERE id=2")"
+checar "editor reabre o campo de cronometro automaticamente" "1" "$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/questao.php?prova_id=1&id=2" | grep -c 'detalhe-explicacao" open')"
+CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/questao.php?prova_id=1&id=2" | grep -o 'name="csrf" value="[^"]*"' | head -1 | sed 's/.*value="\([^"]*\)"/\1/')
+curl -s -b /tmp/quizsala-admin.txt -o /dev/null -X POST -d "prova_id=1&id=2&enunciado=Pergunta 2&alt0=A&alt1=B&correta=1&duracao_segundos=&csrf=$CSRF" "$BASE/admin/questao.php"
+checar "duracao em branco vira NULL (sem cronometro)" "" "$(sql "SELECT duracao_segundos FROM questoes WHERE id=2")"
+checar "campo de cronometro fecha quando limpo" "0" "$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/questao.php?prova_id=1&id=2" | grep -c 'detalhe-explicacao" open')"
+
+echo "=== Caso 39: sessao isolada e descartavel - fase_iniciada_em, temporizador, explicacao e resumo final ==="
+# Prova propria pra este caso (nao reaproveita AULA01/CODIGO2/CODIGO3, que
+# ja acumulam estado de casos anteriores) - Q1 tem cronometro e sem
+# explicacao, Q2 tem explicacao e sem cronometro.
+sql_exec "INSERT INTO provas (titulo, publicada) VALUES ('Prova T24 isolada', 1)"
+IDPROVA24=$(sql "SELECT id FROM provas WHERE titulo='Prova T24 isolada'")
+sql_exec "INSERT INTO questoes (prova_id, enunciado, duracao_segundos, ordem) VALUES ($IDPROVA24, 'T24 Q1 com cronometro', 30, 1)"
+IDQ1_24=$(sql "SELECT id FROM questoes WHERE prova_id=$IDPROVA24 AND ordem=1")
+sql_exec "INSERT INTO alternativas (questao_id, texto, correta, ordem) VALUES ($IDQ1_24, 'Certa', 1, 1), ($IDQ1_24, 'Errada', 0, 2)"
+IDALT1_CERTA=$(sql "SELECT id FROM alternativas WHERE questao_id=$IDQ1_24 AND correta=1")
+IDALT1_ERRADA=$(sql "SELECT id FROM alternativas WHERE questao_id=$IDQ1_24 AND correta=0")
+sql_exec "INSERT INTO questoes (prova_id, enunciado, explicacao, ordem) VALUES ($IDPROVA24, 'T24 Q2 com explicacao', 'Porque a rede assim funciona', 2)"
+IDQ2_24=$(sql "SELECT id FROM questoes WHERE prova_id=$IDPROVA24 AND ordem=2")
+sql_exec "INSERT INTO alternativas (questao_id, texto, correta, ordem) VALUES ($IDQ2_24, 'Certa 2', 1, 1), ($IDQ2_24, 'Errada 2', 0, 2)"
+IDALT2_CERTA=$(sql "SELECT id FROM alternativas WHERE questao_id=$IDQ2_24 AND correta=1")
+
+# fase_iniciada_em=0 (sentinela claramente velho) - o proximo "iniciar" tem
+# que trocar esse valor por um carimbo recente.
+sql_exec "INSERT INTO sessoes (prova_id, codigo, token_professor, questao_atual, fase, fase_iniciada_em, versao) VALUES ($IDPROVA24, 'TESTE24', 'pt-teste24', 1, 'aguardando', 0, 0)"
+
+LOC5=$(curl -s -o /dev/null -D - -X POST -d "codigo=TESTE24" "$BASE/api/entrar.php" | grep -i '^location:' | tr -d '\r')
+T5=$(echo "$LOC5" | sed -n 's/.*t=\([0-9a-f]*\).*/\1/p')
+LOC6=$(curl -s -o /dev/null -D - -X POST -d "codigo=TESTE24" "$BASE/api/entrar.php" | grep -i '^location:' | tr -d '\r')
+T6=$(echo "$LOC6" | sed -n 's/.*t=\([0-9a-f]*\).*/\1/p')
+
+curl -s -X POST -H 'Content-Type: application/json' -d '{"codigo":"TESTE24","acao":"iniciar","versao_esperada":0,"token_professor":"pt-teste24"}' "$BASE/api/comando.php" > /dev/null
+FASE_INICIADA=$(sql "SELECT fase_iniciada_em FROM sessoes WHERE codigo='TESTE24'")
+AGORA=$(date +%s)
+checar "fase_iniciada_em atualizado ao iniciar (nao ficou no sentinela 0)" "true" "$([ "$FASE_INICIADA" -gt "$((AGORA - 5))" ] && echo true || echo false)"
+
+RESP=$(curl -s "$BASE/api/painel.php?codigo=TESTE24")
+checar "temporizador.duracao = 30 (Q1 com cronometro)" "30" "$(campo_json "$RESP" temporizador.duracao)"
+RESTANTE=$(campo_json "$RESP" temporizador.restante)
+checar "temporizador.restante recem-iniciado (<=30 e >25)" "true" "$([ "$RESTANTE" -le 30 ] && [ "$RESTANTE" -gt 25 ] && echo true || echo false)"
+
+sql_exec "UPDATE sessoes SET fase_iniciada_em = strftime('%s','now') - 999 WHERE codigo='TESTE24'"
+RESP=$(curl -s "$BASE/api/painel.php?codigo=TESTE24")
+checar "temporizador.restante nunca fica negativo (piso em 0)" "0" "$(campo_json "$RESP" temporizador.restante)"
+sql_exec "UPDATE sessoes SET fase_iniciada_em = strftime('%s','now') WHERE codigo='TESTE24'"
+
+curl -s -X POST -H 'Content-Type: application/json' -d "{\"token\":\"$T5\",\"alternativa_id\":$IDALT1_CERTA}" "$BASE/api/responder.php" > /dev/null
+curl -s -X POST -H 'Content-Type: application/json' -d "{\"token\":\"$T6\",\"alternativa_id\":$IDALT1_ERRADA}" "$BASE/api/responder.php" > /dev/null
+
+curl -s -X POST -H 'Content-Type: application/json' -d '{"codigo":"TESTE24","acao":"revelar","versao_esperada":1,"token_professor":"pt-teste24"}' "$BASE/api/comando.php" > /dev/null
+RESP=$(curl -s "$BASE/api/painel.php?codigo=TESTE24")
+checar "explicacao ausente na revelacao quando a questao nao tem (Q1)" "" "$(campo_json "$RESP" explicacao)"
+
+curl -s -X POST -H 'Content-Type: application/json' -d '{"codigo":"TESTE24","acao":"proxima","versao_esperada":2,"token_professor":"pt-teste24"}' "$BASE/api/comando.php" > /dev/null
+RESP=$(curl -s "$BASE/api/painel.php?codigo=TESTE24")
+checar "temporizador ausente quando a questao nao tem duracao (Q2)" "" "$(campo_json "$RESP" temporizador.duracao)"
+
+# So T5 responde a Q2 (certa) - T6 fica sem responder de proposito, pra
+# testar "naoResponderam" no resumo final.
+curl -s -X POST -H 'Content-Type: application/json' -d "{\"token\":\"$T5\",\"alternativa_id\":$IDALT2_CERTA}" "$BASE/api/responder.php" > /dev/null
+
+curl -s -X POST -H 'Content-Type: application/json' -d '{"codigo":"TESTE24","acao":"revelar","versao_esperada":3,"token_professor":"pt-teste24"}' "$BASE/api/comando.php" > /dev/null
+RESP=$(curl -s "$BASE/api/painel.php?codigo=TESTE24")
+checar "explicacao aparece na revelacao quando preenchida (Q2)" "Porque a rede assim funciona" "$(campo_json "$RESP" explicacao)"
+
+curl -s -X POST -H 'Content-Type: application/json' -d '{"codigo":"TESTE24","acao":"proxima","versao_esperada":4,"token_professor":"pt-teste24"}' "$BASE/api/comando.php" > /dev/null
+RESP=$(curl -s "$BASE/api/painel.php?codigo=TESTE24")
+checar "sem mais questoes -> fase encerrada" "encerrada" "$(campo_json "$RESP" fase)"
+checar "resumo.totalParticipantes = 2" "2" "$(campo_json "$RESP" resumo.totalParticipantes)"
+checar "resumo.totalQuestoes = 2" "2" "$(campo_json "$RESP" resumo.totalQuestoes)"
+checar "resumo Q1: 1 acerto" "1" "$(campo_json "$RESP" resumo.questoes.0.acertos)"
+checar "resumo Q1: 1 erro" "1" "$(campo_json "$RESP" resumo.questoes.0.erros)"
+checar "resumo Q1: 0 nao responderam" "0" "$(campo_json "$RESP" resumo.questoes.0.naoResponderam)"
+checar "resumo Q2: 1 acerto" "1" "$(campo_json "$RESP" resumo.questoes.1.acertos)"
+checar "resumo Q2: 0 erros" "0" "$(campo_json "$RESP" resumo.questoes.1.erros)"
+checar "resumo Q2: 1 nao respondeu (T6)" "1" "$(campo_json "$RESP" resumo.questoes.1.naoResponderam)"
+
 rm -f /tmp/quizsala-admin.txt /tmp/quizsala-admin-errado.txt
 
 echo ""

@@ -176,14 +176,14 @@ function duplicarProva(PDO $pdo, int $provaId): int
     $questoes = $stmt->fetchAll();
 
     $inserirQuestao = $pdo->prepare(
-        'INSERT INTO questoes (prova_id, enunciado, explicacao, ordem) VALUES (?, ?, ?, ?)'
+        'INSERT INTO questoes (prova_id, enunciado, explicacao, duracao_segundos, ordem) VALUES (?, ?, ?, ?, ?)'
     );
     $inserirAlternativa = $pdo->prepare(
         'INSERT INTO alternativas (questao_id, texto, correta, ordem) VALUES (?, ?, ?, ?)'
     );
 
     foreach ($questoes as $questao) {
-        $inserirQuestao->execute([$novaProvaId, $questao['enunciado'], $questao['explicacao'], $questao['ordem']]);
+        $inserirQuestao->execute([$novaProvaId, $questao['enunciado'], $questao['explicacao'], $questao['duracao_segundos'], $questao['ordem']]);
         $novaQuestaoId = (int) $pdo->lastInsertId();
 
         foreach (alternativasDaQuestao($pdo, (int) $questao['id']) as $alt) {
@@ -244,6 +244,74 @@ function moverQuestao(PDO $pdo, int $provaId, int $questaoId, int $direcao): voi
     $pdo->prepare('UPDATE questoes SET ordem = ? WHERE id = ?')->execute([(int) $b['ordem'], (int) $a['id']]);
     $pdo->prepare('UPDATE questoes SET ordem = ? WHERE id = ?')->execute([(int) $a['ordem'], (int) $b['id']]);
     $pdo->commit();
+}
+
+// Contagem de votos por alternativa de UMA questao - extraida de
+// painel.php porque o resumo final (resumoSessaoEncerrada) precisa rodar
+// esse mesmo calculo uma vez por questao, nao so pra questao atual.
+function distribuicaoQuestao(PDO $pdo, array $questao): array
+{
+    $alternativas = alternativasDaQuestao($pdo, (int) $questao['id']);
+    $stmtContagem = $pdo->prepare('SELECT COUNT(*) FROM respostas WHERE questao_id = ? AND alternativa_id = ?');
+
+    $distribuicao = [];
+    $acertos = 0;
+    $erros = 0;
+
+    foreach ($alternativas as $i => $alternativa) {
+        $stmtContagem->execute([$questao['id'], $alternativa['id']]);
+        $n = (int) $stmtContagem->fetchColumn();
+        $ehCorreta = (int) $alternativa['correta'] === 1;
+
+        $distribuicao[] = [
+            'letra' => letraAlternativa($i),
+            'texto' => $alternativa['texto'],
+            'n' => $n,
+            'correta' => $ehCorreta,
+        ];
+
+        if ($ehCorreta) {
+            $acertos += $n;
+        } else {
+            $erros += $n;
+        }
+    }
+
+    return ['distribuicao' => $distribuicao, 'acertos' => $acertos, 'erros' => $erros];
+}
+
+// Resumo pra fase=encerrada: uma vez por questao da prova, reusando
+// distribuicaoQuestao(). "naoResponderam" usa totalParticipantes (quem
+// entrou alguma vez), nao contarOnline() - depois de encerrada ninguem
+// manda mais heartbeat, contarOnline() daria ~0 pra todo mundo.
+function resumoSessaoEncerrada(PDO $pdo, int $sessaoId, int $provaId): array
+{
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM participantes WHERE sessao_id = ?');
+    $stmt->execute([$sessaoId]);
+    $totalParticipantes = (int) $stmt->fetchColumn();
+
+    $stmt = $pdo->prepare('SELECT * FROM questoes WHERE prova_id = ? ORDER BY ordem');
+    $stmt->execute([$provaId]);
+    $questoes = $stmt->fetchAll();
+
+    $itens = [];
+    foreach ($questoes as $questao) {
+        $r = distribuicaoQuestao($pdo, $questao);
+        $itens[] = [
+            'ordem' => (int) $questao['ordem'],
+            'enunciado' => $questao['enunciado'],
+            'distribuicao' => $r['distribuicao'],
+            'acertos' => $r['acertos'],
+            'erros' => $r['erros'],
+            'naoResponderam' => max(0, $totalParticipantes - ($r['acertos'] + $r['erros'])),
+        ];
+    }
+
+    return [
+        'totalParticipantes' => $totalParticipantes,
+        'totalQuestoes' => count($questoes),
+        'questoes' => $itens,
+    ];
 }
 
 // Resultado final do aluno (fase encerrada): placar e, por questao, o que
@@ -322,6 +390,11 @@ function validarQuestao(string $enunciado, array $alternativas, ?int $corretaInd
 
 // Cria (questaoId = 0) ou atualiza uma questao + suas alternativas.
 // Chamador ja validou com validarQuestao() antes de chegar aqui.
+// duracaoSegundos: cronometro opcional (null = sem cronometro). Parametro
+// no fim, com default, pra nao quebrar chamadas posicionais existentes
+// (importarProvaCsv() continua chamando sem ele de proposito - questao
+// importada por CSV nasce sem cronometro, o professor adiciona depois
+// pelo editor se quiser).
 function salvarQuestao(
     PDO $pdo,
     int $provaId,
@@ -329,19 +402,20 @@ function salvarQuestao(
     string $enunciado,
     array $alternativas,
     int $corretaIndice,
-    ?string $explicacao
+    ?string $explicacao,
+    ?int $duracaoSegundos = null
 ): int {
     if ($questaoId > 0) {
-        $pdo->prepare('UPDATE questoes SET enunciado = ?, explicacao = ? WHERE id = ?')
-            ->execute([$enunciado, $explicacao, $questaoId]);
+        $pdo->prepare('UPDATE questoes SET enunciado = ?, explicacao = ?, duracao_segundos = ? WHERE id = ?')
+            ->execute([$enunciado, $explicacao, $duracaoSegundos, $questaoId]);
         $pdo->prepare('DELETE FROM alternativas WHERE questao_id = ?')->execute([$questaoId]);
     } else {
         $stmt = $pdo->prepare('SELECT COALESCE(MAX(ordem), 0) FROM questoes WHERE prova_id = ?');
         $stmt->execute([$provaId]);
         $ordem = (int) $stmt->fetchColumn() + 1;
 
-        $pdo->prepare('INSERT INTO questoes (prova_id, enunciado, explicacao, ordem) VALUES (?, ?, ?, ?)')
-            ->execute([$provaId, $enunciado, $explicacao, $ordem]);
+        $pdo->prepare('INSERT INTO questoes (prova_id, enunciado, explicacao, duracao_segundos, ordem) VALUES (?, ?, ?, ?, ?)')
+            ->execute([$provaId, $enunciado, $explicacao, $duracaoSegundos, $ordem]);
         $questaoId = (int) $pdo->lastInsertId();
     }
 
