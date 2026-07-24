@@ -221,6 +221,7 @@ CODIGO2=$(echo "$LOC" | sed -n 's/.*codigo=\([A-Z0-9]*\).*/\1/p')
 PT2=$(echo "$LOC" | sed -n 's/.*pt=\([0-9a-f]*\).*/\1/p')
 checar "codigo novo diferente de AULA01" "true" "$([ "$CODIGO2" != "AULA01" ] && echo true || echo false)"
 checar "sessao nasce em fase aguardando" "aguardando" "$(sql "SELECT fase FROM sessoes WHERE codigo='$CODIGO2'")"
+checar "sessao real (nova-sessao.php) ja nasce ativa no projetor" "1" "$(sql "SELECT ativa FROM sessoes WHERE codigo='$CODIGO2'")"
 
 echo "=== Caso 23: respostas da sessao nova nao se misturam com AULA01 ==="
 curl -s -X POST -H 'Content-Type: application/json' -d "{\"codigo\":\"$CODIGO2\",\"acao\":\"iniciar\",\"versao_esperada\":0,\"token_professor\":\"$PT2\"}" "$BASE/api/comando.php" > /dev/null
@@ -239,6 +240,8 @@ echo "=== Caso 25: questoes.php 'testar prova' cria sessao e redireciona pro pai
 CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/questoes.php?prova_id=1" | grep -o 'name="csrf" value="[^"]*"' | head -1 | sed 's/.*value="\([^"]*\)"/\1/')
 LOC3=$(curl -s -b /tmp/quizsala-admin.txt -o /dev/null -D - -X POST -d "acao=testar&prova_id=1&csrf=$CSRF" "$BASE/admin/questoes.php" | grep -i '^location:' | tr -d '\r')
 checar "redireciona pra sessao.php com codigo e pt" "true" "$(echo "$LOC3" | grep -q 'sessao.php?codigo=.*&pt=' && echo true || echo false)"
+CODIGO_TESTAR=$(echo "$LOC3" | sed -n 's/.*codigo=\([A-Z0-9]*\).*/\1/p')
+checar "'testar prova' NAO ativa no projetor (e so pre-visualizacao)" "0" "$(sql "SELECT ativa FROM sessoes WHERE codigo='$CODIGO_TESTAR'")"
 
 echo "=== Caso 26: provas.php publica e despublica ==="
 # "Prova via teste" (Caso 20) nao tem sessao nenhuma - prova 1 ja tem uma

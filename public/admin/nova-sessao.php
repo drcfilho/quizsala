@@ -27,6 +27,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $erro = 'Identificação inválida.';
     } else {
         $sessao = criarSessao($pdo, $provaId, $identificacao);
+        // Sessao real de sala (diferente do "testar" em questoes.php, que e
+        // so pro professor pre-visualizar) - ja nasce escolhida pro projetor,
+        // senao tela.php ficava preso em "Aguardando o inicio da sessao" ate
+        // um segundo passo manual em admin/index.php ("Ativar no projetor").
+        ativarSessao($pdo, $sessao['id']);
         header('Location: sessao.php?codigo=' . $sessao['codigo'] . '&pt=' . $sessao['token_professor']);
         exit;
     }
