@@ -60,7 +60,7 @@ Guarde esse link do controle — ele tem um token de professor embutido na URL (
 | **Iniciar prova** | Sai de "aguardando" e libera a primeira questão |
 | **Revelar** | Mostra acertos/erros e a distribuição por alternativa — no projetor e pro aluno |
 | **Próxima questão** | Avança; se era a última, encerra a prova sozinho |
-| **Encerrar** | Força o fim a qualquer momento — vira o botão de escape, sempre disponível |
+| **Parar prova** | Força o fim a qualquer momento — inclusive antes de "Iniciar prova", se você abriu a sessão errada — vira o botão de escape, sempre disponível |
 
 O contador **"X online · Y responderam"** fica visível o tempo todo. Quando bater 100%, o botão **Revelar** ganha um destaque (borda) — só um sinal, ele nunca dispara sozinho.
 

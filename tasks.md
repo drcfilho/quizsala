@@ -557,6 +557,17 @@ foreach($p->query("SELECT ordem, enunciado FROM questoes WHERE prova_id=2 ORDER 
 
 ---
 
+**Revisão pós-T24, a pedido do usuário:** dois ajustes pequenos no botão de "Encerrar"/`acao=encerrar`, sem mexer no comportamento de servidor (`comando.php` já aceitava essa ação de qualquer fase, D6).
+
+1. **Faltava o botão antes de "Iniciar prova".** `admin.js` só renderizava a Zona de Risco (Encerrar) depois da sessão sair de `aguardando` — se o professor abrisse a sessão errada (prova errada, turma errada), não tinha como fechar antes de iniciar, só deixar aberta. Agora a fase `aguardando` também mostra a Zona de Risco. Coberto por um caso novo em `bin/teste.sh`: sessão descartável criada direto em `aguardando`, `acao=encerrar` chamada sem nunca ter iniciado, confere que a fase vira `encerrada` no banco.
+2. **Rótulo do botão virou "Parar prova".** "Encerrar" soava mais definitivo/destrutivo do que a ação realmente é — o usuário achou que podia estar sendo confundido com "Limpar" (que apaga dados de verdade). A ação no servidor continua se chamando `encerrar` (nome interno, sem mudar API/schema); só o texto que o professor vê em `admin.js` (`ROTULOS_ACAO`) e o texto do `confirm()` mudaram. `MANUAL.md` e `mapa-urls-teste.html` atualizados pra bater com o rótulo novo.
+
+**Como testar** `bash bin/teste.sh` — 98/98 (Caso 40 novo). No navegador: `admin/sessao.php` na fase `aguardando` mostra "Iniciar prova" + Zona de Risco com "Parar prova" logo abaixo, mesmo antes de qualquer questão começar.
+
+**Pronto quando** o botão de escape existe em toda fase (inclusive antes de iniciar) e o rótulo em toda a UI (e na documentação) diz "Parar prova", não "Encerrar". **Confirmado.**
+
+---
+
 ## T19 · Documento de setup *(concluída)*
 
 **Arquivos:** `SETUP.md`
