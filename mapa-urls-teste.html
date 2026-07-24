@@ -5,19 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>QuizSala — Mapa de URLs de teste</title>
 <style>
-  body { font-family: system-ui, sans-serif; max-width: 40rem; margin: 2rem auto; padding: 0 1rem; color: #14171c; }
+  body { font-family: system-ui, sans-serif; max-width: 42rem; margin: 2rem auto; padding: 0 1rem; color: #14171c; line-height: 1.5; }
   h1 { font-size: 1.4rem; }
-  h2 { font-size: 1.1rem; margin-top: 2rem; border-bottom: 1px solid #dcd9d2; padding-bottom: 0.3rem; }
+  h2 { font-size: 1.1rem; margin-top: 2.2rem; border-bottom: 1px solid #dcd9d2; padding-bottom: 0.3rem; }
   code { background: #f2f1ed; padding: 0.1rem 0.35rem; border-radius: 0.25rem; font-size: 0.9em; }
   a.url { display: block; margin: 0.4rem 0; font-family: ui-monospace, monospace; font-size: 0.95em; word-break: break-all; }
   .nota { color: #767c86; font-size: 0.9em; }
   .aviso { background: #fbeceb; border: 1px solid #d9342b; border-radius: 0.4rem; padding: 0.75rem 1rem; margin: 1rem 0; }
+  .estado { display: inline-block; font-family: ui-monospace, monospace; font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.05rem 0.4rem; border-radius: 999px; border: 1px solid #767c86; color: #767c86; }
+  .estado.ao-vivo { border-color: #1e7a34; color: #1e7a34; }
+  table { border-collapse: collapse; width: 100%; margin: 0.5rem 0 1rem; font-size: 0.9em; }
+  th, td { text-align: left; padding: 0.3rem 0.6rem 0.3rem 0; border-bottom: 1px solid #dcd9d2; vertical-align: top; }
+  th { color: #767c86; font-weight: 600; font-size: 0.85em; }
 </style>
 </head>
 <body>
 
 <h1>QuizSala — Mapa de URLs de teste</h1>
-<p class="nota">Só URLs de teste local por enquanto (servidor <code>php -S</code> na própria máquina). Atualizado em 2026-07-24 com o banco <strong>em uso real</strong> (não um <code>bin/init-db.php</code> recém-rodado) — por isso os exemplos abaixo já não são a sala-semente <code>AULA01</code>, e sim sessões criadas de verdade pela interface. Código de sala e token do professor mudam a cada sessão nova; a <strong>senha do admin não muda</strong> (só é gerada na primeira vez, ver seção 4).</p>
+<p class="nota">Só URLs de teste local (servidor <code>php -S</code> na própria máquina). Atualizado em 2026-07-24, depois da T24 (cronômetro, explicação, resumo final e timeout do aluno) — banco recém-recriado com <code>bin/init-db.php</code> + uma segunda sessão de exemplo criada só pra esta página mostrar o estado <code>aguardando</code>. Código de sala e token do professor mudam a cada sessão nova; a <strong>senha do admin não muda</strong> (só é gerada na primeira vez, ver seção 4).</p>
 
 <div class="aviso">
 Servidor de teste: <code>cd public &amp;&amp; php -S 127.0.0.1:8080</code>. Todas as URLs abaixo assumem esse endereço.
@@ -26,38 +31,51 @@ Servidor de teste: <code>cd public &amp;&amp; php -S 127.0.0.1:8080</code>. Toda
 <h2>1. Aluno</h2>
 <p class="nota">Entrada pública — qualquer um com o código da sala chega aqui.</p>
 <a class="url" href="http://127.0.0.1:8080/index.php">http://127.0.0.1:8080/index.php</a>
-<p class="nota">Digitar o código de uma sessão ativa (exemplo de agora: <code>6PUTWL</code>, em andamento, ou <code>U8T2HB</code>, aguardando o professor iniciar). Depois disso o fluxo continua em <code>prova.php#t=&lt;token do aluno&gt;</code> — token gerado na hora, não é uma URL fixa.</p>
+<p class="nota">Digitar o código de uma sessão ativa: <code>AULA01</code> <span class="estado ao-vivo">respondendo</span> (anônimo, sem pedir nome) ou <code>8GXACA</code> <span class="estado">aguardando</span> (com nome — pede o nome do aluno ao entrar). Depois de entrar, o fluxo continua em <code>prova.php#t=&lt;token do aluno&gt;</code>, um token gerado na hora, não uma URL fixa.</p>
+<a class="url" href="http://127.0.0.1:8080/index.php?s=AULA01">http://127.0.0.1:8080/index.php?s=AULA01</a> — link direto (é pra isso que serve o <code>?s=</code>: o QR Code da tela de espera aponta aqui), pré-preenche o código, só falta clicar Entrar
+<p class="nota"><code>index.php?erro=codigo</code> e <code>?erro=nome</code> são os dois avisos que a própria tela mostra quando <code>api/entrar.php</code> redireciona de volta (código inexistente/encerrado, ou sessão que exige nome e nenhum foi digitado) — não precisam ser abertos à mão.</p>
 
 <h2>2. Painel do projetor</h2>
-<p class="nota">Tela só de leitura, sem interação — fica projetada na parede. Na fase <code>aguardando</code> mostra o QR Code (T16) em vez da questão.</p>
-<a class="url" href="http://127.0.0.1:8080/tela.php">http://127.0.0.1:8080/tela.php</a> — <strong>sem código</strong>, acha sozinho a sessão ativa mais recente (novo — descoberta automática, ver seção 5b) e volta a procurar se ela sumir
-<a class="url" href="http://127.0.0.1:8080/tela.php?codigo=6PUTWL">http://127.0.0.1:8080/tela.php?codigo=6PUTWL</a> — código explícito, trava nessa sessão (prova em andamento)
-<a class="url" href="http://127.0.0.1:8080/tela.php?codigo=U8T2HB">http://127.0.0.1:8080/tela.php?codigo=U8T2HB</a> — código explícito, tela de espera com QR
+<p class="nota">Tela só de leitura, sem interação — fica projetada na parede.</p>
+<a class="url" href="http://127.0.0.1:8080/tela.php">http://127.0.0.1:8080/tela.php</a> — <strong>sem código</strong>, acha sozinho a sessão ativa mais recente (<code>api/sessao-ativa.php</code>) e volta a procurar se ela sumir
+<a class="url" href="http://127.0.0.1:8080/tela.php?codigo=AULA01">http://127.0.0.1:8080/tela.php?codigo=AULA01</a> — código explícito, trava nessa sessão: prova em andamento (contador "responderam" ao vivo; se a questão atual tiver cronômetro configurado, aparece a contagem regressiva também)
+<a class="url" href="http://127.0.0.1:8080/tela.php?codigo=8GXACA">http://127.0.0.1:8080/tela.php?codigo=8GXACA</a> — código explícito, tela de espera com QR Code + contador de quantos já entraram
 
 <h2>3. Controle do professor (sessão)</h2>
-<p class="nota">Token de sessão — muda a cada sessão nova (<code>admin/nova-sessao.php</code>). Valores de agora:</p>
-<a class="url" href="http://127.0.0.1:8080/admin/sessao.php?codigo=6PUTWL&pt=0e093004f6dac344cec1d27338b0e51a">http://127.0.0.1:8080/admin/sessao.php?codigo=6PUTWL&amp;pt=0e093004f6dac344cec1d27338b0e51a</a>
-<a class="url" href="http://127.0.0.1:8080/admin/sessao.php?codigo=U8T2HB&pt=af026d86378f86f14b1b2bc7c9b562ae">http://127.0.0.1:8080/admin/sessao.php?codigo=U8T2HB&amp;pt=af026d86378f86f14b1b2bc7c9b562ae</a>
-<p class="nota">Sem o <code>?pt=...</code> correto, o painel carrega mas nenhum botão funciona (403). Essa tela continua isolada, mobile-first (T22) — não usa o menu lateral do resto do admin.</p>
+<p class="nota">Token de sessão — muda a cada sessão nova (<code>admin/nova-sessao.php</code>). Sem o <code>?pt=...</code> correto, o painel carrega mas nenhum botão funciona (403). Essa tela continua isolada, mobile-first (design.md §7 — professor comanda andando pela sala) — não usa o menu lateral do resto do admin. Valores de agora:</p>
+<a class="url" href="http://127.0.0.1:8080/admin/sessao.php?codigo=AULA01&pt=335cb31e9386cb72ef66d96e4251e6e2">http://127.0.0.1:8080/admin/sessao.php?codigo=AULA01&amp;pt=335cb31e9386cb72ef66d96e4251e6e2</a> — botão disponível: <em>Revelar</em> (e a Zona de Risco: <em>Encerrar</em>)
+<a class="url" href="http://127.0.0.1:8080/admin/sessao.php?codigo=8GXACA&pt=189cc452967f5cdd021abe9821ca5900">http://127.0.0.1:8080/admin/sessao.php?codigo=8GXACA&amp;pt=189cc452967f5cdd021abe9821ca5900</a> — botão disponível: <em>Iniciar prova</em>
 
-<h2>4. Admin (provas e sessões)</h2>
-<p class="nota">Protegido por senha única (<code>db/admin.senha</code>, fora do git). <strong>Essa senha é estável</strong> — <code>bin/init-db.php</code> só gera uma nova se o arquivo não existir, então continua valendo mesmo depois de recriar o banco. Valor de agora: <code>55c2c99472b4af40</code>. Desde o T22, todas as páginas abaixo dividem um menu lateral fixo (<code>src/admin_layout.php</code>).</p>
-<a class="url" href="http://127.0.0.1:8080/admin/index.php">http://127.0.0.1:8080/admin/index.php</a> — sessões ativas
-<a class="url" href="http://127.0.0.1:8080/admin/provas.php">http://127.0.0.1:8080/admin/provas.php</a> — listar/criar/publicar/excluir provas
-<a class="url" href="http://127.0.0.1:8080/admin/nova-sessao.php">http://127.0.0.1:8080/admin/nova-sessao.php</a> — abrir sessão nova
-<a class="url" href="http://127.0.0.1:8080/admin/importar-csv.php">http://127.0.0.1:8080/admin/importar-csv.php</a> — importar prova de CSV
-<a class="url" href="http://127.0.0.1:8080/admin/senha.php">http://127.0.0.1:8080/admin/senha.php</a> — trocar a senha do admin (T09e)
+<h2>4. Admin — conteúdo (desktop-first, menu lateral fixo)</h2>
+<p class="nota">Protegido por senha única (<code>db/admin.senha</code>, fora do git). <strong>Essa senha é estável</strong> — <code>bin/init-db.php</code> só gera uma nova se o arquivo não existir. Valor de agora: <code>55c2c99472b4af40</code>.</p>
+<a class="url" href="http://127.0.0.1:8080/admin/index.php">http://127.0.0.1:8080/admin/index.php</a> — sessões ativas + encerradas (botão <em>Limpar</em> nas encerradas)
+<a class="url" href="http://127.0.0.1:8080/admin/provas.php">http://127.0.0.1:8080/admin/provas.php</a> — listar/criar/publicar/despublicar/duplicar/excluir provas
+<a class="url" href="http://127.0.0.1:8080/admin/questoes.php?prova_id=1">http://127.0.0.1:8080/admin/questoes.php?prova_id=1</a> — questões da prova "Redes de computadores" (reordenar, excluir, testar, publicar)
+<a class="url" href="http://127.0.0.1:8080/admin/questao.php?prova_id=1&id=1">http://127.0.0.1:8080/admin/questao.php?prova_id=1&amp;id=1</a> — editar a questão 1 (enunciado, alternativas, explicação, cronômetro)
+<a class="url" href="http://127.0.0.1:8080/admin/questao.php?prova_id=1">http://127.0.0.1:8080/admin/questao.php?prova_id=1</a> — nova questão (mesma tela, sem <code>id</code>)
+<a class="url" href="http://127.0.0.1:8080/admin/nova-sessao.php">http://127.0.0.1:8080/admin/nova-sessao.php</a> — abrir sessão nova (só lista provas publicadas)
+<a class="url" href="http://127.0.0.1:8080/admin/importar-csv.php">http://127.0.0.1:8080/admin/importar-csv.php</a> — importar prova de um CSV (exemplo em <code>public/exemplos/exemplo-prova.csv</code>)
+<a class="url" href="http://127.0.0.1:8080/admin/senha.php">http://127.0.0.1:8080/admin/senha.php</a> — trocar a senha do admin
 
-<h2>5. QR Code (T15)</h2>
-<p class="nota">PNG gerado na hora, sem depender de internet. Aponta pra <code>index.php?s=CODIGO</code> usando o mesmo host:porta que carregou a página.</p>
-<a class="url" href="http://127.0.0.1:8080/api/qr.php?codigo=U8T2HB">http://127.0.0.1:8080/api/qr.php?codigo=U8T2HB</a>
+<h2>5. APIs (uso interno — o JS já chama sozinho)</h2>
+<p class="nota">Útil abrir direto só pra depurar o JSON cru.</p>
+<a class="url" href="http://127.0.0.1:8080/api/painel.php?codigo=AULA01">http://127.0.0.1:8080/api/painel.php?codigo=AULA01</a> — payload que <code>tela.js</code> e <code>admin.js</code> fazem poll a cada 2s (muda de formato por <code>fase</code>: <code>temporizador</code> só existe em <code>respondendo</code> com cronômetro configurado; <code>distribuicao</code>/<code>explicacao</code> só em <code>revelado</code>; <code>resumo</code> só em <code>encerrada</code>)
+<a class="url" href="http://127.0.0.1:8080/api/sessao-ativa.php">http://127.0.0.1:8080/api/sessao-ativa.php</a> — devolve só o <code>codigo</code> da sessão não-encerrada mais recente (nunca o <code>token_professor</code>) — é o que <code>tela.php</code> sem código usa
+<a class="url" href="http://127.0.0.1:8080/api/qr.php?codigo=8GXACA">http://127.0.0.1:8080/api/qr.php?codigo=8GXACA</a> — PNG gerado na hora (sem depender de internet), aponta pra <code>index.php?s=CODIGO</code> usando o mesmo host:porta que carregou a página
+<p class="nota"><code>api/entrar.php</code> (POST), <code>api/estado.php?token=...</code> (poll do aluno), <code>api/responder.php</code> (POST) e <code>api/comando.php</code> (POST, ações do professor) não têm um GET útil pra abrir direto — são chamados pelo JS de <code>index.php</code>, <code>prova.php</code> e <code>admin/sessao.php</code> respectivamente.</p>
 
-<h2>5b. Descoberta automática de sessão</h2>
-<p class="nota">Usado por <code>tela.php</code> sem código (seção 2) — devolve só o <code>codigo</code> da sessão não-encerrada mais recente, nunca o <code>token_professor</code>.</p>
-<a class="url" href="http://127.0.0.1:8080/api/sessao-ativa.php">http://127.0.0.1:8080/api/sessao-ativa.php</a>
+<h2>6. Referência rápida por página</h2>
+<table>
+<tr><th>Tela</th><th>Quem usa</th><th>Precisa de</th></tr>
+<tr><td><code>index.php</code></td><td>Aluno</td><td>nada</td></tr>
+<tr><td><code>prova.php</code></td><td>Aluno</td><td><code>#t=token</code> (vem de <code>entrar.php</code>)</td></tr>
+<tr><td><code>tela.php</code></td><td>Projetor</td><td>nada (ou <code>?codigo=</code> pra travar numa sessão)</td></tr>
+<tr><td><code>admin/sessao.php</code></td><td>Professor · celular</td><td><code>?codigo=&amp;pt=</code></td></tr>
+<tr><td><code>admin/*.php</code> (resto)</td><td>Professor · desktop</td><td>login com a senha do admin</td></tr>
+</table>
 
-<h2>6. Manual de uso</h2>
-<p class="nota">Passo a passo completo (criar prova, publicar, abrir sessão, aplicar em aula) em <a href="MANUAL.md"><code>MANUAL.md</code></a>.</p>
+<h2>7. Fluxograma e manual</h2>
+<p class="nota">Passo a passo completo (criar prova, publicar, abrir sessão, aplicar em aula) em <a href="MANUAL.md"><code>MANUAL.md</code></a>. Fluxograma visual com todas as opções de navegação: ver o artifact publicado nesta conversa.</p>
 
 </body>
 </html>
