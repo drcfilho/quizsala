@@ -10,6 +10,17 @@ var params = new URLSearchParams(location.search);
 var codigo = params.get('codigo');
 var contextoRenderizado = null;
 
+// Achado pelo usuario testando de verdade: iniciar.bat sempre abria um
+// codigo fixo (AULA01), que quebra assim que essa sessao semente for
+// limpa (T18) ou nunca tiver existido - a tela travava num "codigo nao
+// encontrado" seco, exigindo editar a URL na mao. Sem "?codigo=" na URL,
+// a tela descobre sozinha qual sessao mostrar (api/sessao-ativa.php) e
+// volta a procurar se a sessao que estava mostrando sumir no meio do
+// caminho. Um link com ?codigo= explicito continua estrito - erro de
+// verdade se nao existir (comportamento previsível pra teste manual, ver
+// mapa-urls-teste.html).
+var codigoExplicito = !!codigo;
+
 function prefereReduzirMovimento() {
     return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
@@ -128,6 +139,17 @@ function renderizarEspera(container, dados) {
     container.appendChild(entrada);
 }
 
+function renderizarProcurando(container) {
+    var titulo = document.createElement('p');
+    titulo.className = 'titulo-espera';
+    var pulso = document.createElement('span');
+    pulso.className = 'pulso-ao-vivo';
+    pulso.setAttribute('aria-hidden', 'true');
+    titulo.appendChild(pulso);
+    titulo.appendChild(document.createTextNode('Procurando uma sessão ativa...'));
+    container.appendChild(titulo);
+}
+
 function renderizarResultado(container, dados) {
     var resumo = document.createElement('p');
     resumo.className = 'resumo-resultado';
@@ -227,8 +249,16 @@ function renderizar(dados) {
     }
 
     if (dados.erro) {
-        painel.dataset.fase = 'erro';
         contextoRenderizado = null;
+        if (!codigoExplicito) {
+            // sessao que estava sendo mostrada sumiu (ex.: "Encerrar e
+            // limpar", T18) - volta a procurar em vez de travar num erro.
+            codigo = null;
+            painel.dataset.fase = 'procurando';
+            renderizarProcurando(container);
+            return;
+        }
+        painel.dataset.fase = 'erro';
         mensagem(container, 'Código de sala não encontrado.');
         return;
     }
@@ -267,7 +297,52 @@ function renderizar(dados) {
     }
 }
 
+function atualizarUrlComCodigo(novoCodigo) {
+    if (!window.history || !window.history.replaceState) {
+        return;
+    }
+    var url = new URL(location.href);
+    url.searchParams.set('codigo', novoCodigo);
+    window.history.replaceState(null, '', url);
+}
+
+function procurarSessao() {
+    fetch('api/sessao-ativa.php')
+        .then(function (resp) { return resp.json(); })
+        .then(function (dados) {
+            var painel = document.getElementById('painel');
+
+            if (dados.codigo) {
+                codigo = dados.codigo;
+                atualizarUrlComCodigo(codigo);
+                painel.dataset.fase = 'carregando';
+                contextoRenderizado = null;
+                poll();
+                return;
+            }
+
+            // Ainda nada pra mostrar - so redesenha se acabou de entrar
+            // nesse estado (senao pisca o pulso a cada poll a toa).
+            if (painel.dataset.fase !== 'procurando') {
+                var container = document.getElementById('conteudo-painel');
+                while (container.firstChild) {
+                    container.removeChild(container.firstChild);
+                }
+                painel.dataset.fase = 'procurando';
+                renderizarProcurando(container);
+            }
+        })
+        .catch(function () {
+            // rede instavel: tenta de novo no proximo ciclo
+        });
+}
+
 function poll() {
+    if (!codigo) {
+        procurarSessao();
+        return;
+    }
+
     fetch('api/painel.php?codigo=' + encodeURIComponent(codigo))
         .then(function (resp) { return resp.json(); })
         .then(renderizar)
@@ -276,9 +351,5 @@ function poll() {
         });
 }
 
-if (!codigo) {
-    mensagem(document.getElementById('conteudo-painel'), 'Informe o código da sala na URL (?codigo=AULA01).');
-} else {
-    poll();
-    setInterval(poll, INTERVALO_POLL_MS);
-}
+poll();
+setInterval(poll, INTERVALO_POLL_MS);

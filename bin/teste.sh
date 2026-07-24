@@ -344,6 +344,18 @@ checar "participantes da AULA01 sumiram (cascade)" "0" "$(sql "SELECT COUNT(*) F
 checar "participante de outra sessao (CODIGO2) nao foi afetado" "1" "$(sql "SELECT COUNT(*) FROM participantes")"
 checar "prova continua existindo" "1" "$(sql "SELECT COUNT(*) FROM provas WHERE id=1")"
 
+echo "=== Caso 36: api/sessao-ativa.php devolve uma sessao nao-encerrada de verdade (ou null) ==="
+# AULA01 acabou de sumir (linha acima) - CODIGO2 (Caso 22-23) continua por
+# ai. Checagem robusta ao estado exato: o codigo devolvido (se houver) tem
+# que ser uma sessao nao-encerrada de verdade no banco; sem codigo, tem que
+# ser porque nao sobrou nenhuma.
+CODIGO_ATIVO=$(curl -s "$BASE/api/sessao-ativa.php" | php -r '$d=json_decode(file_get_contents("php://stdin"),true); echo $d["codigo"] ?? "";')
+if [ -z "$CODIGO_ATIVO" ]; then
+    checar "sem sessao ativa -> banco nao tem nenhuma nao-encerrada" "0" "$(sql "SELECT COUNT(*) FROM sessoes WHERE fase != 'encerrada'")"
+else
+    checar "codigo devolvido ($CODIGO_ATIVO) existe e nao esta encerrado" "1" "$(sql "SELECT COUNT(*) FROM sessoes WHERE codigo='$CODIGO_ATIVO' AND fase != 'encerrada'")"
+fi
+
 rm -f /tmp/quizsala-admin.txt /tmp/quizsala-admin-errado.txt
 
 echo ""
