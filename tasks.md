@@ -533,13 +533,15 @@ Não é código. É a tarefa que decide se a v1 acabou.
 
 ## Resumo
 
-| Bloco | Tarefas | Horas | Você consegue, ao terminar |
+| Bloco | Tarefas | Status | Você consegue, ao terminar |
 |---|---|---|---|
-| A — Projetor | T01–T04 | 5 | Aplicar uma questão avulsa, comandando pelo notebook |
-| B — Controle | T05–T08 | 4 | Aplicar prova inteira pelo celular, em várias turmas |
-| C — Admin | T09–T14 | 7 | Criar conteúdo sem tocar no banco |
-| D — Operação | T15–T20 | 7 | Entregar para outro professor usar |
+| A — Projetor | T01–T04, T04b | **Completo** (T04 falta validar em projetor físico real) | Aplicar uma questão avulsa, comandando pelo notebook; aluno vê placar/comprovante/agradecimento ao final |
+| B — Controle | T05–T08 | **Completo** | Aplicar prova inteira pelo celular, abrindo sessões novas pra turmas diferentes |
+| C — Admin | T09–T14, T09b–T09d | **Completo** (T14 falta validar em celular físico real) | Criar conteúdo sem tocar no banco — manual, por CSV, ou duplicando; publicar/despublicar/excluir com trava de segurança |
+| D — Operação | T15–T20 | **Parcial** — feito: T17 (scripts de partida), T19 (`SETUP.md`). Falta: T15–T16 (QR Code), T18 (encerrar/limpar sessão pelo admin), T20 (ensaio com turma real) | Entregar para outro professor usar |
 
-**23 horas.** Depois de qualquer tarefa o sistema fica utilizável — parar no T04 já dá uma ferramenta de aula, mais rústica.
+**Além do plano original**, a pedido do usuário: T04b (placar/comprovante/agradecimento do aluno), T09b (importar CSV), T09c (explicação da resposta certa), T09d (publicar/despublicar/editar/excluir prova, com trava contra despublicar prova já iniciada). Documentado em cada tarefa e em `arquitetura.md` §9.
 
-O ponto de decisão real é o **T03**: é ali que o número aparece na parede e você descobre se a ideia funciona com gente de verdade. Se a reação da turma não vier, vale repensar o conceito antes de investir as 18 horas restantes.
+**Também pendente, fora da numeração T01–T20:** timer configurável por questão (duração definida no editor, botão "Iniciar tempo", bloqueia resposta até iniciar, não revela sozinho ao esgotar, marca "não respondeu" no banco) — pedido do usuário antes do Bloco C, adiado explicitamente pra depois do editor de questões existir. Ainda não implementado.
+
+O ponto de decisão real já passou: **T03** (revelação com acertos/erros) está no ar desde cedo — é o teste com a turma real (**T20**) que falta pra confirmar se a ideia funciona fora do ambiente de desenvolvimento.
