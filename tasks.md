@@ -486,6 +486,26 @@ foreach($p->query("SELECT ordem, enunciado FROM questoes WHERE prova_id=2 ORDER 
 
 ---
 
+## T16b · Projetor descobre a sessão ativa sozinho *(concluída)*
+
+**Não estava no plano original — achado pelo usuário testando de verdade com `iniciar.bat`.**
+
+**Entrega:** o script de partida sempre abria `tela.php?codigo=AULA01` fixo. Isso quebra assim que essa sessão semente é limpa (T18) ou nunca existiu — a tela travava em "Código de sala não encontrado", um beco sem saída que exigia editar a URL na mão pra apontar pro código de verdade (gerado na hora, aleatório, T08).
+
+**Arquivos:** `public/api/sessao-ativa.php` *(novo)*, `public/assets/tela.js`, `iniciar.ps1`, `iniciar.sh`
+
+**Como:**
+- `api/sessao-ativa.php`: devolve o `codigo` da sessão não-encerrada mais recente (`ORDER BY id DESC LIMIT 1`), ou `null`. Sem autenticação (mesmo padrão de `api/painel.php`) — só devolve o código, que é público por natureza; nunca o `token_professor`.
+- `tela.js`: sem `?codigo=` na URL, entra em "modo descoberta" — poll em `api/sessao-ativa.php` até achar algo, mostrando uma tela com o mesmo pulso "ao vivo" do T21 ("Procurando uma sessão ativa..."). Ao achar, atualiza a URL via `history.replaceState` (sem recarregar a página) e passa a pollar `api/painel.php` normalmente. **Se a sessão que estava mostrando sumir** (ex.: professor faz "Encerrar e limpar" e abre outra depois), volta sozinho pro modo descoberta — nunca mais precisa editar a URL na mão.
+- **Um link com `?codigo=` explícito continua estrito** — erro de verdade se não existir. Decisão deliberada: os links de teste manual em `mapa-urls-teste.html` (e qualquer QA que precise apontar pra uma sessão específica com mais de uma ativa) dependem desse comportamento previsível.
+- `iniciar.ps1`/`iniciar.sh` param de abrir um código fixo — abrem só `tela.php`, a descoberta faz o resto.
+
+**Como testar** `bash bin/teste.sh` Caso 36: `api/sessao-ativa.php` sempre devolve ou um código que existe de verdade e não está encerrado, ou `null` quando o banco não tem nenhuma sessão não-encerrada (checagem robusta ao estado exato do banco, não a um valor fixo). Testado ponta a ponta no navegador: `tela.php` sem código descobre `AULA01` sozinho e atualiza a URL; ao apagar essa sessão (`comando.php acao=limpar`) a tela cai pra "Procurando uma sessão ativa..." sozinha; ao criar uma sessão nova, ela é descoberta e mostrada automaticamente, sem nenhuma ação manual. Link com código inválido explícito continua mostrando o erro estrito.
+
+**Pronto quando** o professor nunca mais precisa editar a URL do projetor na mão, em nenhum cenário — sessão nova, sessão limpa, ou primeira vez usando o sistema. **Confirmado.**
+
+---
+
 ## T17 · Script de partida e de parada *(concluída)*
 
 **Arquivos:** `iniciar.bat`, `iniciar.ps1` — pedido do usuário trocou `iniciar.sh` por `iniciar.ps1` (ambiente é Windows; o `.bat` só chama o `.ps1`, pra não duplicar a lógica de detecção de IP/PHP em dois dialetos de shell).

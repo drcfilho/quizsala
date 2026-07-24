@@ -2,7 +2,7 @@
 
 Ferramenta de aula: o professor aplica uma prova de múltipla escolha numa sala sem internet, cada aluno responde pelo próprio celular, e a contagem de acertos e erros aparece na hora na tela projetada.
 
-Documentação completa de arquitetura e decisões em [`arquitetura.md`](arquitetura.md). Fases, marcos e critério de pronto da v1 em [`plan.md`](plan.md). Quebra de tarefas em [`tasks.md`](tasks.md). Guia de instalação e checklist de aula em [`SETUP.md`](SETUP.md).
+Documentação completa de arquitetura e decisões em [`arquitetura.md`](arquitetura.md). Fases, marcos e critério de pronto da v1 em [`plan.md`](plan.md). Quebra de tarefas em [`tasks.md`](tasks.md). Guia de instalação e checklist de aula em [`SETUP.md`](SETUP.md). **Manual de uso do dia a dia (criar prova, publicar, aplicar em aula) em [`MANUAL.md`](MANUAL.md).**
 
 ## Estado atual
 
@@ -48,6 +48,7 @@ arquitetura.md   arquitetura, decisões travadas e contrato da API
 plan.md          fases, marcos e critério de pronto da v1
 tasks.md         quebra de tarefas por bloco, com passos e critérios de verificação
 SETUP.md         instalação, configuração de rede/firewall, checklist de aula
+MANUAL.md        manual de uso: criar prova, publicar, abrir sessão, aplicar em aula
 PRODUCT.md       registro, públicos, personalidade e princípios de design
 DESIGN.md        sistema visual: cores, tipografia, elevação, componentes
 ```

@@ -66,7 +66,7 @@ echo ""
 echo "==================================================="
 echo " QuizSala rodando em http://$IP:8080"
 echo " Aluno entra em:   http://$IP:8080/index.php"
-echo " Projetor:         http://$IP:8080/tela.php?codigo=AULA01"
+echo " Projetor:         http://$IP:8080/tela.php  (acha a sessao ativa sozinho)"
 echo " Admin de provas:  http://$IP:8080/admin/index.php"
 echo "==================================================="
 echo ""
@@ -74,8 +74,12 @@ echo "Deixe este terminal aberto - Ctrl+C encerra o servidor."
 echo "(Ou rode ./parar.sh de outro terminal antes de desligar a maquina.)"
 echo ""
 
+# Sem "?codigo=" fixo de proposito (achado testando de verdade): o codigo
+# da sessao e gerado na hora (T08) e muda toda vez - abrir sempre um valor
+# fixo (ex.: AULA01) quebrava assim que essa sessao semente sumia. tela.php
+# sem codigo descobre sozinho qual sessao mostrar (api/sessao-ativa.php).
 if command -v xdg-open > /dev/null 2>&1; then
-    xdg-open "http://$IP:8080/tela.php?codigo=AULA01" > /dev/null 2>&1 &
+    xdg-open "http://$IP:8080/tela.php" > /dev/null 2>&1 &
 fi
 
 cd public

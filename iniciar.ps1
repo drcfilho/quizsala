@@ -62,14 +62,18 @@ Write-Host ""
 Write-Host "===================================================" -ForegroundColor Green
 Write-Host " QuizSala rodando em http://${ip}:8080"
 Write-Host " Aluno entra em:   http://${ip}:8080/index.php"
-Write-Host " Projetor:         http://${ip}:8080/tela.php?codigo=AULA01"
+Write-Host " Projetor:         http://${ip}:8080/tela.php  (acha a sessao ativa sozinho)"
 Write-Host " Admin de provas:  http://${ip}:8080/admin/index.php"
 Write-Host "===================================================" -ForegroundColor Green
 Write-Host ""
 Write-Host "Deixe esta janela aberta - fechar encerra o servidor." -ForegroundColor Yellow
 Write-Host ""
 
-Start-Process "http://${ip}:8080/tela.php?codigo=AULA01"
+# Sem "?codigo=" fixo de proposito (achado testando de verdade): o codigo
+# da sessao e gerado na hora (T08) e muda toda vez - abrir sempre um valor
+# fixo (ex.: AULA01) quebrava assim que essa sessao semente sumia. tela.php
+# sem codigo descobre sozinho qual sessao mostrar (api/sessao-ativa.php).
+Start-Process "http://${ip}:8080/tela.php"
 
 Set-Location public
 php -S 0.0.0.0:8080

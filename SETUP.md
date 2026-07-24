@@ -19,7 +19,7 @@ php bin/init-db.php        # cria o banco com uma prova de exemplo e a sala AULA
 cd public
 php -S 0.0.0.0:8080        # 0.0.0.0, não 127.0.0.1 - senão os celulares nao alcancam
 ```
-Depois abra `http://localhost:8080/tela.php?codigo=AULA01` (projetor) ou `http://localhost:8080/admin/index.php` (admin).
+Depois abra `http://localhost:8080/tela.php` (projetor — sem código na URL, ele acha sozinho a sessão ativa mais recente) ou `http://localhost:8080/admin/index.php` (admin).
 
 `iniciar.ps1` é o script de verdade (detecção de PHP, versão, IP de rede, abrir o navegador) — `iniciar.bat` só chama ele. Se preferir rodar via PowerShell diretamente: botão direito em `iniciar.ps1` → "Executar com PowerShell".
 

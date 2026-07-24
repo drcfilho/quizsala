@@ -17,7 +17,7 @@
 <body>
 
 <h1>QuizSala — Mapa de URLs de teste</h1>
-<p class="nota">Só URLs de teste local por enquanto (servidor <code>php -S</code> na própria máquina). Gerado em 2026-07-24 rodando <code>bin/init-db.php</code> — código de sala e token do professor mudam toda vez que o banco é recriado; a <strong>senha do admin não muda</strong> (só é gerada na primeira vez, ver seção 4). Rode <code>php bin/init-db.php</code> e olhe a saída no console pra pegar o token atualizado.</p>
+<p class="nota">Só URLs de teste local por enquanto (servidor <code>php -S</code> na própria máquina). Atualizado em 2026-07-24 com o banco <strong>em uso real</strong> (não um <code>bin/init-db.php</code> recém-rodado) — por isso os exemplos abaixo já não são a sala-semente <code>AULA01</code>, e sim sessões criadas de verdade pela interface. Código de sala e token do professor mudam a cada sessão nova; a <strong>senha do admin não muda</strong> (só é gerada na primeira vez, ver seção 4).</p>
 
 <div class="aviso">
 Servidor de teste: <code>cd public &amp;&amp; php -S 127.0.0.1:8080</code>. Todas as URLs abaixo assumem esse endereço.
@@ -26,27 +26,38 @@ Servidor de teste: <code>cd public &amp;&amp; php -S 127.0.0.1:8080</code>. Toda
 <h2>1. Aluno</h2>
 <p class="nota">Entrada pública — qualquer um com o código da sala chega aqui.</p>
 <a class="url" href="http://127.0.0.1:8080/index.php">http://127.0.0.1:8080/index.php</a>
-<p class="nota">Digitar o código <code>AULA01</code> no formulário. Depois disso o fluxo continua em <code>prova.php#t=&lt;token do aluno&gt;</code> — token gerado na hora, não é uma URL fixa.</p>
+<p class="nota">Digitar o código de uma sessão ativa (exemplo de agora: <code>6PUTWL</code>, em andamento, ou <code>U8T2HB</code>, aguardando o professor iniciar). Depois disso o fluxo continua em <code>prova.php#t=&lt;token do aluno&gt;</code> — token gerado na hora, não é uma URL fixa.</p>
 
 <h2>2. Painel do projetor</h2>
-<p class="nota">Tela só de leitura, sem interação — fica projetada na parede.</p>
-<a class="url" href="http://127.0.0.1:8080/tela.php?codigo=AULA01">http://127.0.0.1:8080/tela.php?codigo=AULA01</a>
+<p class="nota">Tela só de leitura, sem interação — fica projetada na parede. Na fase <code>aguardando</code> mostra o QR Code (T16) em vez da questão.</p>
+<a class="url" href="http://127.0.0.1:8080/tela.php">http://127.0.0.1:8080/tela.php</a> — <strong>sem código</strong>, acha sozinho a sessão ativa mais recente (novo — descoberta automática, ver seção 5b) e volta a procurar se ela sumir
+<a class="url" href="http://127.0.0.1:8080/tela.php?codigo=6PUTWL">http://127.0.0.1:8080/tela.php?codigo=6PUTWL</a> — código explícito, trava nessa sessão (prova em andamento)
+<a class="url" href="http://127.0.0.1:8080/tela.php?codigo=U8T2HB">http://127.0.0.1:8080/tela.php?codigo=U8T2HB</a> — código explícito, tela de espera com QR
 
 <h2>3. Controle do professor (sessão)</h2>
-<p class="nota">Token de sessão — muda a cada <code>bin/init-db.php</code>. Valor de agora:</p>
-<a class="url" href="http://127.0.0.1:8080/admin/sessao.php?codigo=AULA01&pt=ae3d686c3e6b2bd05b0b35dd4f2752f2">http://127.0.0.1:8080/admin/sessao.php?codigo=AULA01&amp;pt=ae3d686c3e6b2bd05b0b35dd4f2752f2</a>
-<p class="nota">Sem o <code>?pt=...</code> correto, o painel carrega mas nenhum botão funciona (403).</p>
+<p class="nota">Token de sessão — muda a cada sessão nova (<code>admin/nova-sessao.php</code>). Valores de agora:</p>
+<a class="url" href="http://127.0.0.1:8080/admin/sessao.php?codigo=6PUTWL&pt=0e093004f6dac344cec1d27338b0e51a">http://127.0.0.1:8080/admin/sessao.php?codigo=6PUTWL&amp;pt=0e093004f6dac344cec1d27338b0e51a</a>
+<a class="url" href="http://127.0.0.1:8080/admin/sessao.php?codigo=U8T2HB&pt=af026d86378f86f14b1b2bc7c9b562ae">http://127.0.0.1:8080/admin/sessao.php?codigo=U8T2HB&amp;pt=af026d86378f86f14b1b2bc7c9b562ae</a>
+<p class="nota">Sem o <code>?pt=...</code> correto, o painel carrega mas nenhum botão funciona (403). Essa tela continua isolada, mobile-first (T22) — não usa o menu lateral do resto do admin.</p>
 
 <h2>4. Admin (provas e sessões)</h2>
-<p class="nota">Protegido por senha única (<code>db/admin.senha</code>, fora do git). <strong>Essa senha é estável</strong> — <code>bin/init-db.php</code> só gera uma nova se o arquivo não existir, então continua valendo mesmo depois de recriar o banco. Valor de agora: <code>55c2c99472b4af40</code>.</p>
+<p class="nota">Protegido por senha única (<code>db/admin.senha</code>, fora do git). <strong>Essa senha é estável</strong> — <code>bin/init-db.php</code> só gera uma nova se o arquivo não existir, então continua valendo mesmo depois de recriar o banco. Valor de agora: <code>55c2c99472b4af40</code>. Desde o T22, todas as páginas abaixo dividem um menu lateral fixo (<code>src/admin_layout.php</code>).</p>
 <a class="url" href="http://127.0.0.1:8080/admin/index.php">http://127.0.0.1:8080/admin/index.php</a> — sessões ativas
 <a class="url" href="http://127.0.0.1:8080/admin/provas.php">http://127.0.0.1:8080/admin/provas.php</a> — listar/criar/publicar/excluir provas
 <a class="url" href="http://127.0.0.1:8080/admin/nova-sessao.php">http://127.0.0.1:8080/admin/nova-sessao.php</a> — abrir sessão nova
 <a class="url" href="http://127.0.0.1:8080/admin/importar-csv.php">http://127.0.0.1:8080/admin/importar-csv.php</a> — importar prova de CSV
+<a class="url" href="http://127.0.0.1:8080/admin/senha.php">http://127.0.0.1:8080/admin/senha.php</a> — trocar a senha do admin (T09e)
 
 <h2>5. QR Code (T15)</h2>
 <p class="nota">PNG gerado na hora, sem depender de internet. Aponta pra <code>index.php?s=CODIGO</code> usando o mesmo host:porta que carregou a página.</p>
-<a class="url" href="http://127.0.0.1:8080/api/qr.php?codigo=AULA01">http://127.0.0.1:8080/api/qr.php?codigo=AULA01</a>
+<a class="url" href="http://127.0.0.1:8080/api/qr.php?codigo=U8T2HB">http://127.0.0.1:8080/api/qr.php?codigo=U8T2HB</a>
+
+<h2>5b. Descoberta automática de sessão</h2>
+<p class="nota">Usado por <code>tela.php</code> sem código (seção 2) — devolve só o <code>codigo</code> da sessão não-encerrada mais recente, nunca o <code>token_professor</code>.</p>
+<a class="url" href="http://127.0.0.1:8080/api/sessao-ativa.php">http://127.0.0.1:8080/api/sessao-ativa.php</a>
+
+<h2>6. Manual de uso</h2>
+<p class="nota">Passo a passo completo (criar prova, publicar, abrir sessão, aplicar em aula) em <a href="MANUAL.md"><code>MANUAL.md</code></a>.</p>
 
 </body>
 </html>
