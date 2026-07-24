@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-24T02:00:00Z",
+  "title": "Design System: QuizSala",
+  "extensions": {
+    "colorMeta": {
+      "vermelho-leitura-optica": {
+        "role": "primary",
+        "displayName": "Vermelho de Leitura Óptica",
+        "canonical": "oklch(48% 0.19 25)",
+        "tonalRamp": ["#3D0C08", "#5E120C", "#831A11", "#A82217", "#D9342B", "#E36159", "#ED9490", "#F6CAC8"]
+      },
+      "acerto": {
+        "role": "success",
+        "displayName": "Acerto",
+        "canonical": "oklch(46% 0.14 149)",
+        "tonalRamp": ["#0A2E14", "#0F4A1F", "#146229", "#1E7A34", "#2E9C48", "#5CBB71", "#96D6A6", "#CDECD4"]
+      },
+      "papel": {
+        "role": "neutral",
+        "displayName": "Papel",
+        "canonical": "oklch(98% 0.005 90)",
+        "tonalRamp": ["#14171C", "#3A3D42", "#767C86", "#A8ACB3", "#DCD9D2", "#EBE9E4", "#F5F3EF", "#FBFAF7"]
+      },
+      "pauta": {
+        "role": "neutral",
+        "displayName": "Pauta",
+        "canonical": "oklch(87% 0.005 90)",
+        "tonalRamp": ["#14171C", "#3A3D42", "#5C6068", "#8B8F96", "#DCD9D2", "#E7E5E0", "#F0EEEA", "#F8F7F4"]
+      }
+    },
+    "typographyMeta": {
+      "titulo": { "displayName": "Título", "purpose": "Nome do produto na tela de entrada." },
+      "rotulo": { "displayName": "Rótulo", "purpose": "Nome do aluno/contador no cabeçalho, rótulos de campo. Sempre monoespaçada uppercase." },
+      "enunciado": { "displayName": "Enunciado", "purpose": "Pergunta da questão. Único uso de clamp() no sistema." },
+      "corpo": { "displayName": "Corpo", "purpose": "Texto de alternativa, botões, campos." }
+    },
+    "shadows": [],
+    "motion": [
+      { "name": "bolha-preenche", "value": "0.25s cubic-bezier(.34, 1.4, .64, 1)", "purpose": "Unica animacao do sistema - preenchimento da bolha ao marcar/revelar. Desligada em prefers-reduced-motion." }
+    ],
+    "breakpoints": []
+  },
+  "components": [
+    {
+      "name": "Botão Primário",
+      "kind": "button",
+      "refersTo": "botao-principal",
+      "description": "Botão de confirmação da tela de entrada (Entrar). Largura total, alvo de toque de 64px.",
+      "html": "<button type=\"submit\" class=\"ds-botao-principal\">Entrar</button>",
+      "css": ".ds-botao-principal { width: 100%; min-height: 64px; border: none; border-radius: 0.5rem; background: #14171c; color: #fff; font-family: system-ui, sans-serif; font-size: 1.1rem; font-weight: 600; } .ds-botao-principal:focus-visible { outline: 3px solid #d9342b; outline-offset: 2px; }"
+    },
+    {
+      "name": "Alternativa (vazia)",
+      "kind": "custom",
+      "refersTo": "alternativa",
+      "description": "Cartão de escolha da tela de prova, com a bolha de leitura óptica. Estado de repouso, antes de qualquer marcação.",
+      "html": "<button type=\"button\" class=\"ds-alternativa\"><span class=\"ds-bolha\">A</span><span>A) DNS</span></button>",
+      "css": ".ds-alternativa { display: flex; align-items: center; gap: 0.75rem; min-height: 64px; padding: 0.5rem 1rem; border: 1px solid #dcd9d2; border-radius: 0.5rem; background: #fff; color: #14171c; font-family: system-ui, sans-serif; font-size: 1rem; text-align: left; width: 100%; } .ds-bolha { flex-shrink: 0; width: 2.5rem; height: 2.5rem; border: 2px solid #14171c; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: ui-monospace, monospace; font-weight: 700; }"
+    },
+    {
+      "name": "Alternativa (correta, revelada)",
+      "kind": "custom",
+      "refersTo": "alternativa",
+      "description": "Estado de revelação: alternativa correta, bolha preenchida em verde (acerto) - reforçada por borda, nunca só cor.",
+      "html": "<button type=\"button\" class=\"ds-alternativa ds-alternativa--correta\" disabled><span class=\"ds-bolha ds-bolha--acerto\">B</span><span>B) DNS</span></button>",
+      "css": ".ds-alternativa--correta { border-color: #14171c; } .ds-bolha--acerto { border-color: #1e7a34; background: #1e7a34; color: #fff; }"
+    },
+    {
+      "name": "Campo de código da sala",
+      "kind": "input",
+      "refersTo": "campo",
+      "description": "Input de entrada do código de sala - monoespaçada, uppercase, letter-spacing, reforçando que é um código curto.",
+      "html": "<input class=\"ds-campo ds-campo-codigo\" type=\"text\" placeholder=\"AULA01\" maxlength=\"6\">",
+      "css": ".ds-campo { width: 100%; min-height: 64px; padding: 0.75rem 1rem; border: 1px solid #dcd9d2; border-radius: 0.5rem; background: #fbfaf7; color: #14171c; font-family: system-ui, sans-serif; font-size: 1.1rem; } .ds-campo-codigo { font-family: ui-monospace, monospace; letter-spacing: 0.1em; text-transform: uppercase; } .ds-campo:focus-visible { outline: 3px solid #d9342b; outline-offset: 2px; }"
+    },
+    {
+      "name": "Aviso flutuante",
+      "kind": "custom",
+      "description": "Toast de erro/reconexão - único mecanismo de feedback quando o servidor recusa uma ação. Some sozinho em 2.5s.",
+      "html": "<div class=\"ds-aviso\">Sem conexão. Tente de novo.</div>",
+      "css": ".ds-aviso { position: fixed; left: 50%; bottom: 1.5rem; transform: translateX(-50%); background: #14171c; color: #fff; padding: 0.75rem 1.25rem; border-radius: 0.5rem; font-family: system-ui, sans-serif; font-size: 0.95rem; max-width: 90vw; text-align: center; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "O Cartão-Resposta Vivo",
+    "overview": "O QuizSala pega o vocabulario de um instrumento de avaliacao de verdade - o cartao-resposta de leitura optica, com suas bolhas pra preencher e marcas de registro - e faz esse documento ganhar vida porque o resultado muda ao vivo, na frente da turma. Duas forcas convivem na mesma interface: direta e sem frescura, feita pra sala de aula real, e urgente e viva, com a energia de um placar de jogo, sobretudo no painel do projetor. O sistema rejeita explicitamente o vocabulario de gamificacao educacional (Kahoot, Duolingo): sem confete, sem mascote, sem ranking de tempo de resposta.",
+    "keyCharacteristics": [
+      "Duas familias com papeis fixos: monoespacada pro registro oficial, fonte do sistema pro conteudo de leitura corrida.",
+      "Zero sombra em todo o sistema - hierarquia por borda e peso tipografico.",
+      "Uma cor de destaque so (vermelho de leitura optica), nunca decorativa.",
+      "Certo/errado na revelacao nunca depende so de cor - sempre reforcado por borda e preenchimento junto."
+    ],
+    "rules": [
+      { "name": "A Regra da Cor Única", "body": "O vermelho de leitura optica nunca decora - so foco, aviso e a marca de registro do cabecalho.", "section": "colors" },
+      { "name": "A Regra do Sinal Duplo", "body": "Certo/errado nunca depende so de verde/vermelho - a alternativa correta tambem ganha borda propria.", "section": "colors" },
+      { "name": "A Regra do Registro Duplo", "body": "Monoespacada e reservada ao que precisa parecer documento oficial; a fonte do sistema e reservada a conteudo de leitura corrida.", "section": "typography" },
+      { "name": "A Regra do Papel Plano", "body": "Nenhum elemento ganha sombra. Se algo precisa se destacar, ganha borda mais forte ou preenchimento de cor.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do manter o sistema inteiramente flat - zero sombra.",
+      "Do reservar a monoespacada para titulo/rotulo/contador/bolha.",
+      "Do reforcar certo/errado com borda e preenchimento junto, nunca so cor isolada.",
+      "Do manter alvos de toque de 64px em todo elemento interativo.",
+      "Do desfazer a marcacao otimista da bolha com aviso claro quando o servidor recusar.",
+      "Do usar textContent para todo texto vindo do banco, nunca innerHTML."
+    ],
+    "donts": [
+      "Don't usar confete, mascote, ranking de tempo de resposta ou qualquer elemento de gamificacao tipo Kahoot/Duolingo.",
+      "Don't introduzir uma segunda cor de destaque alem do vermelho de leitura optica.",
+      "Don't adicionar sombra decorativa em card, botao ou item de lista.",
+      "Don't usar border-left/border-right colorido como destaque decorativo.",
+      "Don't animar nada sem alternativa em prefers-reduced-motion: reduce.",
+      "Don't escrever enunciado ou alternativa em monoespacada."
+    ]
+  }
+}
