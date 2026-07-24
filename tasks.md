@@ -558,16 +558,69 @@ Não é código. É a tarefa que decide se a v1 acabou.
 
 ---
 
+# Bloco E — Polimento
+
+**Não estava no plano original — pedido do usuário, depois de pesquisar Kahoot/Mentimeter/Slido em busca de ideias.**
+
+**Fora de escopo de propósito, confirmado com o usuário antes de planejar:** nada de estética de gamificação (mascote, confete, cores cartunescas, pódio, ranking por velocidade de resposta) — isso já está travado em `arquitetura.md` §13 e no `CLAUDE.md` do projeto. O que entra aqui são só **técnicas** de polish (animação, hierarquia, layout) que cabem dentro do vocabulário já estabelecido ("Cartão-Resposta Vivo": flat, monoespaçada, vermelho único, zero sombra).
+
+---
+
+## T21 · Microinterações — mais "placar ao vivo", sem virar jogo
+
+**Entrega:** os números e resultados na tela reagem de um jeito que reforça a sensação de "ao vivo" — igual ao que já existe na bolha do aluno (`estilo.css`, pop com bounce ao marcar) — mas hoje só existe ali. O resto (contadores, barras) muda de estado seco, sem transição.
+
+**Arquivos:** `public/assets/tela.js`, `public/assets/tela.css`, `public/assets/admin.js`, `public/assets/admin.css`
+
+**Passos**
+1. **Count-up nos contadores** ("N de M responderam" no projetor, "X online · Y responderam" no admin) — em vez de trocar o texto de uma vez, anima incrementando até o valor novo (~400-600ms). Pesquisa: [CSS-Tricks, Animating Number Counters](https://css-tricks.com/animating-number-counters/) — abordagem em JS puro (`requestAnimationFrame` ou `setInterval` curto), sem lib nova (D1 continua zero framework).
+2. **Revelação em cascata** — as barras de distribuição (`tela.css` `.barra-preenchida-painel`) já animam a largura; falta escalonar a entrada de cada linha com um pequeno delay (`animation-delay` por `nth-child`, ~60-80ms entre uma e outra) em vez de todas ao mesmo tempo. Pesquisa: [CSS-Tricks, Staggered Animation](https://css-tricks.com/different-approaches-for-creating-a-staggered-animation/).
+3. **Indicador de "ao vivo" na tela de espera** — um pulso sutil (opacidade ou borda, nunca cor nova) num ponto pequeno perto do QR ou do "Aguardando o professor", sinalizando que a página está de fato viva/atualizando, sem chamar mais atenção que o próprio QR.
+4. **Feedback de toque nos botões** — `botao-acao`/`botao-secundario` hoje só reagem a `:disabled`. Adicionar um `:active` com leve `scale(0.97)` (mesma família de easing do pop da bolha) — toque físico em sala precisa de confirmação visual imediata, antes mesmo da resposta do servidor chegar.
+5. **`prefers-reduced-motion`** em tudo isso, igual já é feito na bolha do aluno e nas barras do painel — não é opcional, é o padrão já estabelecido no projeto.
+
+**Como testar** Visual, no navegador: revelar uma questão e ver as barras entrarem em cascata; comparar o contador "responderam" mudando de 2 pra 5 (deve contar, não pular); tocar um botão no admin (mobile emulation) e ver o feedback antes do fetch responder.
+
+**Pronto quando** os quatro pontos acima estão implementados, `prefers-reduced-motion` desliga tudo, e nenhuma cor nova foi introduzida (Regra do Sinal Duplo e paleta de `DESIGN.md` continuam intactas).
+
+---
+
+## T22 · Admin de conteúdo desktop-first, com fluxo guiado *(concluída)*
+
+**Entrega:** quem cria uma prova faz isso numa tela pensada pra mouse+teclado, com menu fixo e sabendo exatamente qual é o próximo passo — sem perder a possibilidade de usar do celular quando precisar.
+
+**Escopo confirmado com o usuário:** só as telas de **conteúdo** — `provas.php`, `questoes.php`, `questao.php`, `importar-csv.php`, `senha.php`, `nova-sessao.php`, `index.php`. **`sessao.php` (controle ao vivo) fica fora — continua mobile-first/touch, decisão travada em `arquitetura.md` §7 (professor comanda andando pela sala).**
+
+**Arquivos:** `public/admin/*.php` (todas as 7 páginas de conteúdo), `src/admin_layout.php` *(novo — `abrirLayoutAdmin()`/`fecharLayoutAdmin()`/`fluxoProva()`, sem framework nenhum, só `require` de um parcial PHP)*, `public/assets/admin.css` *(revisão grande)*
+
+**Passos**
+1. ~~Shell com menu lateral~~ Feito — `<nav>` fixa (Sessões · Provas · Nova sessão · Importar CSV · Trocar senha) com a página atual marcada (`.ativo`), layout de duas colunas em telas largas.
+2. ~~Responsivo de verdade~~ Feito — breakpoint em 768px, menu vira um toggle recolhido no topo (truque de `<input type="checkbox">` + `~`, sem JS, mesma família do `<details>` já usado no editor de questão). Validado forçando as regras do media query via `javascript_tool` no navegador (o `resize_window` da automação não respondeu neste ambiente) — menu abre/fecha e mostra os 5 itens com "Provas" destacado.
+3. ~~Fluxo guiado~~ Feito, com uma diferença do que foi escrito aqui: o stepper (`fluxoProva()`) só aparece em `questoes.php`, `questao.php` e `nova-sessao.php` (quando já existe prova publicada) — não em `provas.php`, que é o hub de **todas** as provas, sem um "passo atual" único pra mostrar. Também virou acionável, não só informativo: `questoes.php` ganhou os botões "Publicar prova (passo 3)" e "Abrir sessão (passo 4)" direto na tela, sem precisar voltar pra `provas.php`.
+4. ~~Revisão de todos os botões~~ Feito — `.conteudo-admin .botao-acao`/`.botao-secundario` caem pra `min-height: 44px` (só dentro do novo shell — `sessao.php` continua com os 64px originais, regra escopada por seletor, não alterada globalmente). `:hover`/`:focus-visible` novos em todos os botões do admin (incluindo os de `sessao.php`, ganho de graça e inofensivo lá).
+5. ~~Sem mexer em `sessao.php`~~ Confirmado — zero linha tocada nesse arquivo; ele nem usa `admin_layout.php`.
+
+**Como testar** `bash bin/teste.sh` — 72/72, nenhuma lógica de servidor mudou. Visual no navegador (1440px): sidebar, stepper reagindo ao estado real da prova (`0 questões` → step 2 ativo; publicada → step 4 ativo com CTA "Abrir sessão"), editor de questão limpo. Mobile (forçando as regras do breakpoint): menu recolhe pra um toggle, abre a lista completa ao clicar, "Provas" continua destacado.
+
+**Pronto quando** as sete páginas de conteúdo usam o mesmo shell, o fluxo guiado está visível nelas, e `bin/teste.sh` continua passando 100%. **Confirmado.**
+
+**Como testar** Criar uma prova do zero numa tela de desktop (>1280px), seguindo só os CTAs que a tela oferece (sem saber de antemão a ordem) — chegar até "sessão aberta" sem se perder. Depois repetir num viewport de celular (375px) e confirmar que ainda dá pra fazer, só que com o menu recolhido.
+
+**Pronto quando** as sete páginas de conteúdo usam o mesmo shell, o fluxo guiado está visível em todas elas, e `bin/teste.sh` continua passando 100% (mudança é só de camada visual/estrutural, nenhuma lógica de servidor deveria quebrar).
+
+---
+
 ## Resumo
 
 | Bloco | Tarefas | Status | Você consegue, ao terminar |
 |---|---|---|---|
 | A — Projetor | T01–T04, T04b | **Completo** (T04 falta validar em projetor físico real) | Aplicar uma questão avulsa, comandando pelo notebook; aluno vê placar/comprovante/agradecimento ao final |
 | B — Controle | T05–T08 | **Completo** | Aplicar prova inteira pelo celular, abrindo sessões novas pra turmas diferentes |
-| C — Admin | T09–T14, T09b–T09d | **Completo** (T14 falta validar em celular físico real) | Criar conteúdo sem tocar no banco — manual, por CSV, ou duplicando; publicar/despublicar/excluir com trava de segurança |
+| C — Admin | T09–T14, T09b–T09e | **Completo** (T14 falta validar em celular físico real) | Criar conteúdo sem tocar no banco — manual, por CSV, ou duplicando; publicar/despublicar/excluir com trava de segurança; trocar a própria senha |
 | D — Operação | T15–T20 | **Parcial** — feito: T15 (QR Code), T16 (tela de espera), T17 (scripts de partida/parada), T18 (limpar sessão), T19 (`SETUP.md`). Falta: T20 (ensaio com turma real) | Entregar para outro professor usar |
+| E — Polimento | T21–T22 | **Parcial** — feito: T22 (admin desktop-first). Falta: T21 (microinterações) | Admin de conteúdo usável num desktop de verdade; telas com mais energia de placar ao vivo (pendente) |
 
-**Além do plano original**, a pedido do usuário: T04b (placar/comprovante/agradecimento do aluno), T09b (importar CSV), T09c (explicação da resposta certa), T09d (publicar/despublicar/editar/excluir prova, com trava contra despublicar prova já iniciada). Documentado em cada tarefa e em `arquitetura.md` §9.
+**Além do plano original**, a pedido do usuário: T04b (placar/comprovante/agradecimento do aluno), T09b (importar CSV), T09c (explicação da resposta certa), T09d (publicar/despublicar/editar/excluir prova, com trava contra despublicar prova já iniciada), T09e (trocar a própria senha do admin), Bloco E inteiro (T21-T22, polimento visual e admin desktop-first). Documentado em cada tarefa e em `arquitetura.md` §9.
 
 **Também pendente, fora da numeração T01–T20:**
 - Timer configurável por questão (duração definida no editor, botão "Iniciar tempo", bloqueia resposta até iniciar, não revela sozinho ao esgotar, marca "não respondeu" no banco) — pedido do usuário antes do Bloco C, adiado explicitamente pra depois do editor de questões existir. Ainda não implementado.
