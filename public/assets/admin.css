@@ -147,3 +147,129 @@ body {
 @media (prefers-reduced-motion: reduce) {
     .presenca-admin { transition: none; }
 }
+
+/* Bloco C - admin de provas (T09-T14). Mesmas telas mobile-first, cartao
+   maior pra caber lista/formulario. */
+.tela-admin-lista { align-items: flex-start; padding-top: 2rem; }
+.tela-admin-lista .cartao-admin { max-width: 32rem; }
+
+.link-voltar, .link-prova { color: inherit; text-decoration: none; }
+.link-voltar { color: var(--grafite); }
+
+.titulo-pagina {
+    font-size: 1.3rem;
+    margin: 0.5rem 0 1.5rem;
+}
+
+.lista-provas, .lista-questoes {
+    list-style: none;
+    margin: 0 0 1.5rem;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.item-prova {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border: 1px solid var(--pauta);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    min-height: 64px;
+}
+.link-prova { flex: 1; display: flex; flex-direction: column; gap: 0.15rem; }
+.titulo-prova { font-weight: 600; }
+.contagem-prova {
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    font-size: 0.8rem;
+    color: var(--grafite);
+}
+
+.item-questao {
+    border: 1px solid var(--pauta);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+}
+.enunciado-questao-admin {
+    display: block;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+}
+.botoes-questao form {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.botao-pequeno {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0 0.9rem;
+    border: 1px solid var(--pauta);
+    border-radius: 0.5rem;
+    background: var(--cartao);
+    color: var(--tinta);
+    font-family: inherit;
+    font-size: 1rem;
+}
+.botao-pequeno:disabled { opacity: 0.35; }
+.botao-excluir { border-color: var(--marca); color: var(--marca); margin-left: auto; }
+
+.botao-como-link {
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    line-height: 64px;
+}
+
+.form-prova, .form-questao {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.campo-admin {
+    width: 100%;
+    min-height: 64px;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--pauta);
+    border-radius: 0.5rem;
+    background: var(--papel);
+    color: var(--tinta);
+    font-family: inherit;
+    font-size: 1.1rem;
+}
+.campo-textarea {
+    min-height: 6rem;
+    resize: vertical;
+}
+
+.linha-alternativa-admin {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
+}
+.linha-alternativa-admin input[type="radio"] {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    accent-color: var(--marca);
+}
+.rotulo-radio {
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    font-weight: 700;
+    flex-shrink: 0;
+    width: 1.2rem;
+}
+.linha-alternativa-admin .campo-admin { min-height: 56px; font-size: 1rem; }
+
+.erro-campo {
+    color: var(--marca);
+    font-size: 0.9rem;
+    margin: 0 0 0.5rem;
+}
+
+.form-inline { margin: 0; }
