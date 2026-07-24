@@ -1,7 +1,7 @@
 # QuizSala — Plano de Execução
 
 **Versão:** 1.0
-**Complemento de:** `design.md` (arquitetura e decisões)
+**Complemento de:** `arquitetura.md` (arquitetura e decisões)
 **Escopo deste documento:** o que fazer, em que ordem, e como saber que ficou pronto
 
 ---
@@ -22,7 +22,7 @@ Aplicar prova em modo assíncrono, exportar resultados, cadastrar alunos, funcio
 
 ## 2. Ponto de partida
 
-Já implementado e testado (detalhe em `design.md` §11):
+Já implementado e testado (detalhe em `arquitetura.md` §11):
 
 ```
 ✓ schema + índices + constraints

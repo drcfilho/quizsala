@@ -2,7 +2,7 @@
 
 Ferramenta de aula: o professor aplica uma prova de múltipla escolha numa sala sem internet, cada aluno responde pelo próprio celular, e a contagem de acertos e erros aparece na hora na tela projetada.
 
-Documentação completa de arquitetura e decisões em [`design.md`](design.md). Fases, marcos e critério de pronto da v1 em [`plan.md`](plan.md). Quebra de tarefas em [`tasks.md`](tasks.md).
+Documentação completa de arquitetura e decisões em [`arquitetura.md`](arquitetura.md). Fases, marcos e critério de pronto da v1 em [`plan.md`](plan.md). Quebra de tarefas em [`tasks.md`](tasks.md).
 
 ## Estado atual
 
@@ -12,7 +12,7 @@ Restam as Fases 2 a 5 (painel do projetor, controle pelo celular, admin de prova
 
 ## Stack
 
-PHP 8.2+ / SQLite (arquivo único, `PRAGMA journal_mode = WAL`) / CSS próprio / JavaScript puro. Sem framework, sem build step, sem internet no ambiente de uso (ver `design.md` seção 2).
+PHP 8.2+ / SQLite (arquivo único, `PRAGMA journal_mode = WAL`) / CSS próprio / JavaScript puro. Sem framework, sem build step, sem internet no ambiente de uso (ver `arquitetura.md` seção 2).
 
 ## Rodando localmente
 
@@ -38,11 +38,11 @@ PHP 8.2+ / SQLite (arquivo único, `PRAGMA journal_mode = WAL`) / CSS próprio /
 ## Estrutura
 
 ```
-bin/       init-db.php (recria o banco + seed), teste.sh (bateria ponta a ponta)
-db/        schema.sql; quizsala.sqlite é gerado, fora do versionamento
-src/       db.php (PDO singleton, WAL), util.php (JSON, escape, consultas de estado)
-public/    raiz do servidor web — index.php, prova.php, api/, assets/
-design.md  arquitetura, decisões travadas e contrato da API
-plan.md    fases, marcos e critério de pronto da v1
-tasks.md   quebra de tarefas por bloco, com passos e critérios de verificação
+bin/            init-db.php (recria o banco + seed), teste.sh (bateria ponta a ponta)
+db/             schema.sql; quizsala.sqlite é gerado, fora do versionamento
+src/            db.php (PDO singleton, WAL), util.php (JSON, escape, consultas de estado)
+public/         raiz do servidor web — index.php, prova.php, api/, assets/
+arquitetura.md  arquitetura, decisões travadas e contrato da API
+plan.md         fases, marcos e critério de pronto da v1
+tasks.md        quebra de tarefas por bloco, com passos e critérios de verificação
 ```

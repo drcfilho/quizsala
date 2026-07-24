@@ -1,6 +1,6 @@
 # QuizSala — Tarefas
 
-**Complemento de:** `design.md` (arquitetura) e `plan.md` (fases e marcos)
+**Complemento de:** `arquitetura.md` (arquitetura) e `plan.md` (fases e marcos)
 
 Cada tarefa é uma **fatia vertical**: termina com algo que você abre no navegador e usa. Nenhuma tarefa deixa o sistema quebrado ou pela metade — se você parar depois de qualquer uma delas, o que existe funciona.
 
