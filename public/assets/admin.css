@@ -287,6 +287,15 @@ main .cartao-admin .botao-acao + form {
     margin-top: 0.75rem;
 }
 .botoes-item-prova form { margin: 0; }
+/* Achado visual (telas/erro.png): Editar/Publicar-Despublicar/Duplicar/
+   Excluir tinham cada um a largura do proprio texto - fileira desalinhada,
+   "Despublicar" bem mais largo que "Duplicar"/"Excluir". Largura fixa (cabe
+   "Despublicar", a maior label do grupo) padroniza a fileira inteira, aqui
+   e em admin/index.php ("Limpar" fica no mesmo tamanho por consistencia). */
+.botoes-item-prova .botao-pequeno {
+    width: 7.5rem;
+    flex: 0 0 auto;
+}
 .selo-publicada { color: var(--acerto); font-weight: 700; }
 .selo-rascunho { color: var(--grafite); }
 

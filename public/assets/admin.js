@@ -158,11 +158,17 @@ if (tokenProfessor) {
     tokenProfessor = localStorage.getItem(TOKEN_PROFESSOR_CHAVE) || '';
 }
 
+// Rotulo do botao "encerrar" e "Parar prova", nao "Encerrar" - pedido do
+// usuario pra deixar claro que a acao e so parar, sem soar mais definitiva/
+// destrutiva do que realmente e (isso continua sendo o "Limpar", que apaga
+// dados - fica so no admin desktop, ver T18). A acao no servidor continua
+// se chamando "encerrar" (api/comando.php, fase "encerrada") - so o texto
+// que o professor ve mudou.
 var ROTULOS_ACAO = {
     iniciar: 'Iniciar prova',
     revelar: 'Revelar',
     proxima: 'Próxima questão',
-    encerrar: 'Encerrar',
+    encerrar: 'Parar prova',
 };
 
 function mostrarAviso(texto) {
@@ -187,7 +193,7 @@ function desabilitarBotoes(desabilitar) {
 
 function enviarComando(acao) {
     if (enviando) return;
-    if (acao === 'encerrar' && !confirm('Encerrar a prova agora? Não dá pra continuar depois.')) {
+    if (acao === 'encerrar' && !confirm('Parar a prova agora? Não dá pra continuar depois.')) {
         return;
     }
 
@@ -340,6 +346,11 @@ function renderizar(dados) {
     if (dados.fase === 'aguardando') {
         mensagem(cartao, 'Sala aberta, aguardando você iniciar.');
         cartao.appendChild(criarBotoes(['iniciar']));
+        // "Encerrar" e o escape hatch de qualquer fase (design.md D6) - inclui
+        // aguardando, pro professor conseguir fechar uma sessao aberta por
+        // engano (prova errada, turma errada) antes mesmo de iniciar, sem
+        // precisar deixar ela solta pra alguem entrar.
+        cartao.appendChild(criarZonaRisco(['encerrar']));
         container.appendChild(cartao);
         return;
     }

@@ -463,6 +463,22 @@ checar "resumo Q2: 1 acerto" "1" "$(campo_json "$RESP" resumo.questoes.1.acertos
 checar "resumo Q2: 0 erros" "0" "$(campo_json "$RESP" resumo.questoes.1.erros)"
 checar "resumo Q2: 1 nao respondeu (T6)" "1" "$(campo_json "$RESP" resumo.questoes.1.naoResponderam)"
 
+echo "=== Caso 40: 'Encerrar' funciona antes de 'Iniciar' (sessao aberta por engano) ==="
+# design.md D6: "Encerrar" e o escape hatch de qualquer fase, aguardando
+# incluido - o professor precisa fechar uma sessao criada errada (prova
+# errada, turma errada) sem precisar deixar ela aberta pra alguem entrar.
+# Sessao propria e descartavel, nunca chega a ser iniciada.
+sql_exec "INSERT INTO provas (titulo, publicada) VALUES ('Prova Caso40 descartavel', 1)"
+IDPROVA40=$(sql "SELECT id FROM provas WHERE titulo='Prova Caso40 descartavel'")
+sql_exec "INSERT INTO questoes (prova_id, enunciado, ordem) VALUES ($IDPROVA40, 'Pergunta unica', 1)"
+IDQ40=$(sql "SELECT id FROM questoes WHERE prova_id=$IDPROVA40")
+sql_exec "INSERT INTO alternativas (questao_id, texto, correta, ordem) VALUES ($IDQ40, 'A', 1, 1), ($IDQ40, 'B', 0, 2)"
+sql_exec "INSERT INTO sessoes (prova_id, codigo, token_professor, fase, versao) VALUES ($IDPROVA40, 'ERRO40', 'pt-erro40', 'aguardando', 0)"
+
+RESP=$(curl -s -X POST -H 'Content-Type: application/json' -d '{"codigo":"ERRO40","acao":"encerrar","versao_esperada":0,"token_professor":"pt-erro40"}' "$BASE/api/comando.php")
+checar "encerrar direto de 'aguardando' funciona" "encerrada" "$(campo_json "$RESP" fase)"
+checar "fase gravada no banco tambem e 'encerrada'" "encerrada" "$(sql "SELECT fase FROM sessoes WHERE codigo='ERRO40'")"
+
 rm -f /tmp/quizsala-admin.txt /tmp/quizsala-admin-errado.txt
 
 echo ""
