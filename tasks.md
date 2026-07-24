@@ -267,6 +267,8 @@ Até aqui o conteúdo vinha do seed. Este bloco tira o banco do caminho.
 
 ## T09 · Listar e criar provas *(concluída)*
 
+**Revisão de segurança pós-implementação:** `provas.php`/`questoes.php`/`questao.php` foram ao ar sem checagem nenhuma — qualquer aluno digitando a URL criava/editava/apagava questão. Corrigido com `exigirAdmin()` (senha única, gerada por `bin/init-db.php` em `db/admin.senha`, fora do git) + token CSRF por sessão (`tokenCsrf()`/`exigirCsrf()`) em todos os formulários de mutação. Ver `arquitetura.md` §9. Casos 15-19 em `bin/teste.sh` cobrem isso.
+
 **Arquivos:** `public/admin/provas.php` *(novo)*
 
 **Passos** Lista com título, número de questões e botão de nova prova (só o título).

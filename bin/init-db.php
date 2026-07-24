@@ -65,6 +65,16 @@ $pdo->prepare(
 
 $pdo->commit();
 
+// Senha do admin de provas (T09-T14): gerada uma vez so, nao regenerada a
+// cada reset do banco - senao o professor perderia a senha toda vez que
+// recriasse o banco pra testar outra coisa.
+$arquivoSenha = $dbDir . '/admin.senha';
+if (!is_file($arquivoSenha)) {
+    file_put_contents($arquivoSenha, bin2hex(random_bytes(6)));
+}
+$senhaAdmin = trim((string) file_get_contents($arquivoSenha));
+
 echo "Banco recriado: prova '{$questoes[0]['enunciado']}...' (id {$provaId}), 3 questoes, sessao AULA01 pronta.\n";
 echo "Aluno entra com o codigo: AULA01\n";
 echo "Professor controla em: admin/sessao.php?codigo=AULA01&pt={$tokenProfessor}\n";
+echo "Admin de provas em: admin/provas.php (senha: {$senhaAdmin})\n";

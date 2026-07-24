@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../src/db.php';
 require __DIR__ . '/../../src/util.php';
+require __DIR__ . '/../../src/auth.php';
+
+exigirAdmin();
 
 $pdo = Db::conexao();
 $erro = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    exigirCsrf();
     $acao = (string) ($_POST['acao'] ?? '');
 
     if ($acao === 'criar') {
@@ -62,6 +66,7 @@ $provas = $pdo->query(
 <span class="contagem-prova"><?= (int) $prova['total_questoes'] ?> questões</span>
 </a>
 <form method="post" class="form-inline">
+<input type="hidden" name="csrf" value="<?= htmlspecialchars(tokenCsrf()) ?>">
 <input type="hidden" name="acao" value="duplicar">
 <input type="hidden" name="prova_id" value="<?= (int) $prova['id'] ?>">
 <button type="submit" class="botao-secundario botao-pequeno">Duplicar</button>
@@ -72,6 +77,7 @@ $provas = $pdo->query(
 <?php endif; ?>
 
 <form method="post" class="form-prova">
+<input type="hidden" name="csrf" value="<?= htmlspecialchars(tokenCsrf()) ?>">
 <input type="hidden" name="acao" value="criar">
 <label class="rotulo" for="titulo">Nova prova</label>
 <input class="campo-admin" type="text" id="titulo" name="titulo" placeholder="Título da prova" required>

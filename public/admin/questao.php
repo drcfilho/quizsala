@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../src/db.php';
 require __DIR__ . '/../../src/util.php';
+require __DIR__ . '/../../src/auth.php';
+
+exigirAdmin();
 
 $pdo = Db::conexao();
 $provaId = (int) ($_GET['prova_id'] ?? $_POST['prova_id'] ?? 0);
@@ -43,6 +46,7 @@ if ($questaoId > 0) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    exigirCsrf();
     $enunciado = trim((string) ($_POST['enunciado'] ?? ''));
     for ($i = 0; $i < 5; $i++) {
         $alternativas[$i] = trim((string) ($_POST['alt' . $i] ?? ''));
@@ -111,6 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <p class="cabecalho-admin"><a class="link-voltar" href="questoes.php?prova_id=<?= $provaId ?>">&larr; <?= htmlspecialchars($prova['titulo']) ?></a></p>
 
 <form method="post" class="form-questao">
+<input type="hidden" name="csrf" value="<?= htmlspecialchars(tokenCsrf()) ?>">
 <input type="hidden" name="prova_id" value="<?= $provaId ?>">
 <input type="hidden" name="id" value="<?= $questaoId ?>">
 

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../src/db.php';
 require __DIR__ . '/../../src/util.php';
+require __DIR__ . '/../../src/auth.php';
+
+exigirAdmin();
 
 $pdo = Db::conexao();
 $provaId = (int) ($_GET['prova_id'] ?? $_POST['prova_id'] ?? 0);
@@ -18,6 +21,7 @@ if ($prova === false) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    exigirCsrf();
     $acao = (string) ($_POST['acao'] ?? '');
     $questaoId = (int) ($_POST['questao_id'] ?? 0);
 
@@ -63,6 +67,7 @@ $questoes = $stmt->fetchAll();
 </a>
 <div class="botoes-questao">
 <form method="post">
+<input type="hidden" name="csrf" value="<?= htmlspecialchars(tokenCsrf()) ?>">
 <input type="hidden" name="questao_id" value="<?= (int) $questao['id'] ?>">
 <input type="hidden" name="prova_id" value="<?= $provaId ?>">
 <button type="submit" name="acao" value="subir" class="botao-pequeno" <?= $i === 0 ? 'disabled' : '' ?>>&uarr;</button>
