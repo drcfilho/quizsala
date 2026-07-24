@@ -54,6 +54,7 @@ if (in_array($sessao['fase'], ['respondendo', 'revelado'], true)) {
 
                 $distribuicao[] = [
                     'letra' => letraAlternativa($i),
+                    'texto' => $alternativa['texto'],
                     'n' => $n,
                     'correta' => $ehCorreta,
                 ];
@@ -68,6 +69,7 @@ if (in_array($sessao['fase'], ['respondendo', 'revelado'], true)) {
             $payload['distribuicao'] = $distribuicao;
             $payload['acertos'] = $acertos;
             $payload['erros'] = $erros;
+            $payload['naoResponderam'] = max(0, $payload['online'] - $payload['responderam']);
         }
     }
 }

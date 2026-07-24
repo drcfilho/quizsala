@@ -141,6 +141,8 @@ foreach($p->query("SELECT SUM(a.correta) acertos, COUNT(*)-SUM(a.correta) erros
 
 **Pronto quando** os números da tela batem exatamente com o `SELECT`, e o celular do aluno também mostra o resultado individual (isso já funciona desde a T00).
 
+**Revisão pós-v1:** o payload original desta tarefa não incluía o texto da alternativa nem quantos não responderam — a tela só mostrava letra + barra, então ninguém via de fato *qual* era a resposta certa. `distribuicao[].texto` e `naoResponderam` (= online − responderam, no momento da revelação) foram adicionados a `painel.php`/`tela.js`/`tela.css` a pedido do usuário, mantendo a Regra do Sinal Duplo (linha correta também com texto em verde/negrito, não só a barra).
+
 ---
 
 ## T04 · Legibilidade de projeção *(CSS implementado; validação no projetor real pendente)*

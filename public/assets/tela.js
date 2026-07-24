@@ -35,7 +35,7 @@ function renderizarContador(container, dados) {
 function renderizarResultado(container, dados) {
     var resumo = document.createElement('p');
     resumo.className = 'resumo-resultado';
-    resumo.textContent = dados.acertos + ' acertos · ' + dados.erros + ' erros';
+    resumo.textContent = dados.acertos + ' acertos · ' + dados.erros + ' erros · ' + dados.naoResponderam + ' não responderam';
     container.appendChild(resumo);
 
     var maximo = Math.max.apply(null, dados.distribuicao.map(function (d) { return d.n; }).concat([1]));
@@ -51,6 +51,11 @@ function renderizarResultado(container, dados) {
         letra.className = 'letra-barra';
         letra.textContent = d.letra;
         linha.appendChild(letra);
+
+        var texto = document.createElement('span');
+        texto.className = 'texto-barra';
+        texto.textContent = d.texto;
+        linha.appendChild(texto);
 
         var trilha = document.createElement('div');
         trilha.className = 'trilha-barra';

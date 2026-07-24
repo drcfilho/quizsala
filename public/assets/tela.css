@@ -133,6 +133,15 @@ body {
     font-weight: 700;
     font-size: clamp(1.2rem, 2vw, 1.8rem);
 }
+.texto-barra {
+    flex-shrink: 0;
+    width: clamp(8rem, 20vw, 16rem);
+    text-align: left;
+    font-size: clamp(1rem, 1.8vw, 1.5rem);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 .trilha-barra {
     flex: 1;
     height: clamp(2rem, 4vw, 3.2rem);
@@ -158,6 +167,7 @@ body {
 /* A Regra do Sinal Duplo: a alternativa correta nunca depende so da cor
    verde - a borda da bolha e da barra tambem mudam. */
 .linha-correta .letra-barra { border-color: var(--acerto); }
+.linha-correta .texto-barra { color: var(--acerto); font-weight: 700; }
 .linha-correta .barra-preenchida-painel { background: var(--acerto); }
 .linha-correta .contagem-barra { color: var(--acerto); font-weight: 700; }
 
