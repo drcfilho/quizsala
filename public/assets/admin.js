@@ -7,6 +7,39 @@ var params = new URLSearchParams(location.search);
 var codigo = params.get('codigo');
 var versaoAtual = 0;
 var enviando = false;
+var contextoRenderizado = null;
+
+function prefereReduzirMovimento() {
+    return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+// T21: mesmo helper de tela.js (arquivos sem modulo/bundler - cada .js
+// deste projeto e autocontido de proposito, sem import entre eles).
+function animarContador(elemento, valoresAntigos, valoresNovos, formatar) {
+    if (prefereReduzirMovimento() || valoresAntigos.join(',') === valoresNovos.join(',')) {
+        elemento.textContent = formatar(valoresNovos);
+        return;
+    }
+
+    var inicio = null;
+    var duracao = 450;
+
+    function passo(agora) {
+        if (inicio === null) {
+            inicio = agora;
+        }
+        var progresso = Math.min((agora - inicio) / duracao, 1);
+        var atuais = valoresAntigos.map(function (v, i) {
+            return Math.round(v + (valoresNovos[i] - v) * progresso);
+        });
+        elemento.textContent = formatar(atuais);
+        if (progresso < 1) {
+            requestAnimationFrame(passo);
+        }
+    }
+
+    requestAnimationFrame(passo);
+}
 
 // Token de professor: capacidade separada do "codigo" publico. Sem isso,
 // qualquer aluno que soubesse o codigo da sala conseguia chamar
@@ -130,18 +163,55 @@ function mensagem(container, texto) {
     container.appendChild(p);
 }
 
+// T21: mesma questao, mesma fase "respondendo" - so o placar mudou (o
+// online/responderam de "revelado" ja fica congelado por natureza, api/
+// responder.php fecha a questao - nao precisa desse caminho la).
+function atualizarPresencaAdmin(container, dados) {
+    var presenca = container.querySelector('.presenca-admin');
+    if (!presenca) {
+        return;
+    }
+
+    var completo = dados.online > 0 && dados.responderam >= dados.online;
+    presenca.classList.toggle('completo', completo);
+
+    var antigos = [Number(presenca.dataset.online || 0), Number(presenca.dataset.responderam || 0)];
+    var novos = [dados.online, dados.responderam];
+    animarContador(presenca, antigos, novos, function (v) {
+        return v[0] + ' online · ' + v[1] + ' responderam';
+    });
+    presenca.dataset.online = String(dados.online);
+    presenca.dataset.responderam = String(dados.responderam);
+
+    var botaoRevelar = container.querySelector('.botao-acao');
+    if (botaoRevelar) {
+        botaoRevelar.classList.toggle('em-destaque', completo);
+    }
+}
+
 function renderizar(dados) {
     var container = document.getElementById('conteudo-admin');
+
+    var chaveAtual = !dados.erro && dados.questao ? (dados.fase + ':' + dados.questao.ordem) : null;
+
+    if (dados.fase === 'respondendo' && chaveAtual !== null && chaveAtual === contextoRenderizado) {
+        versaoAtual = dados.versao;
+        atualizarPresencaAdmin(container, dados);
+        return;
+    }
+
     while (container.firstChild) {
         container.removeChild(container.firstChild);
     }
 
     if (dados.erro) {
+        contextoRenderizado = null;
         mensagem(container, 'Código de sala não encontrado.');
         return;
     }
 
     versaoAtual = dados.versao;
+    contextoRenderizado = chaveAtual;
 
     var cartao = document.createElement('div');
     cartao.className = 'cartao-admin';
@@ -172,6 +242,8 @@ function renderizar(dados) {
 
         var presenca = document.createElement('p');
         presenca.className = 'presenca-admin' + (completo ? ' completo' : '');
+        presenca.dataset.online = String(dados.online);
+        presenca.dataset.responderam = String(dados.responderam);
         presenca.textContent = dados.online + ' online · ' + dados.responderam + ' responderam';
         cartao.appendChild(presenca);
 

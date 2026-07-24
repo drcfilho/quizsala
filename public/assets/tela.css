@@ -56,6 +56,24 @@ body {
     margin: 0 0 3vh;
 }
 
+/* T21: pulso sutil sinalizando que a tela esta viva/atualizando - so
+   opacidade (nunca cor nova), discreto de proposito perto do QR que ja
+   domina a tela. */
+.pulso-ao-vivo {
+    display: inline-block;
+    width: 0.5em;
+    height: 0.5em;
+    margin-right: 0.5em;
+    border-radius: 50%;
+    background: var(--grafite);
+    vertical-align: middle;
+    animation: pulso-suave 2s ease-in-out infinite;
+}
+@keyframes pulso-suave {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+}
+
 .qr-espera {
     height: 40vh;
     width: auto;
@@ -151,10 +169,24 @@ body {
     flex-direction: column;
     gap: 1.4vh;
 }
+/* T21: entrada em cascata na revelacao - cada linha some/aparece com um
+   pequeno atraso em relacao a anterior, em vez de todas baterem na tela
+   juntas. So dispara uma vez (tela.js so redesenha "revelado" na primeira
+   vez que a questao e revelada, nao a cada poll). */
 .linha-barra {
     display: flex;
     align-items: center;
     gap: 1rem;
+    animation: entrada-barra 0.35s ease-out backwards;
+}
+.linha-barra:nth-child(1) { animation-delay: 0s; }
+.linha-barra:nth-child(2) { animation-delay: 0.07s; }
+.linha-barra:nth-child(3) { animation-delay: 0.14s; }
+.linha-barra:nth-child(4) { animation-delay: 0.21s; }
+.linha-barra:nth-child(5) { animation-delay: 0.28s; }
+@keyframes entrada-barra {
+    from { opacity: 0; transform: translateX(-0.5rem); }
+    to { opacity: 1; transform: translateX(0); }
 }
 .letra-barra {
     flex-shrink: 0;
@@ -209,4 +241,5 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
     .bloco-contador, .barra-preenchida-painel { transition: none; }
+    .linha-barra, .pulso-ao-vivo { animation: none; }
 }
