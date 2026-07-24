@@ -32,6 +32,37 @@ function renderizarContador(container, dados) {
     container.appendChild(bloco);
 }
 
+// T16: tela de espera - QR grande (api/qr.php ja aponta pro index.php do
+// aluno) com o codigo em monoespaçada gigante como alternativa pra quem
+// nao conseguir escanear, e quantos ja entraram enquanto o professor nao
+// inicia.
+function textoContadorEntrada(online) {
+    return online + (online === 1 ? ' pessoa entrou' : ' pessoas entraram');
+}
+
+function renderizarEspera(container, dados) {
+    var titulo = document.createElement('p');
+    titulo.className = 'titulo-espera';
+    titulo.textContent = 'Aguardando o professor';
+    container.appendChild(titulo);
+
+    var qr = document.createElement('img');
+    qr.className = 'qr-espera';
+    qr.src = 'api/qr.php?codigo=' + encodeURIComponent(codigo);
+    qr.alt = 'QR Code para entrar na prova';
+    container.appendChild(qr);
+
+    var codigoGrande = document.createElement('p');
+    codigoGrande.className = 'codigo-espera';
+    codigoGrande.textContent = codigo;
+    container.appendChild(codigoGrande);
+
+    var entrada = document.createElement('p');
+    entrada.className = 'contador-entrada';
+    entrada.textContent = textoContadorEntrada(dados.online || 0);
+    container.appendChild(entrada);
+}
+
 function renderizarResultado(container, dados) {
     var resumo = document.createElement('p');
     resumo.className = 'resumo-resultado';
@@ -80,6 +111,17 @@ function renderizar(dados) {
     var painel = document.getElementById('painel');
     var container = document.getElementById('conteudo-painel');
 
+    // T16: continua esperando -> so atualiza o contador. Recriar o <img> do
+    // QR a cada poll (2s) faria ele recarregar - e piscar na tela - toda
+    // hora, sem necessidade: o QR nao muda enquanto a fase nao muda.
+    if (!dados.erro && dados.fase === 'aguardando' && painel.dataset.fase === 'aguardando') {
+        var entradaAtual = container.querySelector('.contador-entrada');
+        if (entradaAtual) {
+            entradaAtual.textContent = textoContadorEntrada(dados.online || 0);
+        }
+        return;
+    }
+
     while (container.firstChild) {
         container.removeChild(container.firstChild);
     }
@@ -93,7 +135,7 @@ function renderizar(dados) {
     painel.dataset.fase = dados.fase;
 
     if (dados.fase === 'aguardando') {
-        mensagem(container, 'Aguardando o professor...');
+        renderizarEspera(container, dados);
         return;
     }
 

@@ -45,6 +45,42 @@ body {
     color: var(--grafite);
 }
 
+/* T16: tela de espera - QR domina, codigo gigante e a alternativa pra quem
+   nao conseguir escanear, contador de entrada fica secundario de proposito
+   (menor que o .bloco-contador da fase "respondendo", que e o que mais
+   importa olhar quando a prova ja esta rolando). */
+.titulo-espera {
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    font-weight: 600;
+    color: var(--grafite);
+    margin: 0 0 3vh;
+}
+
+.qr-espera {
+    height: 40vh;
+    width: auto;
+    max-width: 90vw;
+    background: var(--cartao);
+    padding: 1.5vh;
+    border-radius: 0.5rem;
+}
+
+.codigo-espera {
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    font-size: clamp(3rem, 9vw, 7rem);
+    margin: 3vh 0 0;
+}
+
+.contador-entrada {
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+    color: var(--grafite);
+    font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+    margin: 2vh 0 0;
+}
+
 .contador-topo {
     font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
     text-transform: uppercase;
