@@ -5,6 +5,7 @@ declare(strict_types=1);
 require __DIR__ . '/../../src/db.php';
 require __DIR__ . '/../../src/util.php';
 require __DIR__ . '/../../src/auth.php';
+require __DIR__ . '/../../src/admin_layout.php';
 
 exigirAdmin();
 
@@ -35,19 +36,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+abrirLayoutAdmin('Importar CSV', 'importar-csv');
 ?>
-<!doctype html>
-<html lang="pt-br">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>QuizSala — Importar CSV</title>
-<link rel="stylesheet" href="../assets/admin.css">
-</head>
-<body>
-<main class="tela-admin tela-admin-lista">
 <div class="cartao-admin">
-<p class="cabecalho-admin"><a class="link-voltar" href="provas.php">&larr; Provas</a></p>
 <h1 class="titulo-pagina">Importar prova de um CSV</h1>
 
 <?php if (!empty($erros)): ?>
@@ -78,6 +69,4 @@ A prova nasce como rascunho — publique depois de conferir.
 </form>
 
 </div>
-</main>
-</body>
-</html>
+<?php fecharLayoutAdmin(); ?>

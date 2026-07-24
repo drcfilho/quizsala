@@ -5,6 +5,7 @@ declare(strict_types=1);
 require __DIR__ . '/../../src/db.php';
 require __DIR__ . '/../../src/util.php';
 require __DIR__ . '/../../src/auth.php';
+require __DIR__ . '/../../src/admin_layout.php';
 
 exigirAdmin();
 
@@ -57,19 +58,23 @@ $stmt = $pdo->prepare('SELECT * FROM questoes WHERE prova_id = ? ORDER BY ordem'
 $stmt->execute([$provaId]);
 $questoes = $stmt->fetchAll();
 
+// T22: passo do fluxo guiado - qual e o proximo passo natural pra esta
+// prova, com base no que ja existe (nao no que o professor "deveria" ter
+// feito, ele pode ir e voltar livremente).
+$passoFluxo = empty($questoes) ? 'questoes' : ((int) $prova['publicada'] === 0 ? 'publicar' : 'sessao');
+$concluidosFluxo = ['criar'];
+if (!empty($questoes)) {
+    $concluidosFluxo[] = 'questoes';
+}
+if ((int) $prova['publicada'] === 1) {
+    $concluidosFluxo[] = 'publicar';
+}
+
+abrirLayoutAdmin('Questões — ' . $prova['titulo'], 'provas');
 ?>
-<!doctype html>
-<html lang="pt-br">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>QuizSala — <?= htmlspecialchars($prova['titulo']) ?></title>
-<link rel="stylesheet" href="../assets/admin.css">
-</head>
-<body>
-<main class="tela-admin tela-admin-lista">
 <div class="cartao-admin">
 <p class="cabecalho-admin"><a class="link-voltar" href="provas.php">&larr; Provas</a></p>
+<?php fluxoProva($passoFluxo, $concluidosFluxo); ?>
 
 <?php if ($erro !== null): ?>
 <p class="erro-campo"><?= htmlspecialchars($erro) ?></p>
@@ -117,9 +122,18 @@ $questoes = $stmt->fetchAll();
 </form>
 <?php endif; ?>
 
-<a class="botao-acao botao-como-link" href="provas.php">Salvar prova e voltar</a>
+<?php if (!empty($questoes) && (int) $prova['publicada'] === 0): ?>
+<form method="post" action="provas.php">
+<input type="hidden" name="csrf" value="<?= htmlspecialchars(tokenCsrf()) ?>">
+<input type="hidden" name="acao" value="publicar">
+<input type="hidden" name="prova_id" value="<?= $provaId ?>">
+<button type="submit" class="botao-acao">Publicar prova (passo 3)</button>
+</form>
+<?php elseif ((int) $prova['publicada'] === 1): ?>
+<a class="botao-acao botao-como-link" href="nova-sessao.php">Abrir sessão (passo 4)</a>
+<?php endif; ?>
+
+<a class="botao-secundario botao-como-link" href="provas.php">Salvar prova e voltar</a>
 
 </div>
-</main>
-</body>
-</html>
+<?php fecharLayoutAdmin(); ?>

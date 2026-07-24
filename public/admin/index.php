@@ -5,6 +5,7 @@ declare(strict_types=1);
 require __DIR__ . '/../../src/db.php';
 require __DIR__ . '/../../src/util.php';
 require __DIR__ . '/../../src/auth.php';
+require __DIR__ . '/../../src/admin_layout.php';
 
 exigirAdmin();
 
@@ -18,19 +19,10 @@ $sessoes = $pdo->query(
      ORDER BY s.id DESC"
 )->fetchAll();
 
+abrirLayoutAdmin('Sessões', 'sessoes');
 ?>
-<!doctype html>
-<html lang="pt-br">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>QuizSala — Sessões</title>
-<link rel="stylesheet" href="../assets/admin.css">
-</head>
-<body>
-<main class="tela-admin tela-admin-lista">
 <div class="cartao-admin">
-<p class="cabecalho-admin">Sessões ativas</p>
+<h1 class="titulo-pagina">Sessões ativas</h1>
 
 <?php if (empty($sessoes)): ?>
 <p class="mensagem-admin">Nenhuma sessão ativa.</p>
@@ -48,9 +40,6 @@ $sessoes = $pdo->query(
 <?php endif; ?>
 
 <a class="botao-acao botao-como-link" href="nova-sessao.php">Nova sessão</a>
-<a class="botao-secundario botao-como-link" href="senha.php">Trocar senha do admin</a>
 
 </div>
-</main>
-</body>
-</html>
+<?php fecharLayoutAdmin(); ?>

@@ -339,3 +339,156 @@ main .cartao-admin .botao-acao + form {
 }
 
 .form-inline { margin: 0; }
+
+/* T22: shell desktop-first das paginas de CONTEUDO do admin (provas,
+   questoes, importar CSV, nova sessao, trocar senha) - pensado pra
+   mouse+teclado, menu fixo. admin/sessao.php (controle ao vivo, professor
+   andando pela sala) fica de fora de proposito - continua em .tela-admin,
+   mobile-first, sem nenhuma regra daqui (arquitetura.md secao 7). */
+.shell-admin {
+    display: flex;
+    align-items: stretch;
+    min-height: 100vh;
+}
+
+.menu-admin {
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--cartao);
+    border-right: 1px solid var(--pauta);
+    padding: 1.5rem 1.25rem;
+}
+
+.marca-admin {
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    font-size: 1.1rem;
+    color: var(--marca);
+    margin: 0 0 2rem;
+}
+
+/* Truque de checkbox: sem JS pro menu recolher no celular (mesma familia
+   do <details> ja usado no editor de questao - recurso nativo antes de
+   escrever codigo). */
+.menu-admin-toggle-input { position: absolute; opacity: 0; pointer-events: none; }
+.menu-admin-toggle { display: none; }
+
+.lista-menu-admin {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.link-menu-admin {
+    display: block;
+    padding: 0.7rem 0.85rem;
+    border-radius: 0.5rem;
+    color: var(--tinta);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: background-color 0.15s ease-out;
+}
+.link-menu-admin:hover { background: var(--papel); }
+.link-menu-admin.ativo { background: var(--tinta); color: #fff; }
+
+.conteudo-admin {
+    flex: 1;
+    min-width: 0;
+    padding: 2.5rem 3rem;
+}
+.conteudo-admin .cartao-admin { max-width: 42rem; }
+
+/* Botao de 64px (alvo de toque pensado pro professor andando pela sala,
+   em sessao.php) vira exagero numa tela clicada com mouse - aqui o alvo e
+   o cursor, nao o polegar. */
+.conteudo-admin .botao-acao,
+.conteudo-admin .botao-secundario {
+    width: auto;
+    min-height: 44px;
+    padding: 0 1.5rem;
+}
+.conteudo-admin .botao-como-link { line-height: 40px; }
+
+@media (max-width: 768px) {
+    .shell-admin { flex-direction: column; }
+    .menu-admin {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--pauta);
+        padding: 0.75rem 1rem;
+    }
+    .marca-admin { display: none; }
+    .menu-admin-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 44px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+    .menu-admin-toggle::after { content: '\25be'; }
+    .menu-admin-toggle-input:checked ~ .menu-admin-toggle::after { content: '\25b4'; }
+    .lista-menu-admin { display: none; padding-top: 0.5rem; }
+    .menu-admin-toggle-input:checked ~ .lista-menu-admin { display: flex; }
+    .link-menu-admin { min-height: 44px; display: flex; align-items: center; }
+    .conteudo-admin { padding: 1.5rem 1rem; }
+    .conteudo-admin .cartao-admin { max-width: none; }
+    .conteudo-admin .botao-acao,
+    .conteudo-admin .botao-secundario {
+        width: 100%;
+        min-height: 56px;
+    }
+    .conteudo-admin .botao-como-link { line-height: 52px; }
+}
+
+/* T22 passo 3: indicador do fluxo de criacao de uma prova. */
+.fluxo-prova {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    list-style: none;
+    margin: 0 0 1.5rem;
+    padding: 0;
+}
+.passo-fluxo {
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    font-size: 0.78rem;
+    color: var(--grafite);
+    padding: 0.4rem 0.75rem;
+    border: 1px solid var(--pauta);
+    border-radius: 999px;
+}
+.passo-fluxo.concluido { color: var(--acerto); border-color: var(--acerto); }
+.passo-fluxo.atual {
+    color: var(--tinta);
+    border-color: var(--tinta);
+    background: var(--papel);
+    font-weight: 700;
+}
+
+/* T22 passo 4: hover/foco de verdade - o admin inteiro so tinha estado de
+   :disabled, pensado pra toque. Mouse e teclado precisam de feedback antes
+   do clique. Transicao sutil, nunca sombra (Regra do Chao Plano). */
+.botao-acao, .botao-secundario, .botao-pequeno, .link-menu-admin {
+    transition: opacity 0.15s ease-out, background-color 0.15s ease-out;
+}
+.botao-acao:hover:not(:disabled) { opacity: 0.85; }
+.botao-secundario:hover:not(:disabled) { background: var(--papel); }
+.botao-pequeno:hover:not(:disabled) { background: var(--papel); border-color: var(--grafite); }
+
+.botao-acao:focus-visible,
+.botao-secundario:focus-visible,
+.botao-pequeno:focus-visible,
+.link-menu-admin:focus-visible {
+    outline: 2px solid var(--marca);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .link-menu-admin, .botao-acao, .botao-secundario, .botao-pequeno { transition: none; }
+}
