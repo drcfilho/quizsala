@@ -59,7 +59,7 @@
 <p class="nota">Segue a mesma ordem de <a href="MANUAL.md"><code>MANUAL.md</code></a> e as quatro telas do fluxograma publicado (admin desktop, controle ao vivo, projetor, aluno). Atualizado em 2026-07-24. Servidor de teste: <code>cd public &amp;&amp; php -S 127.0.0.1:8080</code> (ou <code>iniciar.bat</code>/<code>iniciar.ps1</code>/<code>./iniciar.sh</code>) — todas as URLs abaixo assumem esse endereço.</p>
 
 <div class="fix">
-<strong>Comportamento corrigido nesta versão:</strong> a sessão semente <code>AULA01</code> nascia direto em fase <code>respondendo</code> — <code>iniciar.bat</code>/<code>iniciar.ps1</code>/<code>iniciar.sh</code> abriam o projetor já numa pergunta em andamento, pulando a tela de espera com QR. Agora <code>bin/init-db.php</code> cria <code>AULA01</code> em <code>aguardando</code>, igual a uma sessão de verdade — o projetor mostra a tela de espera até o professor clicar <strong>"Iniciar prova"</strong>, como combinado. <code>bin/teste.sh</code> foi ajustado pra chamar esse "Iniciar" sozinho antes dos casos de teste, sem precisar reescrever nenhum.
+<strong>Comportamento corrigido nesta versão:</strong> o servidor nunca mais escolhe uma sessão sozinho pro projetor — nem a mais recente, nem a semente <code>AULA01</code>. Antes, <code>tela.php</code> sem código descobria "a sessão não-encerrada mais recente" e mostrava ela direto; agora só mostra a sessão que o professor marcar explicitamente com <strong>"Ativar no projetor"</strong> (novo, em <code>admin/index.php</code> — Passo 5 abaixo). Sem nenhuma ativada, o projetor fica numa tela neutra: <strong>"Aguardando o início da sessão"</strong>. (Isso é além do fix anterior, ainda válido: a sessão semente <code>AULA01</code> nasce em <code>aguardando</code>, não em <code>respondendo</code> — o professor sempre precisa clicar "Iniciar prova" antes das perguntas aparecerem.) <code>bin/teste.sh</code> foi ajustado pra reproduzir os dois passos (ativar + iniciar) sozinho antes dos casos de teste, sem precisar reescrever nenhum caso existente.
 </div>
 
 <h2>Legenda</h2>
@@ -73,7 +73,7 @@
 <h2>Passo 0 — Subir o servidor</h2>
 <div class="passo">
 <p class="passo-titulo"><span class="passo-num">0</span>Rodar <code>iniciar.bat</code> (Windows), <code>iniciar.ps1</code> ou <code>./iniciar.sh</code> (Linux)</p>
-<p class="nota">Confere o PHP, cria o banco na primeira vez (prova de exemplo + sessão <code>AULA01</code> em <code>aguardando</code>) e já abre o projetor sozinho. Se o banco já existe, nada é apagado — provas e sessões salvas continuam lá.</p>
+<p class="nota">Confere o PHP, cria o banco na primeira vez (prova de exemplo + sessão <code>AULA01</code> em <code>aguardando</code>, ainda não ativada) e já abre o projetor sozinho — que mostra "Aguardando o início da sessão" até alguém ativar uma sessão (Passo 5). Se o banco já existe, nada é apagado — provas, sessões e qual delas estava ativa continuam salvas.</p>
 </div>
 
 <h2>Passo 1 — Criar uma prova <span class="selo professor-desktop">admin desktop</span></h2>
@@ -106,47 +106,54 @@
 <p class="nota">A sessão semente já tem os dois abaixo prontos, sem precisar criar nada:</p>
 <a class="url" href="http://127.0.0.1:8080/tela.php?codigo=AULA01">http://127.0.0.1:8080/tela.php?codigo=AULA01</a> <span class="selo projetor">projetor</span>
 <a class="url" href="http://127.0.0.1:8080/admin/sessao.php?codigo=AULA01&pt=601df08e4eaf7754bc904b8aa56f790a">http://127.0.0.1:8080/admin/sessao.php?codigo=AULA01&amp;pt=601df08e4eaf7754bc904b8aa56f790a</a> <span class="selo professor-celular">controle ao vivo</span>
-<p class="nota"><strong>Essas duas URLs não mudam pelo resto da aula</strong> — o conteúdo delas muda sozinho (poll a cada 2s) conforme a sessão avança pelos passos abaixo.</p>
+<p class="nota"><strong>Essas duas URLs não mudam pelo resto da aula</strong> — o conteúdo delas muda sozinho (poll a cada 2s) conforme a sessão avança pelos passos abaixo. Isso é o link <strong>com código explícito</strong> — o projetor sem código (o que abre sozinho no Passo 0) só mostra essa sessão depois do próximo passo.</p>
 </div>
 
-<h2>Passo 5 — Aluno entra, projetor espera <span class="selo aluno">aluno</span> <span class="selo projetor">projetor</span></h2>
+<h2>Passo 5 — Ativar no projetor <span class="selo professor-desktop">admin desktop</span></h2>
+<div class="passo">
+<p class="passo-titulo"><span class="passo-num">5</span>Botão <strong>"Ativar no projetor"</strong> em <code>admin/index.php</code></p>
+<a class="url" href="http://127.0.0.1:8080/admin/index.php">http://127.0.0.1:8080/admin/index.php</a>
+<p class="nota">Lista as sessões ativas. Clique <strong>"Ativar no projetor"</strong> na sessão que você quer projetar — ela ganha o selo <strong>"● No projetor"</strong>. Só uma sessão fica ativa por vez: ativar outra desativa a anterior automaticamente. É esse passo que faz o projetor sem código (Passo 0/4) sair de "Aguardando o início da sessão" e mostrar a sessão de verdade — o servidor nunca escolhe sozinho, nem a sessão semente <code>AULA01</code>.</p>
+</div>
+
+<h2>Passo 6 — Aluno entra, projetor espera <span class="selo aluno">aluno</span> <span class="selo projetor">projetor</span></h2>
 <div class="passo espera">
-<p class="passo-titulo"><span class="passo-num">5</span><code>index.php</code></p>
+<p class="passo-titulo"><span class="passo-num">6</span><code>index.php</code></p>
 <a class="url" href="http://127.0.0.1:8080/index.php">http://127.0.0.1:8080/index.php</a>
 <p class="nota">Aluno digita <code>AULA01</code> (ou escaneia o QR que o projetor está mostrando). Como a sessão pede identificação anônima, não pede nome.</p>
-<p class="nota">Enquanto isso, o link do projetor do Passo 4 mostra a tela de espera: QR Code grande + código + "X pessoas entraram", atualizando a cada 2s. É exatamente o estado em que <code>AULA01</code> está agora — <strong>abra o link do projetor acima pra ver.</strong></p>
+<p class="nota">Enquanto isso, o link do projetor do Passo 4 mostra a tela de espera: QR Code grande + código + "X pessoas entraram", atualizando a cada 2s. É exatamente o estado em que <code>AULA01</code> está agora (já ativada no Passo 5) — <strong>abra o link do projetor acima pra ver.</strong></p>
 </div>
 
-<h2>Passo 6 — Professor inicia <span class="selo professor-celular">controle ao vivo</span></h2>
+<h2>Passo 7 — Professor inicia <span class="selo professor-celular">controle ao vivo</span></h2>
 <div class="passo">
-<p class="passo-titulo"><span class="passo-num">6</span>Botão <strong>"Iniciar prova"</strong> em <code>admin/sessao.php</code></p>
+<p class="passo-titulo"><span class="passo-num">7</span>Botão <strong>"Iniciar prova"</strong> em <code>admin/sessao.php</code></p>
 <p class="nota">Sai de <code>aguardando</code>. O mesmo link do projetor (Passo 4) muda sozinho pra mostrar a primeira questão, o contador "X de Y responderam" e, se a questão tiver cronômetro configurado, a contagem regressiva.</p>
 </div>
 
-<h2>Passo 7 — Revelar e avançar <span class="selo professor-celular">controle ao vivo</span> <span class="selo projetor">projetor</span></h2>
+<h2>Passo 8 — Revelar e avançar <span class="selo professor-celular">controle ao vivo</span> <span class="selo projetor">projetor</span></h2>
 <div class="passo">
-<p class="passo-titulo"><span class="passo-num">7</span>Botões <strong>"Revelar"</strong> e <strong>"Próxima questão"</strong>, um de cada vez</p>
+<p class="passo-titulo"><span class="passo-num">8</span>Botões <strong>"Revelar"</strong> e <strong>"Próxima questão"</strong>, um de cada vez</p>
 <p class="nota">"Revelar" mostra o gabarito, as barras por alternativa e a explicação (se o professor escreveu uma) — no projetor e pro aluno. Se o tempo do cronômetro já esgotou, o botão "Revelar" ganha destaque, mas a revelação continua sendo um clique seu, nunca automática. "Próxima questão" volta pra "respondendo" na questão seguinte — repete o ciclo até a última.</p>
-<p class="nota"><span class="selo professor-celular">a qualquer momento</span> o botão <strong>"Parar prova"</strong> (zona de risco) força o fim da prova, de qualquer fase — inclusive antes de "Iniciar prova" (Passo 6), se a sessão foi aberta errada.</p>
+<p class="nota"><span class="selo professor-celular">a qualquer momento</span> o botão <strong>"Parar prova"</strong> (zona de risco) força o fim da prova, de qualquer fase — inclusive antes de "Iniciar prova" (Passo 7), se a sessão foi aberta errada.</p>
 </div>
 
-<h2>Passo 8 — Fim da prova <span class="selo projetor">projetor</span></h2>
+<h2>Passo 9 — Fim da prova <span class="selo projetor">projetor</span></h2>
 <div class="passo">
-<p class="passo-titulo"><span class="passo-num">8</span>"Próxima questão" na última questão encerra sozinho</p>
+<p class="passo-titulo"><span class="passo-num">9</span>"Próxima questão" na última questão encerra sozinho</p>
 <p class="nota">O projetor mostra o resumo final: participantes e questões no topo, e por questão — acertos, erros, não-responderam e as mesmas barras da revelação.</p>
 </div>
 
-<h2>Passo 9 — Placar do aluno <span class="selo aluno">aluno</span></h2>
+<h2>Passo 10 — Placar do aluno <span class="selo aluno">aluno</span></h2>
 <div class="passo">
-<p class="passo-titulo"><span class="passo-num">9</span>Tela final em <code>prova.php</code> (aberta desde o Passo 5)</p>
+<p class="passo-titulo"><span class="passo-num">10</span>Tela final em <code>prova.php</code> (aberta desde o Passo 6)</p>
 <p class="nota">Mostra acertos/total, com dois botões: <strong>"Salvar comprovante em PDF"</strong> (abre o diálogo de impressão do navegador, funciona sem internet) e <strong>"Concluir"</strong>. Sem clicar em nenhum dos dois, avança sozinho pro "Obrigado por participar!" depois de 5 minutos.</p>
 </div>
 
-<h2>Passo 10 — Depois da aula <span class="selo professor-desktop">admin desktop</span></h2>
+<h2>Passo 11 — Depois da aula <span class="selo professor-desktop">admin desktop</span></h2>
 <div class="passo">
-<p class="passo-titulo"><span class="passo-num">10</span><code>admin/index.php</code></p>
+<p class="passo-titulo"><span class="passo-num">11</span><code>admin/index.php</code></p>
 <a class="url" href="http://127.0.0.1:8080/admin/index.php">http://127.0.0.1:8080/admin/index.php</a>
-<p class="nota">Sessões ativas (reabrir o link do controle) e encerradas — é aqui que fica o botão <strong>"Limpar"</strong>: apaga participantes e respostas da sessão (confirmação dupla), a prova continua existindo pra usar de novo com outra turma.</p>
+<p class="nota">Sessões ativas (reabrir o link do controle, ou ativar outra sessão no projetor) e encerradas — é aqui que fica o botão <strong>"Limpar"</strong>: apaga participantes e respostas da sessão (confirmação dupla), a prova continua existindo pra usar de novo com outra turma.</p>
 </div>
 
 <h2>Referência rápida</h2>
@@ -158,7 +165,7 @@
 <tr><td><code>admin/sessao.php</code></td><td>Professor · celular</td><td><code>?codigo=&amp;pt=</code></td></tr>
 <tr><td><code>admin/*.php</code> (resto)</td><td>Professor · desktop</td><td>login com a senha do admin</td></tr>
 </table>
-<p class="nota">APIs cruas úteis pra depurar: <code>api/painel.php?codigo=AULA01</code> (payload que o projetor e o controle fazem poll), <code>api/sessao-ativa.php</code> (o que a descoberta automática do projetor usa), <code>api/qr.php?codigo=AULA01</code> (o PNG do QR).</p>
+<p class="nota">APIs cruas úteis pra depurar: <code>api/painel.php?codigo=AULA01</code> (payload que o projetor e o controle fazem poll), <code>api/sessao-ativa.php</code> (devolve o código da sessão marcada "Ativar no projetor" — <code>{"codigo":null}</code> se nenhuma foi ativada ainda), <code>api/qr.php?codigo=AULA01</code> (o PNG do QR).</p>
 
 <h2>Ver também</h2>
 <p class="nota">Passo a passo em prosa: <a href="MANUAL.md"><code>MANUAL.md</code></a>. Fluxograma visual com as quatro telas e todas as opções de navegação: <a href="https://claude.ai/code/artifact/1d809e4d-f7d2-45c6-8d2a-fc366d7b2110">artifact publicado</a>.</p>
