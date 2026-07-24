@@ -624,9 +624,24 @@ Não é código. É a tarefa que decide se a v1 acabou.
 
 **Pronto quando** as sete páginas de conteúdo usam o mesmo shell, o fluxo guiado está visível nelas, e `bin/teste.sh` continua passando 100%. **Confirmado.**
 
-**Como testar** Criar uma prova do zero numa tela de desktop (>1280px), seguindo só os CTAs que a tela oferece (sem saber de antemão a ordem) — chegar até "sessão aberta" sem se perder. Depois repetir num viewport de celular (375px) e confirmar que ainda dá pra fazer, só que com o menu recolhido.
+---
 
-**Pronto quando** as sete páginas de conteúdo usam o mesmo shell, o fluxo guiado está visível em todas elas, e `bin/teste.sh` continua passando 100% (mudança é só de camada visual/estrutural, nenhuma lógica de servidor deveria quebrar).
+## T23 · Ideias de layout do graphify + telas/ (sem cor, layout só) *(concluída)*
+
+**Não estava no plano original — pedido do usuário depois de rodar `/graphify` no projeto e pedir pra extrair ideias de layout (não cor) das imagens em `telas/` (capturas do QuizLive/Kahoot-like, salvas como referência externa).**
+
+**Entrega:** três padrões de layout adaptados — nunca copiados — das referências, mantendo a paleta e o vocabulário visual do QuizSala intactos. Ideias descartadas nessa varredura por contrariar decisão já travada (ranking individual visível pro aluno, pódio com alturas por posição): registradas na conversa, não implementadas.
+
+**Arquivos:** `public/admin/questoes.php`, `public/assets/admin.css`, `public/assets/admin.js`, `public/assets/aluno.js`, `public/assets/estilo.css`
+
+**Passos**
+1. **Linha de questão mais densa em `questoes.php`** — cada item da lista agora mostra as alternativas como tags inline (`alternativasDaQuestao()`, já existia, só não era usada aqui), a certa marcada com borda/negrito **e** um "✓" no texto (Regra do Sinal Duplo, nunca só cor). Antes era preciso abrir cada questão pra conferir o que tinha nela; agora dá pra revisar a prova inteira só na lista.
+2. **"Zona de risco" isolada em `admin/sessao.php`** — `criarZonaRisco()` (novo em `admin.js`) separa fisicamente Encerrar/Limpar do resto dos botões, com borda tracejada + rótulo em caixa alta "ZONA DE RISCO", em vez de só mudar a cor do botão na mesma pilha. Reforço estrutural, não só visual, do que a Regra do Sinal Duplo já pedia.
+3. **Comprovante do aluno com sinal duplo de verdade no papel** — o comprovante impresso (T04b) só diferenciava certo/errado por cor (`color: #1e7a34` / `#d9342b`), que some numa impressora P&B. Agora cada questão tem "✓ Acertou"/"✕ Errou" em texto, a resposta errada riscada (`text-decoration: line-through`), e a certa em negrito com borda à esquerda — lê certo mesmo sem tinta colorida.
+
+**Como testar** `bash bin/teste.sh` — 73/73, nenhuma lógica de servidor mudou (é tudo camada de exibição). Visual no navegador: lista de questões mostrando as 4 alternativas com a certa marcada; `admin/sessao.php` com "Zona de risco" visualmente separada do botão Revelar/Próxima; comprovante testado forçando o CSS de impressão visível (a automação não tem preview de impressão nativo) — "Acertou"/"Errou" em texto, resposta errada riscada, certa em negrito com borda, tudo legível sem depender de cor.
+
+**Pronto quando** as três ideias estão implementadas usando só o vocabulário visual já existente do QuizSala (nenhuma cor nova, nenhum elemento de gamificação) e `bin/teste.sh` continua passando 100%. **Confirmado.**
 
 ---
 
@@ -638,9 +653,9 @@ Não é código. É a tarefa que decide se a v1 acabou.
 | B — Controle | T05–T08 | **Completo** | Aplicar prova inteira pelo celular, abrindo sessões novas pra turmas diferentes |
 | C — Admin | T09–T14, T09b–T09e | **Completo** (T14 falta validar em celular físico real) | Criar conteúdo sem tocar no banco — manual, por CSV, ou duplicando; publicar/despublicar/excluir com trava de segurança; trocar a própria senha |
 | D — Operação | T15–T20 | **Parcial** — feito: T15 (QR Code), T16 (tela de espera), T17 (scripts de partida/parada), T18 (limpar sessão), T19 (`SETUP.md`). Falta: T20 (ensaio com turma real) | Entregar para outro professor usar |
-| E — Polimento | T21–T22 | **Completo** | Admin de conteúdo usável num desktop de verdade; telas com mais energia de placar ao vivo, sem virar gamificação |
+| E — Polimento | T21–T23 | **Completo** | Admin de conteúdo usável num desktop de verdade; telas com mais energia de placar ao vivo; layout adaptado de referências externas sem virar gamificação |
 
-**Além do plano original**, a pedido do usuário: T04b (placar/comprovante/agradecimento do aluno), T09b (importar CSV), T09c (explicação da resposta certa), T09d (publicar/despublicar/editar/excluir prova, com trava contra despublicar prova já iniciada), T09e (trocar a própria senha do admin), Bloco E inteiro (T21-T22, polimento visual e admin desktop-first). Documentado em cada tarefa e em `arquitetura.md` §9.
+**Além do plano original**, a pedido do usuário: T04b (placar/comprovante/agradecimento do aluno), T09b (importar CSV), T09c (explicação da resposta certa), T09d (publicar/despublicar/editar/excluir prova, com trava contra despublicar prova já iniciada), T09e (trocar a própria senha do admin), Bloco E inteiro (T21-T23, polimento visual, admin desktop-first e ideias de layout do graphify sobre `telas/`). Documentado em cada tarefa e em `arquitetura.md` §9.
 
 **Também pendente, fora da numeração T01–T20:**
 - Timer configurável por questão (duração definida no editor, botão "Iniciar tempo", bloqueia resposta até iniciar, não revela sozinho ao esgotar, marca "não respondeu" no banco) — pedido do usuário antes do Bloco C, adiado explicitamente pra depois do editor de questões existir. Ainda não implementado.

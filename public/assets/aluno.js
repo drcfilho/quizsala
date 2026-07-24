@@ -183,6 +183,11 @@ function prepararComprovante(dados) {
     placarTexto.textContent = 'Resultado: ' + dados.resultado.acertos + ' de ' + dados.resultado.total + ' certas';
     doc.appendChild(placarTexto);
 
+    // Ideia adaptada do QuizLive (layout, nao cor - telas/ e so referencia
+    // visual externa): comparacao "sua resposta x certa" como duas linhas
+    // claras, com sinal em texto ("Acertou"/"Errou") alem da cor - a
+    // impressora pode nao ter tinta colorida, o comprovante nao pode
+    // depender so disso (Regra do Sinal Duplo vale pra papel tambem).
     var lista = document.createElement('ol');
     dados.resultado.questoes.forEach(function (q) {
         var li = document.createElement('li');
@@ -193,12 +198,19 @@ function prepararComprovante(dados) {
         enun.textContent = q.enunciado;
         li.appendChild(enun);
 
+        var status = document.createElement('p');
+        status.className = 'status-comprovante';
+        status.textContent = q.acertou ? '✓ Acertou' : '✕ Errou';
+        li.appendChild(status);
+
         var resp = document.createElement('p');
+        resp.className = 'resposta-comprovante';
         resp.textContent = 'Sua resposta: ' + (q.escolhida || 'não respondeu');
         li.appendChild(resp);
 
         if (!q.acertou) {
             var certa = document.createElement('p');
+            certa.className = 'resposta-certa-comprovante';
             certa.textContent = 'Resposta certa: ' + q.correta;
             li.appendChild(certa);
         }

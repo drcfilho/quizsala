@@ -97,6 +97,13 @@ abrirLayoutAdmin('Questões — ' . $prova['titulo'], 'provas');
 <a class="enunciado-questao-admin" href="questao.php?prova_id=<?= $provaId ?>&id=<?= (int) $questao['id'] ?>">
 <?= (int) $questao['ordem'] ?>. <?= htmlspecialchars($questao['enunciado']) ?>
 </a>
+<ul class="alternativas-preview-admin">
+<?php foreach (alternativasDaQuestao($pdo, (int) $questao['id']) as $j => $alt): ?>
+<li class="alternativa-preview<?= (int) $alt['correta'] === 1 ? ' alternativa-preview-correta' : '' ?>">
+<span class="letra-preview"><?= letraAlternativa($j) ?></span> <?= htmlspecialchars(cortar($alt['texto'], 30)) ?><?= (int) $alt['correta'] === 1 ? ' ✓' : '' ?>
+</li>
+<?php endforeach; ?>
+</ul>
 <div class="botoes-questao">
 <form method="post">
 <input type="hidden" name="csrf" value="<?= htmlspecialchars(tokenCsrf()) ?>">

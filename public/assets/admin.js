@@ -156,6 +156,24 @@ function criarBotoes(acoes, acaoEmDestaque) {
     return wrap;
 }
 
+// Ideia adaptada do QuizLive (layout, nao cor - telas/ e so referencia
+// visual externa): acao destrutiva isolada numa area separada, com rotulo
+// proprio, em vez de so mudar a cor do botao na mesma pilha dos outros -
+// reforco estrutural, nao so visual, da Regra do Sinal Duplo.
+function criarZonaRisco(acoes) {
+    var zona = document.createElement('div');
+    zona.className = 'zona-risco';
+
+    var rotulo = document.createElement('p');
+    rotulo.className = 'rotulo-zona-risco';
+    rotulo.textContent = 'Zona de risco';
+    zona.appendChild(rotulo);
+
+    zona.appendChild(criarBotoes(acoes, null));
+
+    return zona;
+}
+
 function mensagem(container, texto) {
     var p = document.createElement('p');
     p.className = 'mensagem-admin';
@@ -230,7 +248,7 @@ function renderizar(dados) {
 
     if (dados.fase === 'encerrada') {
         mensagem(cartao, 'Prova encerrada.');
-        cartao.appendChild(criarBotoes(['limpar']));
+        cartao.appendChild(criarZonaRisco(['limpar']));
         container.appendChild(cartao);
         return;
     }
@@ -262,7 +280,8 @@ function renderizar(dados) {
     // dispara sozinho (design.md D6).
     var acoesPrimarias = dados.fase === 'respondendo' ? ['revelar'] : ['proxima'];
     var destaque = (dados.fase === 'respondendo' && completo) ? 'revelar' : null;
-    cartao.appendChild(criarBotoes(acoesPrimarias.concat(['encerrar']), destaque));
+    cartao.appendChild(criarBotoes(acoesPrimarias, destaque));
+    cartao.appendChild(criarZonaRisco(['encerrar']));
 
     container.appendChild(cartao);
 }
