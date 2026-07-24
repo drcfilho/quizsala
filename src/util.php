@@ -74,6 +74,26 @@ function totalQuestoes(PDO $pdo, int $provaId): int
     return (int) $stmt->fetchColumn();
 }
 
+// Online = visto nos ultimos 6s (3x o intervalo de poll, tolera 1 poll
+// perdido). Presenca por heartbeat, nunca trava avanco (design.md D6).
+function contarOnline(PDO $pdo, int $sessaoId): int
+{
+    $stmt = $pdo->prepare(
+        "SELECT COUNT(*) FROM participantes WHERE sessao_id = ? AND last_seen >= strftime('%s','now') - 6"
+    );
+    $stmt->execute([$sessaoId]);
+
+    return (int) $stmt->fetchColumn();
+}
+
+function contarResponderam(PDO $pdo, int $sessaoId, int $questaoId): int
+{
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM respostas WHERE sessao_id = ? AND questao_id = ?');
+    $stmt->execute([$sessaoId, $questaoId]);
+
+    return (int) $stmt->fetchColumn();
+}
+
 // D5: apelido sequencial no modo anonimo - so pro painel ter o que exibir.
 function proximoApelidoAnonimo(PDO $pdo, int $sessaoId): string
 {

@@ -38,7 +38,7 @@ O objetivo do bloco é chegar rápido no momento em que **o número aparece na p
 
 ---
 
-## T01 · Projetar a questão atual
+## T01 · Projetar a questão atual *(concluída)*
 
 **Entrega:** uma tela em tela cheia mostrando a questão que está no ar.
 
@@ -72,7 +72,7 @@ $p->exec("UPDATE sessoes SET questao_atual=2 WHERE codigo=\"AULA01\"");'
 
 ---
 
-## T02 · Contador "18 de 24 responderam"
+## T02 · Contador "18 de 24 responderam" *(concluída)*
 
 **Entrega:** a tela mostra, ao vivo, quantos já responderam.
 
@@ -103,7 +103,7 @@ SELECT COUNT(*) FROM respostas
 
 ---
 
-## T03 · Revelação com acertos e erros
+## T03 · Revelação com acertos e erros *(concluída)*
 
 **Entrega:** o resultado da questão na parede. É o núcleo do produto.
 
@@ -143,21 +143,21 @@ foreach($p->query("SELECT SUM(a.correta) acertos, COUNT(*)-SUM(a.correta) erros
 
 ---
 
-## T04 · Legibilidade de projeção
+## T04 · Legibilidade de projeção *(CSS implementado; validação no projetor real pendente)*
 
 **Entrega:** a tela lida do fundo da sala.
 
 **Arquivos:** `public/assets/tela.css`
 
 **Passos**
-1. Enunciado com no mínimo `clamp(32px, 4vw, 56px)`.
-2. Contador ainda maior — é o elemento que mais gente vai olhar.
-3. Contraste alto: projetor lava cor. Preto sobre branco vence qualquer paleta bonita.
-4. Sem `overflow` escondido: enunciado longo precisa caber ou quebrar, nunca cortar.
+1. ~~Enunciado com no mínimo `clamp(32px, 4vw, 56px)`.~~ Feito: `clamp(2rem, 4vw, 3.5rem)` (32px–56px).
+2. ~~Contador ainda maior~~ Feito: `clamp(5rem, 14vw, 13rem)` (80px–208px), maior que o enunciado.
+3. ~~Contraste alto~~ Feito: papel/tinta (quase preto sobre quase branco), sem tema escuro.
+4. ~~Sem `overflow` escondido~~ Feito: `text-wrap: balance`, `max-width: 60ch`, sem `overflow: hidden` em lugar nenhum.
 
-**Como testar** No projetor real da sala, com a luz acesa, de pé no fundo. Não vale validar no monitor.
+**Como testar** No projetor real da sala, com a luz acesa, de pé no fundo. Não vale validar no monitor — e de fato não foi validado assim ainda; só testado em navegador/monitor até aqui.
 
-**Pronto quando** você lê o enunciado e o contador a 8 metros, com a luz da sala ligada.
+**Pronto quando** você lê o enunciado e o contador a 8 metros, com a luz da sala ligada. **Ainda não verificado nessas condições reais** — depende de acesso a um projetor de verdade.
 
 ---
 

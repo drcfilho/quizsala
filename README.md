@@ -8,7 +8,9 @@ Documentação completa de arquitetura e decisões em [`arquitetura.md`](arquite
 
 **Fase 1 — Fluxo do aluno: completa.** Schema, entrada anônima/nomeada, polling por versão, registro de resposta com deduplicação, revelação de gabarito individual, tela do aluno completa. Bateria `bin/teste.sh` com 19 verificações, todas passando.
 
-Restam as Fases 2 a 5 (painel do projetor, controle pelo celular, admin de provas, operação em sala) — detalhe em `plan.md`.
+**Fase 2 — Painel do projetor: código completo (T01-T04).** Questão + contador ao vivo, revelação com barras de distribuição e acertos/erros, tipografia de alto contraste. Falta validar T04 (legibilidade) num projetor real, de pé no fundo da sala — só testado em navegador até aqui.
+
+Restam T05 em diante da Fase 2 (controle pelo celular), Fases 3 a 5 (admin de provas, operação em sala) — detalhe em `plan.md`/`tasks.md`.
 
 ## Stack
 
@@ -41,8 +43,10 @@ PHP 8.2+ / SQLite (arquivo único, `PRAGMA journal_mode = WAL`) / CSS próprio /
 bin/            init-db.php (recria o banco + seed), teste.sh (bateria ponta a ponta)
 db/             schema.sql; quizsala.sqlite é gerado, fora do versionamento
 src/            db.php (PDO singleton, WAL), util.php (JSON, escape, consultas de estado)
-public/         raiz do servidor web — index.php, prova.php, api/, assets/
+public/         raiz do servidor web — index.php, prova.php, tela.php, api/, assets/
 arquitetura.md  arquitetura, decisões travadas e contrato da API
 plan.md         fases, marcos e critério de pronto da v1
 tasks.md        quebra de tarefas por bloco, com passos e critérios de verificação
+PRODUCT.md      registro, públicos, personalidade e princípios de design
+DESIGN.md       sistema visual: cores, tipografia, elevação, componentes
 ```

@@ -49,21 +49,21 @@ Fluxo do aluno ponta a ponta. Já está no repositório.
 
 ---
 
-### F2 — Painel do projetor · ~5h
+### F2 — Painel do projetor *(código completo; validação física pendente)* · ~5h
 
 O coração do sistema. Sem isso não existe "feedback na hora".
 
 | # | Tarefa | Verificação |
 |---|---|---|
-| 2.1 | `api/painel.php` — contadores sem gate de versão | curl retorna `online`, `responderam`, `distribuicao`, `acertos`, `erros` |
-| 2.2 | `tela.php` — questão + contador ao vivo | 3 abas de aluno respondendo → contador sobe em ≤2s |
-| 2.3 | Estado de revelação com barras por alternativa | números batem com `SELECT` manual no banco |
-| 2.4 | Tipografia de projeção | legível a 8 metros; testar com o projetor real, não no monitor |
-| 2.5 | Aviso "todos responderam" | contador bate 100% → destaque visual, **sem avanço automático travando nada** |
+| 2.1 | ~~`api/painel.php` — contadores sem gate de versão~~ **feito** | curl retorna `online`, `responderam`, `distribuicao`, `acertos`, `erros` — testado, bate com o banco |
+| 2.2 | ~~`tela.php` — questão + contador ao vivo~~ **feito** | contador sobe em ≤2s — testado no navegador com aluno real fazendo poll contínuo (não só 3 abas simultâneas) |
+| 2.3 | ~~Estado de revelação com barras por alternativa~~ **feito** | números batem com `SELECT` manual no banco — testado (2 acertos, 1 erro) |
+| 2.4 | Tipografia de projeção | CSS implementado (`clamp`, alto contraste); **legibilidade a 8 metros com projetor real ainda não testada** — só validado em navegador/monitor |
+| 2.5 | ~~Aviso "todos responderam"~~ **feito** | contador bate 100% → inverte pra fundo escuro/texto branco (sem cor nova), sem avançar sozinho — testado |
 
 **Decisão embutida em 2.3:** a distribuição por alternativa só aparece *depois* da revelação. Mostrar antes enviesa quem ainda não respondeu — o aluno vê a barra grande e segue a manada.
 
-**Verificação da fase:** com 3 celulares reais, aplicar uma questão e conferir que acertos e erros na tela batem com o banco.
+**Verificação da fase:** testado com fluxo completo (aluno real no navegador + simulação via curl para volume), mas **não com 3 celulares físicos reais nem projetor de verdade** — isso fica para o ensaio (M3/T20).
 
 ---
 
