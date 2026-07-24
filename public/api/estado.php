@@ -82,4 +82,8 @@ if ($sessao['fase'] === 'revelado') {
     $payload['correta'] = $correta;
 }
 
+if ($sessao['fase'] === 'encerrada') {
+    $payload['resultado'] = resultadoParticipante($pdo, (int) $sessao['prova_id'], (int) $participante['id']);
+}
+
 jsonResponder($payload);

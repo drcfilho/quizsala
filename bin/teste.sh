@@ -154,6 +154,12 @@ PT=$(sql "SELECT token_professor FROM sessoes WHERE codigo='AULA01'")
 RESP=$(curl -s -X POST -H 'Content-Type: application/json' -d "{\"codigo\":\"AULA01\",\"acao\":\"encerrar\",\"versao_esperada\":3,\"token_professor\":\"$PT\"}" "$BASE/api/comando.php")
 checar "fase = encerrada com token certo" "encerrada" "$(campo_json "$RESP" fase)"
 
+echo "=== Caso 15: estado.php na fase encerrada -> placar e comprovante do aluno ==="
+RESP=$(curl -s "$BASE/api/estado.php?token=$T1&v=1")
+checar "acertos = 1 (so respondeu a questao 1, certa)" "1" "$(campo_json "$RESP" resultado.acertos)"
+checar "total = 3" "3" "$(campo_json "$RESP" resultado.total)"
+checar "questao 3 sem resposta -> nao respondeu" "" "$(campo_json "$RESP" resultado.questoes.2.escolhida)"
+
 echo ""
 echo "================================"
 echo "Passou: $PASSOU | Falhou: $FALHOU"
