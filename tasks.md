@@ -251,7 +251,7 @@ Depois conferir `questao_atual` no banco.
 
 ---
 
-## T08 · Abrir uma sessão nova
+## T08 · Abrir uma sessão nova *(concluída)*
 
 **Entrega:** aplicar a mesma prova em outra turma sem mexer no banco.
 
@@ -273,7 +273,7 @@ php -r '$p=new PDO("sqlite:db/quizsala.sqlite");
 foreach($p->query("SELECT sessao_id, COUNT(*) FROM respostas GROUP BY sessao_id") as $r) print_r($r);'
 ```
 
-**Pronto quando** duas sessões da mesma prova rodam com contagens independentes.
+**Pronto quando** duas sessões da mesma prova rodam com contagens independentes. **Testado**: Caso 21 (`bin/teste.sh`) gera 100 códigos e confirma que nenhum usa `0 O 1 I 5 S`; Casos 22-23 criam sessão via `nova-sessao.php`, iniciam, respondem e confirmam que as respostas ficam em `sessao_id` distintos. Também confirmado visualmente no navegador (lista de sessões ativas com contagem de participantes, formulário de criação, redirecionamento pro painel do professor já com `token_professor`). `admin/index.php`/`nova-sessao.php` protegidos por `exigirAdmin()` + CSRF, igual ao Bloco C.
 
 ---
 

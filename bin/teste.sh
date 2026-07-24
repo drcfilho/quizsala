@@ -186,6 +186,35 @@ checar "http 302 (criou)" "302" "$COD"
 TITULO=$(sql "SELECT titulo FROM provas ORDER BY id DESC LIMIT 1")
 checar "prova criada aparece no banco" "Prova via teste" "$TITULO"
 
+echo "=== Caso 21: gerarCodigoSala nunca usa 0 O 1 I 5 S (100 amostras) ==="
+ACHADO=$(php -r '
+    require $argv[1] . "/src/db.php";
+    require $argv[1] . "/src/util.php";
+    $pdo = Db::conexao();
+    for ($i = 0; $i < 100; $i++) {
+        $c = gerarCodigoSala($pdo);
+        if (preg_match("/[0O1I5S]/", $c)) { echo "achou:$c"; exit; }
+    }
+    echo "limpo";
+' "$RAIZ")
+checar "nenhum codigo com caractere ambiguo" "limpo" "$ACHADO"
+
+echo "=== Caso 22: nova-sessao.php cria sessao com codigo unico e token proprio ==="
+CSRF=$(curl -s -b /tmp/quizsala-admin.txt "$BASE/admin/nova-sessao.php" | grep -o 'name="csrf" value="[^"]*"' | head -1 | sed 's/.*value="\([^"]*\)"/\1/')
+LOC=$(curl -s -b /tmp/quizsala-admin.txt -o /dev/null -D - -X POST -d "prova_id=1&identificacao=nome&csrf=$CSRF" "$BASE/admin/nova-sessao.php" | grep -i '^location:' | tr -d '\r')
+CODIGO2=$(echo "$LOC" | sed -n 's/.*codigo=\([A-Z0-9]*\).*/\1/p')
+PT2=$(echo "$LOC" | sed -n 's/.*pt=\([0-9a-f]*\).*/\1/p')
+checar "codigo novo diferente de AULA01" "true" "$([ "$CODIGO2" != "AULA01" ] && echo true || echo false)"
+checar "sessao nasce em fase aguardando" "aguardando" "$(sql "SELECT fase FROM sessoes WHERE codigo='$CODIGO2'")"
+
+echo "=== Caso 23: respostas da sessao nova nao se misturam com AULA01 ==="
+curl -s -X POST -H 'Content-Type: application/json' -d "{\"codigo\":\"$CODIGO2\",\"acao\":\"iniciar\",\"versao_esperada\":0,\"token_professor\":\"$PT2\"}" "$BASE/api/comando.php" > /dev/null
+LOC2=$(curl -s -o /dev/null -D - -X POST -d "codigo=$CODIGO2&nome=Maria" "$BASE/api/entrar.php" | grep -i '^location:' | tr -d '\r')
+T4=$(echo "$LOC2" | sed -n 's/.*t=\([0-9a-f]*\).*/\1/p')
+curl -s -X POST -H 'Content-Type: application/json' -d "{\"token\":\"$T4\",\"alternativa_id\":2}" "$BASE/api/responder.php" > /dev/null
+SESSOES_COM_RESPOSTA=$(sql "SELECT COUNT(DISTINCT sessao_id) FROM respostas")
+checar "2 sessoes distintas com resposta, sem mistura" "2" "$SESSOES_COM_RESPOSTA"
+
 rm -f /tmp/quizsala-admin.txt /tmp/quizsala-admin-errado.txt
 
 echo ""

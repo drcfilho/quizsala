@@ -34,6 +34,24 @@ function letraAlternativa(int $indice): string
     return chr(65 + $indice);
 }
 
+// T08: codigo de 6 caracteres sem ambiguidade visual (sem 0 O 1 I 5 S) -
+// alguem vai ler isso projetado do fundo da sala. Regenera em caso de
+// colisao contra o UNIQUE (codigo).
+function gerarCodigoSala(PDO $pdo): string
+{
+    $alfabeto = '2346789ABCDEFGHJKLMNPQRTUVWXYZ';
+
+    do {
+        $codigo = '';
+        for ($i = 0; $i < 6; $i++) {
+            $codigo .= $alfabeto[random_int(0, strlen($alfabeto) - 1)];
+        }
+        $existe = sessaoPorCodigo($pdo, $codigo) !== null;
+    } while ($existe);
+
+    return $codigo;
+}
+
 function sessaoPorCodigo(PDO $pdo, string $codigo): ?array
 {
     $stmt = $pdo->prepare('SELECT * FROM sessoes WHERE codigo = ?');
