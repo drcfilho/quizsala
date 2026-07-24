@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QuizSala — Mapa de URLs de teste</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 40rem; margin: 2rem auto; padding: 0 1rem; color: #14171c; }
+  h1 { font-size: 1.4rem; }
+  h2 { font-size: 1.1rem; margin-top: 2rem; border-bottom: 1px solid #dcd9d2; padding-bottom: 0.3rem; }
+  code { background: #f2f1ed; padding: 0.1rem 0.35rem; border-radius: 0.25rem; font-size: 0.9em; }
+  a.url { display: block; margin: 0.4rem 0; font-family: ui-monospace, monospace; font-size: 0.95em; word-break: break-all; }
+  .nota { color: #767c86; font-size: 0.9em; }
+  .aviso { background: #fbeceb; border: 1px solid #d9342b; border-radius: 0.4rem; padding: 0.75rem 1rem; margin: 1rem 0; }
+</style>
+</head>
+<body>
+
+<h1>QuizSala — Mapa de URLs de teste</h1>
+<p class="nota">Só URLs de teste local por enquanto (servidor <code>php -S</code> na própria máquina). Gerado em 2026-07-24 rodando <code>bin/init-db.php</code> — código de sala, token do professor e senha do admin <strong>mudam toda vez que o banco é recriado</strong>. Rode <code>php bin/init-db.php</code> e olhe a saída no console pra pegar valores atualizados.</p>
+
+<div class="aviso">
+Servidor de teste: <code>cd public &amp;&amp; php -S 127.0.0.1:8080</code>. Todas as URLs abaixo assumem esse endereço.
+</div>
+
+<h2>1. Aluno</h2>
+<p class="nota">Entrada pública — qualquer um com o código da sala chega aqui.</p>
+<a class="url" href="http://127.0.0.1:8080/index.php">http://127.0.0.1:8080/index.php</a>
+<p class="nota">Digitar o código <code>AULA01</code> no formulário. Depois disso o fluxo continua em <code>prova.php#t=&lt;token do aluno&gt;</code> — token gerado na hora, não é uma URL fixa.</p>
+
+<h2>2. Painel do projetor</h2>
+<p class="nota">Tela só de leitura, sem interação — fica projetada na parede.</p>
+<a class="url" href="http://127.0.0.1:8080/tela.php?codigo=AULA01">http://127.0.0.1:8080/tela.php?codigo=AULA01</a>
+
+<h2>3. Controle do professor (sessão)</h2>
+<p class="nota">Token de sessão — muda a cada <code>bin/init-db.php</code>. Valor de agora:</p>
+<a class="url" href="http://127.0.0.1:8080/admin/sessao.php?codigo=AULA01&pt=425c13b4575ef8394fb2a4728919033a">http://127.0.0.1:8080/admin/sessao.php?codigo=AULA01&amp;pt=425c13b4575ef8394fb2a4728919033a</a>
+<p class="nota">Sem o <code>?pt=...</code> correto, o painel carrega mas nenhum botão funciona (403).</p>
+
+<h2>4. Admin (provas e sessões)</h2>
+<p class="nota">Protegido por senha única (<code>db/admin.senha</code>, fora do git). Valor de agora: <code>158f3d6b19361f95</code>.</p>
+<a class="url" href="http://127.0.0.1:8080/admin/index.php">http://127.0.0.1:8080/admin/index.php</a> — sessões ativas
+<a class="url" href="http://127.0.0.1:8080/admin/provas.php">http://127.0.0.1:8080/admin/provas.php</a> — listar/criar/publicar/excluir provas
+<a class="url" href="http://127.0.0.1:8080/admin/nova-sessao.php">http://127.0.0.1:8080/admin/nova-sessao.php</a> — abrir sessão nova
+<a class="url" href="http://127.0.0.1:8080/admin/importar-csv.php">http://127.0.0.1:8080/admin/importar-csv.php</a> — importar prova de CSV
+
+</body>
+</html>
