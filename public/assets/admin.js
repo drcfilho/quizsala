@@ -26,6 +26,7 @@ var ROTULOS_ACAO = {
     revelar: 'Revelar',
     proxima: 'Próxima questão',
     encerrar: 'Encerrar',
+    limpar: 'Encerrar e limpar',
 };
 
 function mostrarAviso(texto) {
@@ -52,6 +53,18 @@ function enviarComando(acao) {
     if (enviando) return;
     if (acao === 'encerrar' && !confirm('Encerrar a prova agora? Não dá pra continuar depois.')) {
         return;
+    }
+    // T18: mais destrutivo que "encerrar" - some com as respostas dos
+    // alunos de vez (a prova em si nao e afetada). Dupla confirmacao, igual
+    // ao "excluir prova" em provas.php - um confirm() so e facil de clicar
+    // sem querer numa lista de botoes.
+    if (acao === 'limpar') {
+        if (!confirm('Apagar esta sessão? As respostas dos alunos somem para sempre - a prova continua existindo.')) {
+            return;
+        }
+        if (prompt('Digite "limpar" para confirmar.') !== 'limpar') {
+            return;
+        }
     }
 
     enviando = true;
@@ -96,7 +109,7 @@ function criarBotoes(acoes, acaoEmDestaque) {
     acoes.forEach(function (acao) {
         var btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = acao === 'encerrar' ? 'botao-secundario' : 'botao-acao';
+        btn.className = (acao === 'encerrar' || acao === 'limpar') ? 'botao-secundario' : 'botao-acao';
         if (acao === acaoEmDestaque) {
             btn.classList.add('em-destaque');
         }
@@ -147,6 +160,7 @@ function renderizar(dados) {
 
     if (dados.fase === 'encerrada') {
         mensagem(cartao, 'Prova encerrada.');
+        cartao.appendChild(criarBotoes(['limpar']));
         container.appendChild(cartao);
         return;
     }

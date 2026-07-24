@@ -10,7 +10,7 @@ require __DIR__ . '/../../src/util.php';
 // "aguardando" (design.md secao 5: criada -> aguardando -[professor
 // inicia]-> respondendo). Preenche essa lacuna entre arquitetura.md e
 // tasks.md - sem ela o admin nunca aplicaria uma sessao nova do zero.
-const ACOES_VALIDAS = ['iniciar', 'revelar', 'proxima', 'encerrar'];
+const ACOES_VALIDAS = ['iniciar', 'revelar', 'proxima', 'encerrar', 'limpar'];
 
 $corpo = json_decode((string) file_get_contents('php://input'), true) ?? [];
 $codigo = (string) ($corpo['codigo'] ?? '');
@@ -42,6 +42,24 @@ if ($tokenProfessor === '' || !hash_equals((string) $sessao['token_professor'], 
 }
 
 $faseAtual = $sessao['fase'];
+
+// T18: "limpar" nao e uma transicao de fase como as outras - apaga a sessao
+// inteira (CASCADE leva participantes e respostas). So depois de encerrada
+// (nao e escape hatch como "encerrar" - apagar respostas de um exame ainda
+// em andamento seria perda de dado real, sem tela de confirmacao que deixe
+// isso claro pro aluno). A prova (questoes/alternativas) nao e tocada.
+if ($acao === 'limpar') {
+    if ($faseAtual !== 'encerrada') {
+        jsonResponder(['erro' => 'fase'], 409);
+        exit;
+    }
+
+    $pdo->prepare('DELETE FROM sessoes WHERE id = ?')->execute([(int) $sessao['id']]);
+
+    jsonResponder(['ok' => true, 'limpo' => true]);
+    exit;
+}
+
 $questaoAtual = (int) $sessao['questao_atual'];
 $novaFase = null;
 $novaQuestao = $questaoAtual;
