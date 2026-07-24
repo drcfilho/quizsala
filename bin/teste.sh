@@ -328,6 +328,22 @@ checar "sessao autenticada com a senha nova" "200" "$COD"
 printf '%s' "$SENHA_ORIGINAL" > "$RAIZ/db/admin.senha"
 rm -f /tmp/quizsala-admin-nova.txt
 
+echo "=== Caso 35: comando.php 'limpar' apaga a sessao (so depois de encerrada) ==="
+# AULA01 ja esta 'encerrada' desde o Caso 14; $PT e o token_professor dela.
+# CODIGO2 (Caso 22-23) tambem tem participante - o cascade tem que levar so
+# quem era da AULA01, sem mexer no resto.
+SESSAO_ID_AULA01=$(sql "SELECT id FROM sessoes WHERE codigo='AULA01'")
+VERSAO_AULA01=$(sql "SELECT versao FROM sessoes WHERE codigo='AULA01'")
+COD=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d "{\"codigo\":\"AULA01\",\"acao\":\"limpar\",\"versao_esperada\":$VERSAO_AULA01,\"token_professor\":\"errado\"}" "$BASE/api/comando.php")
+checar "sem token certo -> 403, nao apaga" "403" "$COD"
+checar "sessao ainda existe" "1" "$(sql "SELECT COUNT(*) FROM sessoes WHERE codigo='AULA01'")"
+RESP=$(curl -s -X POST -H 'Content-Type: application/json' -d "{\"codigo\":\"AULA01\",\"acao\":\"limpar\",\"versao_esperada\":$VERSAO_AULA01,\"token_professor\":\"$PT\"}" "$BASE/api/comando.php")
+checar "limpo = true" "true" "$(campo_json "$RESP" limpo)"
+checar "sessao AULA01 sumiu" "0" "$(sql "SELECT COUNT(*) FROM sessoes WHERE codigo='AULA01'")"
+checar "participantes da AULA01 sumiram (cascade)" "0" "$(sql "SELECT COUNT(*) FROM participantes WHERE sessao_id=$SESSAO_ID_AULA01")"
+checar "participante de outra sessao (CODIGO2) nao foi afetado" "1" "$(sql "SELECT COUNT(*) FROM participantes")"
+checar "prova continua existindo" "1" "$(sql "SELECT COUNT(*) FROM provas WHERE id=1")"
+
 rm -f /tmp/quizsala-admin.txt /tmp/quizsala-admin-errado.txt
 
 echo ""

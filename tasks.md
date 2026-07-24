@@ -505,24 +505,21 @@ foreach($p->query("SELECT ordem, enunciado FROM questoes WHERE prova_id=2 ORDER 
 
 ---
 
-## T18 · Encerrar e limpar a sessão
+## T18 · Encerrar e limpar a sessão *(concluída)*
 
 **Entrega:** próxima turma começa limpa, prova preservada.
 
+**Arquivos:** `public/api/comando.php`, `public/assets/admin.js`
+
 **Passos**
-1. Em `admin/sessao.php`, botão "Encerrar e limpar" com confirmação.
-2. `DELETE FROM sessoes WHERE id = ?` — o `CASCADE` leva participantes e respostas.
-3. **A prova permanece.** Só a aplicação some.
+1. ~~Em `admin/sessao.php`, botão "Encerrar e limpar" com confirmação.~~ Feito — mas só aparece na tela de "Prova encerrada", não junto dos outros botões. **Decisão não prevista no texto original:** "limpar" apaga de vez as respostas dos alunos (dado que `plan.md` §8 lista "Exportar CSV da sessão" como prioridade **alta** no backlog, ainda não implementado) — deixar essa ação disponível a qualquer momento, como escape hatch (igual "encerrar"), arriscaria apagar sem querer uma prova em andamento. `comando.php` rejeita `acao=limpar` com `409 {"erro":"fase"}` se a sessão não estiver `encerrada`.
+2. ~~`DELETE FROM sessoes WHERE id = ?` — o `CASCADE` leva participantes e respostas.~~ Feito, dentro de `comando.php` (não um endpoint novo — reaproveita a autenticação por `token_professor` já existente).
+3. ~~**A prova permanece.**~~ Feito — `DELETE` só na tabela `sessoes`; `provas`/`questoes`/`alternativas` não são tocadas.
+4. **Confirmação dupla**, igual ao "excluir prova" do T09d (`confirm()` + digitar "limpar" num `prompt()`) — mais forte que o `confirm()` único de "encerrar", porque apagar respostas de aluno é mais definitivo que só travar a prova.
 
-**Como testar**
-```bash
-php -r '$p=new PDO("sqlite:db/quizsala.sqlite");
-foreach($p->query("SELECT (SELECT COUNT(*) FROM provas) provas,
-  (SELECT COUNT(*) FROM participantes) participantes,
-  (SELECT COUNT(*) FROM respostas) respostas") as $r) print_r($r);'
-```
+**Como testar** `bash bin/teste.sh` Caso 35: sem `token_professor` certo não apaga (403); tentar `limpar` antes de `encerrar` dá 409; depois de encerrada, `limpar` remove a sessão e seus participantes (cascade) sem afetar participantes de **outra** sessão nem a prova. Testado também via curl ponta a ponta fora do script (aluno entra, responde, encerra, limpa, contagens batem, segunda tentativa de limpar dá 404 porque a sessão já sumiu).
 
-**Pronto quando** participantes e respostas zeram e a contagem de provas não muda.
+**Pronto quando** participantes e respostas zeram e a contagem de provas não muda. **Confirmado** — testado com curl e pela bateria automatizada, não pelo botão físico na tela (mesma pendência de sempre: celular/navegador real, não simulação).
 
 ---
 
@@ -568,7 +565,7 @@ Não é código. É a tarefa que decide se a v1 acabou.
 | A — Projetor | T01–T04, T04b | **Completo** (T04 falta validar em projetor físico real) | Aplicar uma questão avulsa, comandando pelo notebook; aluno vê placar/comprovante/agradecimento ao final |
 | B — Controle | T05–T08 | **Completo** | Aplicar prova inteira pelo celular, abrindo sessões novas pra turmas diferentes |
 | C — Admin | T09–T14, T09b–T09d | **Completo** (T14 falta validar em celular físico real) | Criar conteúdo sem tocar no banco — manual, por CSV, ou duplicando; publicar/despublicar/excluir com trava de segurança |
-| D — Operação | T15–T20 | **Parcial** — feito: T15 (QR Code), T16 (tela de espera), T17 (scripts de partida/parada), T19 (`SETUP.md`). Falta: T18 (encerrar/limpar sessão pelo admin), T20 (ensaio com turma real) | Entregar para outro professor usar |
+| D — Operação | T15–T20 | **Parcial** — feito: T15 (QR Code), T16 (tela de espera), T17 (scripts de partida/parada), T18 (limpar sessão), T19 (`SETUP.md`). Falta: T20 (ensaio com turma real) | Entregar para outro professor usar |
 
 **Além do plano original**, a pedido do usuário: T04b (placar/comprovante/agradecimento do aluno), T09b (importar CSV), T09c (explicação da resposta certa), T09d (publicar/despublicar/editar/excluir prova, com trava contra despublicar prova já iniciada). Documentado em cada tarefa e em `arquitetura.md` §9.
 

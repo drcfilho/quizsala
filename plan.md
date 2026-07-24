@@ -114,7 +114,7 @@ O que transforma código em ferramenta usável.
 | 5.2 | ~~Tela de espera com QR grande + código~~ **feito** | legível do fundo da sala — testado no navegador (contador ao vivo, QR estável sem recarregar); projetor real ainda não |
 | 5.3 | Script de start (`iniciar.bat` / `iniciar.sh`) | duplo clique sobe o servidor e abre o projetor |
 | 5.4 | Documento de setup do roteador e IP fixo | outra pessoa consegue montar seguindo o passo a passo |
-| 5.5 | Encerrar sessão e limpar participantes | `CASCADE` remove tudo; prova permanece |
+| 5.5 | ~~Encerrar sessão e limpar participantes~~ **feito** | `CASCADE` remove tudo; prova permanece — testado via `bin/teste.sh` e curl ponta a ponta |
 
 **Sobre 5.1:** gerador de QR precisa ser **local**. API de QR na internet é exatamente o tipo de dependência que quebra na hora da aula. Uma biblioteca PHP de arquivo único resolve.
 
