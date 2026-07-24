@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require __DIR__ . '/../../src/auth.php';
+require __DIR__ . '/../../src/admin_layout.php';
 
 exigirAdmin();
 
@@ -41,19 +42,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $csrf = tokenCsrf();
+abrirLayoutAdmin('Trocar senha', 'senha');
 ?>
-<!doctype html>
-<html lang="pt-br">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>QuizSala — Trocar senha</title>
-<link rel="stylesheet" href="../assets/admin.css">
-</head>
-<body>
-<main class="tela-admin">
 <div class="cartao-admin">
-<p class="cabecalho-admin"><a class="link-voltar" href="index.php">&larr; Sessões</a></p>
 <h1 class="titulo-pagina">Trocar senha do admin</h1>
 
 <?php if ($sucesso): ?>
@@ -77,6 +68,4 @@ $csrf = tokenCsrf();
 <button type="submit" class="botao-acao">Salvar nova senha</button>
 </form>
 </div>
-</main>
-</body>
-</html>
+<?php fecharLayoutAdmin(); ?>

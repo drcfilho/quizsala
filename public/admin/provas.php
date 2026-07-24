@@ -5,6 +5,7 @@ declare(strict_types=1);
 require __DIR__ . '/../../src/db.php';
 require __DIR__ . '/../../src/util.php';
 require __DIR__ . '/../../src/auth.php';
+require __DIR__ . '/../../src/admin_layout.php';
 
 exigirAdmin();
 
@@ -61,19 +62,9 @@ $provas = $pdo->query(
      GROUP BY p.id ORDER BY p.id DESC'
 )->fetchAll();
 
+abrirLayoutAdmin('Provas', 'provas');
 ?>
-<!doctype html>
-<html lang="pt-br">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>QuizSala — Provas</title>
-<link rel="stylesheet" href="../assets/admin.css">
-</head>
-<body>
-<main class="tela-admin tela-admin-lista">
 <div class="cartao-admin">
-<p class="cabecalho-admin"><a class="link-voltar" href="index.php">&larr; Sessões</a></p>
 <h1 class="titulo-pagina">Provas</h1>
 
 <?php if ($erro !== null): ?>
@@ -134,7 +125,6 @@ $provas = $pdo->query(
 <a class="botao-secundario botao-como-link" href="importar-csv.php">Importar prova de um CSV</a>
 
 </div>
-</main>
 <script>
 function confirmarExclusaoProva(form) {
     if (!confirm('Excluir esta prova? Isso apaga todas as questões e sessões dela também.')) {
@@ -148,5 +138,4 @@ function confirmarExclusaoProva(form) {
     return true;
 }
 </script>
-</body>
-</html>
+<?php fecharLayoutAdmin(); ?>

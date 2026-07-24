@@ -5,6 +5,7 @@ declare(strict_types=1);
 require __DIR__ . '/../../src/db.php';
 require __DIR__ . '/../../src/util.php';
 require __DIR__ . '/../../src/auth.php';
+require __DIR__ . '/../../src/admin_layout.php';
 
 exigirAdmin();
 
@@ -65,19 +66,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+abrirLayoutAdmin('Editor de questão', 'provas');
 ?>
-<!doctype html>
-<html lang="pt-br">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>QuizSala — Editor de questão</title>
-<link rel="stylesheet" href="../assets/admin.css">
-</head>
-<body>
-<main class="tela-admin tela-admin-lista">
 <div class="cartao-admin">
 <p class="cabecalho-admin"><a class="link-voltar" href="questoes.php?prova_id=<?= $provaId ?>">&larr; <?= htmlspecialchars($prova['titulo']) ?></a></p>
+<?php fluxoProva('questoes', ['criar']); ?>
 
 <form method="post" class="form-questao">
 <input type="hidden" name="csrf" value="<?= htmlspecialchars(tokenCsrf()) ?>">
@@ -120,6 +113,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </form>
 
 </div>
-</main>
-</body>
-</html>
+<?php fecharLayoutAdmin(); ?>

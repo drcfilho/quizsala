@@ -5,6 +5,7 @@ declare(strict_types=1);
 require __DIR__ . '/../../src/db.php';
 require __DIR__ . '/../../src/util.php';
 require __DIR__ . '/../../src/auth.php';
+require __DIR__ . '/../../src/admin_layout.php';
 
 exigirAdmin();
 
@@ -33,20 +34,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $provas = $pdo->query('SELECT id, titulo FROM provas WHERE publicada = 1 ORDER BY titulo')->fetchAll();
 
+abrirLayoutAdmin('Nova sessão', 'nova-sessao');
 ?>
-<!doctype html>
-<html lang="pt-br">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>QuizSala — Nova sessão</title>
-<link rel="stylesheet" href="../assets/admin.css">
-</head>
-<body>
-<main class="tela-admin tela-admin-lista">
 <div class="cartao-admin">
-<p class="cabecalho-admin"><a class="link-voltar" href="index.php">&larr; Sessões</a></p>
 <h1 class="titulo-pagina">Nova sessão</h1>
+<?php if (!empty($provas)): ?>
+<?php fluxoProva('sessao', ['criar', 'questoes', 'publicar']); ?>
+<?php endif; ?>
 
 <?php if ($erro !== null): ?>
 <p class="erro-campo"><?= htmlspecialchars($erro) ?></p>
@@ -81,6 +75,4 @@ $provas = $pdo->query('SELECT id, titulo FROM provas WHERE publicada = 1 ORDER B
 <?php endif; ?>
 
 </div>
-</main>
-</body>
-</html>
+<?php fecharLayoutAdmin(); ?>
