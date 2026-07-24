@@ -255,7 +255,11 @@ main .cartao-admin .botao-acao + form {
     text-decoration: none;
 }
 .botao-pequeno:disabled { opacity: 0.35; }
-.botao-excluir { border-color: var(--marca); color: var(--marca); margin-left: auto; }
+.botao-excluir { border-color: var(--marca); color: var(--marca); }
+/* So empurra pro canto quando as 3 acoes dividem UM form (questoes.php,
+   subir/descer/excluir) - em provas.php cada botao e seu proprio form
+   dentro de .botoes-item-prova, onde essa margem so criava um buraco. */
+.botoes-questao .botao-excluir { margin-left: auto; }
 
 .botao-como-link {
     display: block;
