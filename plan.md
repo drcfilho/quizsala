@@ -67,21 +67,21 @@ O coração do sistema. Sem isso não existe "feedback na hora".
 
 ---
 
-### F3 — Controle ao vivo · ~4h
+### F3 — Controle ao vivo *(3.1-3.4 feitos; falta 3.5)* · ~4h
 
 O professor precisa comandar a sessão sem voltar ao notebook.
 
 | # | Tarefa | Verificação |
 |---|---|---|
-| 3.1 | `admin/sessao.php` — três botões grandes: Revelar · Próxima · Encerrar | toque no celular → projetor muda em ≤2s |
-| 3.2 | Incremento de `versao` em toda transição | poll do aluno detecta e redesenha |
-| 3.3 | Painel de presença ("24 online, 18 responderam") | número bate com o do projetor |
-| 3.4 | Proteção contra toque duplo | dois toques rápidos em "Próxima" não pulam duas questões |
-| 3.5 | Abrir sessão: escolher prova, modo e identificação | sessão criada com código curto legível |
+| 3.1 | ~~`admin/sessao.php` — três botões grandes: Revelar · Próxima · Encerrar~~ **feito** | testado via API (curl) e navegador; toque físico num celular real ainda não |
+| 3.2 | ~~Incremento de `versao` em toda transição~~ **feito** | testado — poll do painel detecta e redesenha em ≤2s |
+| 3.3 | ~~Painel de presença ("24 online, 18 responderam")~~ **feito** | número bate com o do projetor (mesma fonte, `api/painel.php`) |
+| 3.4 | ~~Proteção contra toque duplo~~ **feito** | testado com 2 requisições paralelas de verdade — só uma aplicou |
+| 3.5 | Abrir sessão: escolher prova, modo e identificação | pendente (T08 do `tasks.md`) |
 
 **3.4 não é paranoia:** professor com celular na mão, andando pela sala, toca duas vezes. A guarda é comparar a versão esperada — o segundo toque vira no-op em vez de pular uma questão na frente da turma.
 
-**Verificação da fase:** aplicar uma prova de 3 questões inteira usando **só** o celular do professor.
+**Verificação da fase:** aplicar uma prova de 3 questões inteira usando **só** o celular do professor — feito via simulação (curl + navegador), **não com um celular físico real ainda**.
 
 ---
 

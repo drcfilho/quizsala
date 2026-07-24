@@ -18,7 +18,10 @@ if ($sessao === null) {
     exit;
 }
 
-$payload = ['fase' => $sessao['fase']];
+// "versao" viaja aqui tambem (nao so em estado.php) porque T07 reusa este
+// endpoint no admin do professor, e o admin precisa saber a versao pra
+// mandar em comando.php (guarda de toque duplo, T06) - nao duplica consulta.
+$payload = ['fase' => $sessao['fase'], 'versao' => (int) $sessao['versao']];
 
 if (in_array($sessao['fase'], ['respondendo', 'revelado'], true)) {
     $questaoAtual = questaoPorOrdem($pdo, (int) $sessao['prova_id'], (int) $sessao['questao_atual']);

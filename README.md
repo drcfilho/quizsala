@@ -10,7 +10,9 @@ Documentação completa de arquitetura e decisões em [`arquitetura.md`](arquite
 
 **Fase 2 — Painel do projetor: código completo (T01-T04).** Questão + contador ao vivo, revelação com barras de distribuição e acertos/erros, tipografia de alto contraste. Falta validar T04 (legibilidade) num projetor real, de pé no fundo da sala — só testado em navegador até aqui.
 
-Restam T05 em diante da Fase 2 (controle pelo celular), Fases 3 a 5 (admin de provas, operação em sala) — detalhe em `plan.md`/`tasks.md`.
+**Fase 3 — Controle ao vivo: quase completa (T05-T07).** Botões Revelar/Próxima/Encerrar, guarda contra toque duplo, presença no celular do professor. Falta T08 (abrir sessão nova escolhendo prova/modo/identificação — hoje só existe a sessão semeada por `bin/init-db.php`). Testado via API e navegador; ainda não com celular físico real.
+
+Restam T08, Fases 4 e 5 (admin de provas, operação em sala) — detalhe em `plan.md`/`tasks.md`.
 
 ## Stack
 
