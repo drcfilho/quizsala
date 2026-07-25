@@ -98,6 +98,10 @@ if (in_array($fase, ['respondendo', 'revelado'], true)) {
 // "Limpar" depois (T18), la no admin desktop.
 if ($fase === 'encerrada') {
     $payload['resumo'] = resumoSessaoEncerrada($pdo, (int) $sessao['id'], (int) $sessao['prova_id']);
+    // tela.php usa isso pra saber quando o professor mandou "Tirar do
+    // projetor" (acao "desativar" em comando.php) e voltar sozinho pra
+    // "Aguardando o inicio da sessao", sem exigir apagar a sessao.
+    $payload['ativa'] = (int) $sessao['ativa'] === 1;
 }
 
 jsonResponder($payload);

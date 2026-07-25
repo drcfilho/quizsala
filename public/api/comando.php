@@ -10,7 +10,7 @@ require __DIR__ . '/../../src/util.php';
 // "aguardando" (design.md secao 5: criada -> aguardando -[professor
 // inicia]-> respondendo). Preenche essa lacuna entre arquitetura.md e
 // tasks.md - sem ela o admin nunca aplicaria uma sessao nova do zero.
-const ACOES_VALIDAS = ['iniciar', 'revelar', 'proxima', 'encerrar', 'limpar'];
+const ACOES_VALIDAS = ['iniciar', 'revelar', 'proxima', 'encerrar', 'desativar', 'limpar'];
 
 $corpo = json_decode((string) file_get_contents('php://input'), true) ?? [];
 $codigo = (string) ($corpo['codigo'] ?? '');
@@ -101,6 +101,19 @@ switch ($acao) {
         // professor precisa ter sempre disponivel (design.md D6).
         $novaFase = 'encerrada';
         break;
+
+    // Tira a sessao do projetor sem apagar nada (diferente de "limpar") -
+    // o resumo fica fixo na tela ate o professor mandar isso explicitamente,
+    // so entao tela.php (sem "?codigo=") volta pra "Aguardando o inicio da
+    // sessao". Sem essa acao, so "Limpar" (que apaga participantes/respostas
+    // no admin desktop) conseguia liberar o projetor de volta.
+    case 'desativar':
+        if ($faseAtual !== 'encerrada') {
+            jsonResponder(['erro' => 'fase'], 409);
+            exit;
+        }
+        $novaFase = 'encerrada';
+        break;
 }
 
 // T06: guarda de toque duplo. O WHERE compara a versao esperada pelo
@@ -111,8 +124,9 @@ switch ($acao) {
 // fase_iniciada_em reseta em toda transicao - inofensivo quando o destino
 // nao e "respondendo" (nada le a coluna nesse caso), correto quando e
 // (base do cronometro da questao nova).
+$ativaClausula = $acao === 'desativar' ? ', ativa = 0' : '';
 $stmt = $pdo->prepare(
-    "UPDATE sessoes SET fase = ?, questao_atual = ?, fase_iniciada_em = strftime('%s','now'), versao = versao + 1
+    "UPDATE sessoes SET fase = ?, questao_atual = ?, fase_iniciada_em = strftime('%s','now'), versao = versao + 1{$ativaClausula}
      WHERE codigo = ? AND versao = ?"
 );
 $stmt->execute([$novaFase, $novaQuestao, $codigo, $versaoEsperada]);

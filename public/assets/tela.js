@@ -398,9 +398,13 @@ function renderizar(dados) {
     // calculada) - sem isso o resumo final seria redesenhado do zero
     // (barras animadas incluidas) a cada poll de 2s, pra sempre, ja que
     // "dados.questao" nunca existe nessa fase.
+    // "encerrada" carrega "ativa" na chave (nao so o nome da fase) - sem
+    // isso o professor mandar "Tirar do projetor" (ativa true -> false, fase
+    // continua 'encerrada') nunca desmarcaria o "ja redesenhado" abaixo, e o
+    // resumo ficaria preso na tela pra sempre em vez de voltar a procurar.
     var chaveAtual = !dados.erro && dados.questao
         ? (dados.fase + ':' + dados.questao.ordem)
-        : (!dados.erro && dados.fase === 'encerrada' ? 'encerrada' : null);
+        : (!dados.erro && dados.fase === 'encerrada' ? 'encerrada:' + (dados.ativa ? '1' : '0') : null);
 
     if (dados.fase === 'respondendo' && chaveAtual !== null && chaveAtual === contextoRenderizado) {
         atualizarContadorRespondendo(container, dados);
@@ -439,6 +443,19 @@ function renderizar(dados) {
         }
         painel.dataset.fase = 'erro';
         mensagem(container, 'Código de sala não encontrado.');
+        return;
+    }
+
+    // Professor mandou "Tirar do projetor" (comando "desativar") depois de
+    // mostrar o resumo - sessao continua existindo (nada foi apagado), so
+    // nao aparece mais aqui. So se aplica a descoberta automatica: um link
+    // com "?codigo=" explicito continua mostrando o resumo (mesmo espirito
+    // do "erro" acima - estrito, nunca some sozinho).
+    if (dados.fase === 'encerrada' && dados.ativa === false && !codigoExplicito) {
+        contextoRenderizado = null;
+        codigo = null;
+        painel.dataset.fase = 'procurando';
+        renderizarProcurando(container);
         return;
     }
 

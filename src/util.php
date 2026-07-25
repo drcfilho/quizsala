@@ -47,7 +47,7 @@ function criarSessao(PDO $pdo, int $provaId, string $identificacao = 'anonimo'):
          VALUES (?, ?, ?, ?, ?)'
     )->execute([$provaId, $codigo, $tokenProfessor, 'sincrono', $identificacao]);
 
-    return ['codigo' => $codigo, 'token_professor' => $tokenProfessor];
+    return ['id' => (int) $pdo->lastInsertId(), 'codigo' => $codigo, 'token_professor' => $tokenProfessor];
 }
 
 // T08: codigo de 6 caracteres sem ambiguidade visual (sem 0 O 1 I 5 S) -
