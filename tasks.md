@@ -713,6 +713,29 @@ Não é código. É a tarefa que decide se a v1 acabou.
 
 ---
 
+## T26 · Migração do CSS próprio pra Bulma customizado *(concluída)*
+
+**Pedido do usuário, decidido em conversa (não estava no plano original): trocar o CSS escrito à mão por um framework de verdade. Escopo inicial ("substituir tudo pelo Bulma") foi refinado junto com o usuário até virar: Bulma vendorizado e customizado (`$primary` vermelho de leitura óptica, `$radius` zerado — as regras já travadas em `DESIGN.md`/`arquitetura.md` §13 continuam valendo, só a base de grid/botão/formulário deixou de ser escrita do zero), aplicado nas 6 telas do produto, mantendo em CSS próprio tudo que é identidade visual específica (bolha, placar do projetor, cronômetro, barras de distribuição, QR, comprovante de impressão) — o Bulma não tem equivalente pra esses. Efeito colateral bem-vindo, aceito pelo usuário: suporte a tema claro/escuro, com um botão de alternância manual em cada tela.**
+
+**Entrega:** `public/assets/vendor/bulma.css` (Bulma 1.0.4 compilado com as variáveis do QuizSala, ~21,5 mil linhas, vendorizado — sem internet nem build step no ambiente de uso). `public/assets/tema.js` (alternador de tema compartilhado, `localStorage`). Tela de entrada do aluno (`index.php`) e a tela de login do admin (`auth.php`) migradas integralmente pro Bulma (mesmo padrão: `hero`/`box`/`field`/`control`). Tela da prova (`prova.php`/`aluno.js`) e o shell do admin de mesa (`admin_layout.php`, usado por 7 páginas) migrados de forma aditiva — Bulma entra como base, nada do CSS específico existente foi removido. Projetor (`tela.php`) e controle ao vivo (`admin/sessao.php`) ganharam só o Bulma + alternador de tema, sem nenhuma classe pra migrar (são 100% identidade visual específica).
+
+**Arquivos:** `public/assets/vendor/bulma.css`, `public/assets/vendor/bulma-quizsala.scss` (novos), `public/assets/tema.js` (novo), `public/index.php`, `public/prova.php`, `public/tela.php`, `public/assets/estilo.css`, `public/assets/aluno.js`, `public/assets/admin.css`, `src/admin_layout.php`, `src/auth.php`, `public/admin/sessao.php`, `DESIGN.md`, `arquitetura.md`.
+
+**Passos**
+1. ~~Vendorizar o Bulma customizado~~ Compilado uma vez (`npm`/`npx sass`, fora do repo) com `$primary: #d9342b` e as variáveis de `$radius` zeradas — confirmado via `grep` no CSS de saída (`--bulma-primary-h: 3deg`, `--bulma-radius: 0`) antes de vendorizar.
+2. ~~Alternador de tema~~ `tema.js` escreve `data-theme` no `<html>` (atributo que o Bulma 1.x já sabe interpretar, gerado automaticamente na build) e lembra a escolha — qualquer botão com `data-alternar-tema` vira o gatilho, reusado em todas as 6 telas.
+3. ~~Tela de entrada do aluno~~ Migração integral — `estilo.css` perdeu as regras exclusivas da tela de entrada (`.tela-entrada`, `.cartao`, `.titulo`, `.campo`, `.campo-codigo`, `.aviso`, `.rotulo`); `.botao-principal` ficou até a T26 passo 4 remover seu último uso.
+4. ~~Tela da prova~~ Só os 2 botões genéricos da tela final ("Salvar comprovante"/"Concluir") e as 2 mensagens de texto simples viraram Bulma — a bolha, o placar e o comprovante de impressão continuam com CSS próprio, intactos (identidade visual travada). `.botao-principal`/`.mensagem-estado`/`.acoes-final`/`.botao-secundario-final`/`.mensagem-agradecimento` removidas de `estilo.css` depois de confirmado por grep que não sobrava nenhum uso.
+5. ~~Shell do admin de mesa + login~~ Estratégia aditiva pro shell (nada removido de `admin.css` — muitas classes são reusadas por `admin.js` e por páginas fora do escopo); login migrado integralmente, mesmo padrão da tela de entrada do aluno.
+6. ~~Projetor e controle ao vivo~~ Confirmado por leitura completa de `tela.css`/`admin.js` que não existe componente genérico nessas telas — só Bulma como base + botão de tema, fora de `#conteudo-painel`/`#conteudo-admin` (redesenhados do zero a cada poll, um botão estático lá dentro sumiria no próximo ciclo).
+7. ~~Limpeza de CSS órfão em `admin.css`~~ **Não feita nesta rodada** — a estratégia aditiva deixou `admin.css` sem nenhuma regra removida fora de `estilo.css` (aluno). Verificar por grep antes de remover qualquer classe reusada por `admin.js`/páginas de mesa fica registrado como pendência, não bloqueia o uso do produto (CSS não usado não quebra nada, só pesa um pouco no arquivo).
+
+**Como testar** `bash bin/teste.sh` — 109 passando (as mesmas 6 falhas pré-existentes do fluxo de troca de senha do admin, não relacionadas, documentadas antes desta tarefa). Testado manualmente no navegador em cada uma das 6 telas: entrada do aluno, prova em andamento (bolha marca/anima normalmente), projetor (QR, contador, tela de espera), login do admin, lista de provas, controle ao vivo — alternador de tema funcionando em todas, sem elemento quebrado ou sem estilo.
+
+**Pronto quando** as 6 telas carregam o Bulma vendorizado, têm o alternador de tema, nenhuma identidade visual específica do produto (bolha, placar, QR, cronômetro, comprovante) foi alterada, e `bin/teste.sh` continua passando igual a antes. **Confirmado.**
+
+---
+
 ## Resumo
 
 | Bloco | Tarefas | Status | Você consegue, ao terminar |
@@ -722,8 +745,9 @@ Não é código. É a tarefa que decide se a v1 acabou.
 | C — Admin | T09–T14, T09b–T09e | **Completo** (T14 falta validar em celular físico real) | Criar conteúdo sem tocar no banco — manual, por CSV, ou duplicando; publicar/despublicar/excluir com trava de segurança; trocar a própria senha |
 | D — Operação | T15–T20 | **Parcial** — feito: T15 (QR Code), T16 (tela de espera), T17 (scripts de partida/parada), T18 (limpar sessão), T19 (`SETUP.md`). Falta: T20 (ensaio com turma real) | Entregar para outro professor usar |
 | E — Polimento | T21–T25 | **Completo** | Admin de conteúdo usável num desktop de verdade; telas com mais energia de placar ao vivo; layout adaptado de referências externas sem virar gamificação; ciclo completo do projetor com cronômetro, explicação e resumo final; projetor nunca escolhe sessão sozinho |
+| F — Design system | T26 | **Completo** | CSS de base vira Bulma customizado (vermelho, zero radius) nas 6 telas, com tema claro/escuro; identidade visual específica (bolha, placar, QR, cronômetro, comprovante) intacta |
 
-**Além do plano original**, a pedido do usuário: T04b (placar/comprovante/agradecimento do aluno), T09b (importar CSV), T09c (explicação da resposta certa), T09d (publicar/despublicar/editar/excluir prova, com trava contra despublicar prova já iniciada), T09e (trocar a própria senha do admin), Bloco E inteiro (T21-T25, polimento visual, admin desktop-first, ideias de layout do graphify sobre `telas/`, o ciclo completo do projetor com cronômetro/explicação/resumo/timeout do aluno, e a sessão ativa escolhida explicitamente pelo professor). Documentado em cada tarefa e em `arquitetura.md` §9.
+**Além do plano original**, a pedido do usuário: T04b (placar/comprovante/agradecimento do aluno), T09b (importar CSV), T09c (explicação da resposta certa), T09d (publicar/despublicar/editar/excluir prova, com trava contra despublicar prova já iniciada), T09e (trocar a própria senha do admin), Bloco E inteiro (T21-T25, polimento visual, admin desktop-first, ideias de layout do graphify sobre `telas/`, o ciclo completo do projetor com cronômetro/explicação/resumo/timeout do aluno, e a sessão ativa escolhida explicitamente pelo professor), T26 (migração do CSS próprio pra Bulma customizado, com alternador de tema claro/escuro). Documentado em cada tarefa e em `arquitetura.md` §9.
 
 **Também pendente, fora da numeração T01–T20:**
 - ~~Timer configurável por questão~~ **Entregue na T24** — duração definida no editor, não revela sozinho ao esgotar (só avisa), "não respondeu" já saía implícito da ausência de resposta e agora aparece explícito no resumo final. Única diferença do pedido original: o cronômetro começa junto com a questão (`fase_iniciada_em`), sem um botão separado de "Iniciar tempo" — comportamento confirmado com o usuário antes de implementar.

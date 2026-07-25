@@ -41,7 +41,7 @@ Não é plataforma de avaliação formal. Não tenta impedir cola, não persiste
 | Sem internet | Zero CDN. Tailwind, Chart.js, fontes e ícones precisam estar no disco. |
 | Notebook itinerante | Banco em arquivo único. Nada de serviço externo pra subir. |
 | `php -S` é single-thread | Proibido long-polling. Toda requisição precisa terminar em milissegundos. |
-| Celulares heterogêneos | Sem build step, sem framework. HTML/CSS/JS que roda em Android antigo. |
+| Celulares heterogêneos | Sem build step em produção. HTML/CSS/JS que roda em Android antigo — o CSS de base (Bulma, ver `DESIGN.md`) é vendorizado como arquivo estático, compilado uma vez em desenvolvimento, nunca no ambiente de uso. |
 | Aula tem 50 minutos | Setup precisa ser: ligar roteador, rodar um comando, projetar QR Code. |
 
 ### A armadilha do "Wi-Fi sem internet"
