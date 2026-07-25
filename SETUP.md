@@ -60,3 +60,7 @@ Depois abra `http://localhost:8080/tela.php` (projetor — sem código na URL, e
 ## Depois da aula
 
 Nenhum passo obrigatório — feche a janela do console pra encerrar o servidor. O banco (`db/quizsala.sqlite`) fica no disco entre uma aula e outra; use "Encerrar e limpar sessão" no admin quando quiser zerar participantes/respostas de uma sessão específica, mantendo as provas.
+
+## Mexer direto no banco (avançado)
+
+Pra consultas ou correções que o admin não cobre, `dbadmin\abrir.bat` sobe o [phpLiteAdmin](https://www.phpliteadmin.org/) já apontado pro banco do QuizSala — a senha fica em `dbadmin\phpliteadmin.config.php`. Diferente do servidor principal, ele só escuta em `127.0.0.1` (não aparece pra ninguém na rede da sala, nem pros celulares dos alunos). Cuidado: editar tabelas com o servidor principal rodando ao mesmo tempo pode gerar conflito de escrita.
