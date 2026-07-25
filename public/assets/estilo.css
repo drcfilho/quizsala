@@ -8,6 +8,14 @@
     --marca:   #d9342b;
 }
 
+/* Bulma usa ~2.5em (~40px) de altura padrao em input/button - abaixo dos
+   64px que o QuizSala exige em todo alvo tocavel pelo aluno (DESIGN.md).
+   :not(.is-small) deixa de fora botoes pequenos de proposito, como o
+   alternador de tema. */
+.input, .button:not(.is-small) { min-height: 64px; }
+
+.quizsala-container-estreito { max-width: 22rem; }
+
 * { box-sizing: border-box; }
 
 html, body {
@@ -23,16 +31,6 @@ body {
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-.rotulo {
-    display: block;
-    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.16em;
-    color: var(--grafite);
-    margin: 1rem 0 0.4rem;
-}
-
 a:focus-visible,
 button:focus-visible,
 input:focus-visible {
@@ -40,45 +38,6 @@ input:focus-visible {
     outline-offset: 2px;
 }
 
-/* Tela de entrada */
-.tela-entrada {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1.5rem 1rem;
-}
-.tela-entrada .cartao {
-    width: 100%;
-    max-width: 22rem;
-    background: var(--cartao);
-    border: 1px solid var(--pauta);
-    border-radius: 0.5rem;
-    padding: 1.5rem;
-}
-.titulo {
-    margin: 0 0 1rem;
-    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-    font-size: 1.3rem;
-    letter-spacing: 0.05em;
-}
-.campo {
-    width: 100%;
-    min-height: 64px;
-    padding: 0.75rem 1rem;
-    border: 1px solid var(--pauta);
-    border-radius: 0.5rem;
-    background: var(--papel);
-    color: var(--tinta);
-    font-family: inherit;
-    font-size: 1.1rem;
-    margin-bottom: 0.5rem;
-}
-.campo-codigo {
-    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-}
 .botao-principal {
     width: 100%;
     min-height: 64px;
@@ -90,11 +49,6 @@ input:focus-visible {
     font-weight: 600;
     margin-top: 0.5rem;
 }
-.aviso {
-    color: var(--marca);
-    font-size: 0.95rem;
-}
-
 /* Tela da prova */
 .tela-prova {
     min-height: 100vh;
