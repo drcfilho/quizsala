@@ -141,11 +141,17 @@ function renderizarTemporizador(container, dadosTemporizador) {
     iniciarTemporizadorLocal(painel, dadosTemporizador);
 }
 
-function mensagem(container, texto) {
+function mensagem(container, texto, detalhe) {
     var p = document.createElement('p');
     p.className = 'mensagem-painel';
     p.textContent = texto;
     container.appendChild(p);
+    if (detalhe) {
+        var d = document.createElement('p');
+        d.className = 'mensagem-painel-detalhe';
+        d.textContent = detalhe;
+        container.appendChild(d);
+    }
 }
 
 function renderizarContador(container, dados) {
@@ -442,7 +448,7 @@ function renderizar(dados) {
             return;
         }
         painel.dataset.fase = 'erro';
-        mensagem(container, 'Código de sala não encontrado.');
+        mensagem(container, 'Código de sala não encontrado.', 'Peça o link completo ao professor.');
         return;
     }
 
@@ -509,10 +515,32 @@ function atualizarUrlComCodigo(novoCodigo) {
     window.history.replaceState(null, '', url);
 }
 
+// T28: sem isso, um contador congelado (Wi-Fi caiu) parece identico a um ao
+// vivo - a rede da sala e um modo de falha esperado (PRODUCT.md), e essa e a
+// tela que a sala inteira esta olhando quando acontece. So avisa depois de
+// varias falhas seguidas (nao a cada soluco isolado de rede).
+var FALHAS_PARA_AVISO = 5;
+var falhasConsecutivas = 0;
+
+function registrarPollOk() {
+    falhasConsecutivas = 0;
+    var aviso = document.getElementById('aviso-desatualizado');
+    if (aviso) { aviso.hidden = true; }
+}
+
+function registrarPollFalha() {
+    falhasConsecutivas++;
+    if (falhasConsecutivas >= FALHAS_PARA_AVISO) {
+        var aviso = document.getElementById('aviso-desatualizado');
+        if (aviso) { aviso.hidden = false; }
+    }
+}
+
 function procurarSessao() {
     fetch('api/sessao-ativa.php')
         .then(function (resp) { return resp.json(); })
         .then(function (dados) {
+            registrarPollOk();
             var painel = document.getElementById('painel');
 
             if (dados.codigo) {
@@ -537,6 +565,7 @@ function procurarSessao() {
         })
         .catch(function () {
             // rede instavel: tenta de novo no proximo ciclo
+            registrarPollFalha();
         });
 }
 
@@ -548,9 +577,13 @@ function poll() {
 
     fetch('api/painel.php?codigo=' + encodeURIComponent(codigo))
         .then(function (resp) { return resp.json(); })
-        .then(renderizar)
+        .then(function (dados) {
+            registrarPollOk();
+            renderizar(dados);
+        })
         .catch(function () {
             // rede instavel: so tenta de novo no proximo poll
+            registrarPollFalha();
         });
 }
 

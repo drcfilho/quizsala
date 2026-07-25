@@ -1,7 +1,11 @@
 // QuizSala - fluxo do aluno. Vanilla JS, sem build step (design.md D-restricoes).
 var TOKEN_CHAVE = 'quizsala_token';
 var INTERVALO_POLL_MS = 2000;
-var versaoConhecida = 0;
+// -1, nunca 0: toda sessao nasce com versao=0 (schema.sql), e o servidor so
+// manda o estado completo quando a versao do cliente diverge da atual
+// (api/estado.php) - com 0 aqui, o primeiro poll de uma sessao nova nunca
+// bate "diferente" e a tela fica em branco pra sempre (achado no critique).
+var versaoConhecida = -1;
 
 function obterToken() {
     var m = location.hash.match(/t=([0-9a-f]+)/);
@@ -49,7 +53,10 @@ function criarAlternativa(alt, dados) {
         if (marcada && alt.id !== dados.correta) item.classList.add('escolhida-errada');
         if (marcada && alt.id === dados.correta) item.classList.add('escolhida-certa');
     } else if (marcada) {
-        item.classList.add('marcada');
+        // Veio do servidor (poll), entao ja esta confirmada - nunca so
+        // "marcada" (que tambem cobre o instante otimista, antes da
+        // resposta da rede).
+        item.classList.add('marcada', 'enviada');
     }
 
     var bolha = document.createElement('span');
@@ -61,6 +68,17 @@ function criarAlternativa(alt, dados) {
     texto.className = 'texto-alternativa';
     texto.textContent = alt.letra + ') ' + alt.texto;
     item.appendChild(texto);
+
+    // Achado no critique: na tela, a revelacao so tinha cor+borda - o unico
+    // "Acertou"/"Errou" em texto ficava so no comprovante impresso. Regra do
+    // Sinal Duplo pede um sinal que nao dependa so de cor tambem aqui, no
+    // momento em que mais importa.
+    if (revelado && marcada) {
+        var status = document.createElement('span');
+        status.className = 'status-alternativa';
+        status.textContent = alt.id === dados.correta ? '✓ Acertou' : '✕ Errou';
+        item.appendChild(status);
+    }
 
     if (!revelado) {
         item.addEventListener('click', function () {
@@ -156,13 +174,19 @@ function renderizarPlacar(dados) {
 
     var acoes = document.createElement('div');
     acoes.className = 'mt-6';
-    acoes.appendChild(criarBotao('Salvar comprovante em PDF', 'button is-primary is-fullwidth mb-3', function () {
+    acoes.appendChild(criarBotao('Salvar comprovante em PDF', 'button is-primary is-fullwidth', function () {
         limparTimeoutPlacar();
         prepararComprovante(dados);
         window.print();
         renderizarAgradecimento();
     }));
-    acoes.appendChild(criarBotao('Concluir', 'button is-fullwidth', function () {
+    // Achado no critique: window.print() abre a folha de impressao/compartilhar
+    // do sistema sem aviso nenhum - uma linha explicando evita a surpresa.
+    var legenda = document.createElement('p');
+    legenda.className = 'legenda-comprovante';
+    legenda.textContent = 'Abre a tela de impressão do celular.';
+    acoes.appendChild(legenda);
+    acoes.appendChild(criarBotao('Concluir', 'button is-fullwidth mt-3', function () {
         limparTimeoutPlacar();
         renderizarAgradecimento();
     }));
@@ -250,7 +274,7 @@ function responder(alternativaId, elemento) {
     var lista = elemento.parentElement;
 
     Array.prototype.forEach.call(lista.children, function (el) {
-        el.classList.remove('marcada');
+        el.classList.remove('marcada', 'enviada');
         el.setAttribute('aria-pressed', 'false');
     });
     elemento.classList.add('marcada');
@@ -268,12 +292,17 @@ function responder(alternativaId, elemento) {
         })
         .then(function (r) {
             if (r.status === 200 && r.dados.escolhida === alternativaId) {
+                // Servidor confirmou - so agora vira "enviada" (distinto de
+                // so "marcada", achado no critique: sem isso um toque que
+                // falhou em silencio parece identico a um confirmado).
+                elemento.classList.add('enviada');
                 return;
             }
 
             Array.prototype.forEach.call(lista.children, function (el) {
                 var ehEscolhida = r.dados.escolhida && Number(el.dataset.alternativaId) === r.dados.escolhida;
                 el.classList.toggle('marcada', !!ehEscolhida);
+                el.classList.toggle('enviada', !!ehEscolhida);
                 el.setAttribute('aria-pressed', ehEscolhida ? 'true' : 'false');
             });
 

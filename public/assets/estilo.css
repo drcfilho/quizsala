@@ -3,7 +3,7 @@
     --papel:   #fbfaf7;
     --cartao:  #ffffff;
     --tinta:   #14171c;
-    --grafite: #767c86;
+    --grafite: #6b717a;
     --pauta:   #dcd9d2;
     --marca:   #d9342b;
 }
@@ -27,6 +27,16 @@
    :not(.is-small) deixa de fora botoes pequenos de proposito, como o
    alternador de tema. */
 .input, .button:not(.is-small) { min-height: 64px; }
+
+/* Achado no critique: o alternador de tema (is-small) media 30x30px, abaixo
+   do minimo de 44px do WCAG - real pra quem esta com o celular na mao,
+   possivelmente nervoso durante a prova. Nao vai pros 64px do resto (e um
+   controle secundario, ficaria desproporcional), mas nao fica mais abaixo
+   do minimo de acessibilidade. */
+.quizsala-alternar-tema-prova {
+    min-width: 44px;
+    min-height: 44px;
+}
 
 .quizsala-container-estreito { max-width: 22rem; }
 
@@ -169,10 +179,31 @@ input:focus-visible {
 .alternativa.escolhida-errada .bolha::after { border-color: var(--marca); background: var(--marca); }
 .alternativa.escolhida-errada { border-color: var(--marca); }
 
+.status-alternativa {
+    flex-shrink: 0;
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+.escolhida-certa .status-alternativa { color: #1e7a34; }
+.escolhida-errada .status-alternativa { color: var(--marca); }
+
 .alternativa:disabled { cursor: default; }
+
+/* Achado no critique: sem isso, uma marcacao que falhou em silencio (rede
+   instavel) parece identica a uma confirmada pelo servidor. A bolha pulsa
+   enquanto "enviando" e so fica solida quando o servidor confirma. */
+.alternativa.marcada:not(.enviada) .bolha::after {
+    animation: bolha-pendente 1s ease-in-out infinite;
+}
+@keyframes bolha-pendente {
+    0%, 100% { opacity: 0.55; }
+    50% { opacity: 1; }
+}
 
 @media (prefers-reduced-motion: reduce) {
     .bolha::after { transition: none; }
+    .alternativa.marcada:not(.enviada) .bolha::after { animation: none; }
 }
 
 /* Tela final: placar + comprovante + agradecimento */
@@ -193,6 +224,12 @@ input:focus-visible {
     letter-spacing: 0.16em;
     color: var(--grafite);
     font-size: 0.9rem;
+    margin: 0.5rem 0 0;
+}
+.legenda-comprovante {
+    text-align: center;
+    color: var(--grafite);
+    font-size: 0.85rem;
     margin: 0.5rem 0 0;
 }
 /* Comprovante: so existe pra impressao (window.print -> "salvar como PDF"),

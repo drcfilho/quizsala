@@ -6,3 +6,4 @@ psswd.env
 /php/
 /utils/
 dbadmin/phpliteadmin.config.php
+.impeccable/live/server.json

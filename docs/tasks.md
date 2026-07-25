@@ -750,6 +750,53 @@ Não é código. É a tarefa que decide se a v1 acabou.
 
 ---
 
+## T28 · Hash de senha do phpLiteAdmin (`dbadmin/`) *(sugestão, não implementada)*
+
+Revisão de segurança automática encontrou, em `dbadmin/classes/Authorization.php` (código vendorizado do projeto phpLiteAdmin, não escrito por nós):
+
+1. **Hash fraco:** a senha é comparada via `md5(senha + salt)`, não `password_hash()`/`password_verify()`.
+2. **Salt fraco:** `generateSalt()` usa `mt_rand()`, não criptograficamente seguro — `random_bytes()` seria o certo.
+
+**Por que não foi corrigido ainda:** `dbadmin/` só escuta em `127.0.0.1` (nunca exposto na rede da sala) e usa uma senha própria de 64 bits gerada por `random_bytes`, o que já reduz bastante o risco — só afeta quem tiver acesso local ao próprio notebook. Mexer na autenticação de um vendor de terceiros é uma mudança maior (risco de quebrar sessão/"remember me"), então foi deixado como sugestão em vez de patch imediato.
+
+**Se for corrigir:** trocar a comparação de senha por `password_hash()`/`password_verify()` com hash fixo guardado no servidor, e o salt do cookie "remember me" por um token aleatório de `random_bytes()` guardado em sessão — não reaproveitar hash da senha pro cookie.
+
+---
+
+## T29 · Pendências do critique de `public/tela.php` (`/impeccable critique`, 2026-07-25)
+
+Depois do critique (score 30/40, snapshot em `.impeccable/critique/2026-07-25T05-41-03Z__public-tela-php.md`), rodei os fixes P1-P3 (itens 1-6 do plano de ação) e parei antes do passe final de `/impeccable polish`. Ficou pendente:
+
+1. **Estado "revelado" não verificado visualmente.** Não consegui forçar esse estado pela UI pra conferir ao vivo os fixes do `.texto-barra` (line-clamp) e do `.callout-explicacao` (borda uniforme) — o link do admin usado bateu na mesma trava de "link sem autorização de professor" que a Assessment A do critique também encontrou ao tentar clicar em "Revelar". A verificação desses dois ficou só por leitura de código + cálculo de contraste, não por screenshot. Vale investigar por que esse link específico (`admin/sessao.php?codigo=...` sem `?pt=...`) não autentica, e testar de novo a partir de um link com token de professor de verdade.
+2. **Segundo achado de `layout-transition` não corrigido.** O re-scan pós-fix encontrou `transition: width` em `.barra-preenchida-painel` (`tela.css:337`, a barra de distribuição da revelação) — mesma categoria do item 6 original (`transition: padding` no `.bloco-contador`), mas não estava no escopo dos 6 itens pedidos, então ficou como está. Mesma correção provável: trocar por `transform: scaleX()` com `transform-origin: left`.
+3. **`/impeccable polish` (passe final) não rodou.** Item 7 do plano de ação do critique original, adiado a pedido do usuário junto com a decisão de rodar só 1-6.
+
+**Pronto quando:** o estado "revelado" for verificado ao vivo (screenshot confirmando line-clamp e borda), a transição de `width` da barra de distribuição for substituída por uma propriedade de compositor, e um `/impeccable polish` rodar sobre `public/tela.php` considerando essas pendências.
+
+**Nota pro item 1:** achei o motivo do link sem autorização durante o critique de `public/prova.php` (T30) — o `token_professor` de verdade fica na tabela `sessoes` (`SELECT token_professor FROM sessoes WHERE codigo = ?`), e o link certo é `admin/sessao.php?codigo=X&pt=<token>`. O link usado antes provavelmente veio sem esse parâmetro. Já dá pra voltar e verificar o estado "revelado" com esse link.
+
+---
+
+## T30 · Pendências do critique de `public/prova.php` (`/impeccable critique`, 2026-07-25)
+
+Depois do critique (score 28/40, 1 P0 + 1 P1 + 2 P2 + 1 P3, snapshot em `.impeccable/critique/2026-07-25T06-08-24Z__public-prova-php.md`), corrigi os 5 achados:
+
+1. **[P0] Tela em branco em sessão nova** — `versaoConhecida` de `0` pra `-1` em `aluno.js`. Verificado ao vivo (sessão `WCKM7E`, nunca tocada): antes mostrava só o cabeçalho vazio, depois mostrou "Aguardando o professor iniciar..." corretamente. Também confirmado direto na API (`curl` com `v=0` retorna só `{"v":0}`; com `v=-1` retorna o estado completo).
+2. **[P1] Sem confirmação de envio** — classe `enviada` no bolha, distinta de `marcada` (pendente pulsa, enviada fica sólida). Verificado ao vivo via `className` do elemento depois de marcar: `alternativa marcada enviada`.
+3. **[P2] Revelação sem texto** — "✓ Acertou"/"✕ Errou" agora aparece na alternativa marcada do aluno quando revelada. Verificado ao vivo (screenshot mostrando "✕ Errou" em vermelho ao lado da alternativa errada).
+4. **[P2] Botão de tema 30×30px** — `.quizsala-alternar-tema-prova` com `min-width/height: 44px`. Verificado ao vivo via `getBoundingClientRect()`: `{width: 44, height: 44}`.
+5. **[P3] `window.print()` sem aviso** — legenda "Abre a tela de impressão do celular." abaixo do botão "Salvar comprovante em PDF".
+
+Ficou pendente:
+
+1. **Item 5 (legenda do comprovante) não verificado visualmente.** Pra chegar na tela de placar eu cliquei "Parar prova" no controle do professor, que abre um `confirm()` nativo do navegador (`admin.js:197`, "Parar a prova agora? Não dá pra continuar depois.") — isso trava a aba inteira pra automação (a extensão do Chrome não consegue interagir com dialogs nativos). A aba do controle (`admin/sessao.php?codigo=WCKM7E&pt=...`) pode ter ficado presa nesse dialog; talvez precise ser fechada/resolvida manualmente. O código da legenda foi revisado por leitura, não por screenshot.
+2. **Achado do detector `flat-type-hierarchy` não reconferido.** A Assessment B do critique achou esse item escaneando a página no estado quebrado (tela em branco, DOM quase vazio) — com o P0 corrigido, vale rodar o detector nativo (`window.impeccableScanAsync()` ou `/impeccable audit`) numa tela de pergunta real pra ver se o achado ainda existe ou era artefato do DOM esparso.
+3. **Sem re-critique pra confirmar o score.** Diferente da rodada de `tela.php` (T29), não rodei `/impeccable critique` de novo depois dos 5 fixes pra ver o 28/40 subir.
+
+**Pronto quando:** a legenda do comprovante for confirmada visualmente, o achado `flat-type-hierarchy` for reconferido numa tela de pergunta real, e um novo `/impeccable critique public/prova.php` mostrar o score melhorado.
+
+---
+
 ## Resumo
 
 | Bloco | Tarefas | Status | Você consegue, ao terminar |
