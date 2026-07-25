@@ -1,6 +1,6 @@
 # QuizSala — Manual de uso
 
-Guia do dia a dia: como criar uma prova, publicar, abrir uma sessão e aplicar em aula. Setup de rede/roteador/firewall (uma vez só, por notebook) fica em [`SETUP.md`](SETUP.md) — este documento assume que isso já está feito.
+Guia do dia a dia: como criar uma prova, publicar, abrir uma sessão e aplicar em aula. Setup de rede/roteador/firewall (uma vez só, por notebook) fica em [`docs/SETUP.md`](docs/SETUP.md) — este documento assume que isso já está feito.
 
 ## Antes de começar: três telas, três públicos
 
@@ -80,7 +80,7 @@ Detalhes que ajudam no dia a dia:
 
 O controle ao vivo não some sozinho ao encerrar — ele só avisa "Prova encerrada." e te manda pro admin no computador. É lá, na lista de **Sessões** (menu lateral → Sessões → seção "Sessões encerradas"), que fica o botão **Limpar**: apaga a sessão inteira — participantes e respostas somem, **a prova continua existindo** pra usar de novo com outra turma. Pede confirmação dupla (confirmar + digitar "limpar"), porque é definitivo: se você ainda quer analisar os dados dessa aplicação, não limpe ainda. É de propósito que essa ação não fica no celular — é arrumação pra fazer com calma, na mesa, não uma decisão pra tomar no meio da aula.
 
-Pra desligar o notebook com segurança, rode `parar.bat` (Windows) ou `./parar.sh` (Linux) antes — ele encerra o servidor sem deixar processo pendurado. Ver [`SETUP.md`](SETUP.md) pro resto do checklist de aula.
+Pra desligar o notebook com segurança, rode `parar.bat` (Windows) ou `./parar.sh` (Linux) antes — ele encerra o servidor sem deixar processo pendurado. Ver [`docs/SETUP.md`](docs/SETUP.md) pro resto do checklist de aula.
 
 ## Outras coisas úteis
 
@@ -91,7 +91,7 @@ Pra desligar o notebook com segurança, rode `parar.bat` (Windows) ou `./parar.s
 
 ## Se algo der errado
 
-- **Celular não entra na rede**: confira o SSID/roteador — ver checklist em `SETUP.md`.
+- **Celular não entra na rede**: confira o SSID/roteador — ver checklist em `docs/SETUP.md`.
 - **Página abre mas não atualiza**: o poll é a cada 2 segundos; espere um pouco antes de assumir que travou.
 - **Prova não aparece pra abrir sessão**: ela precisa estar **publicada** (`provas.php`).
 - **Botão do controle não funciona (nada acontece)**: o link provavelmente perdeu o `?pt=...` — volte em `admin/index.php` (lista de sessões ativas) e entre pelo link de lá.
