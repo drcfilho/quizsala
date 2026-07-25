@@ -286,7 +286,11 @@ main .cartao-admin .botao-acao + form {
     gap: 0.5rem;
     margin-top: 0.75rem;
 }
-.botoes-item-prova form { margin: 0; }
+.botoes-item-prova form {
+    margin: 0;
+    display: inline-flex;
+    align-items: stretch;
+}
 /* Achado visual (telas/erro.png): Editar/Publicar-Despublicar/Duplicar/
    Excluir tinham cada um a largura do proprio texto - fileira desalinhada,
    "Despublicar" bem mais largo que "Duplicar"/"Excluir". Largura fixa (cabe
@@ -297,6 +301,11 @@ main .cartao-admin .botao-acao + form {
 .botoes-prova-padrao .botao-pequeno {
     width: 7.5rem;
     flex: 0 0 auto;
+    height: 44px;
+    line-height: 1;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
 }
 .selo-publicada { color: var(--acerto); font-weight: 700; }
 .selo-rascunho { color: var(--grafite); }

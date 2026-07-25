@@ -24,7 +24,7 @@ function abrirLayoutAdmin(string $titulo, string $paginaAtiva): void
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>QuizSala — <?= htmlspecialchars($titulo) ?></title>
-<link rel="stylesheet" href="../assets/admin.css">
+<link rel="stylesheet" href="../assets/admin.css?v=<?= filemtime(__DIR__ . '/../public/assets/admin.css') ?>">
 </head>
 <body>
 <div class="shell-admin">

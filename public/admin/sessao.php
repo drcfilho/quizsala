@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>QuizSala — Controle</title>
-<link rel="stylesheet" href="../assets/admin.css">
+<link rel="stylesheet" href="../assets/admin.css?v=<?= filemtime(__DIR__ . '/../assets/admin.css') ?>">
 </head>
 <body>
 <main class="tela-admin">
 <div id="conteudo-admin">Carregando...</div>
 </main>
-<script src="../assets/admin.js" defer></script>
+<script src="../assets/admin.js?v=<?= filemtime(__DIR__ . '/../assets/admin.js') ?>" defer></script>
 </body>
 </html>

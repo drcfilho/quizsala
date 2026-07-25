@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>QuizSala</title>
-<link rel="stylesheet" href="assets/estilo.css">
+<link rel="stylesheet" href="assets/estilo.css?v=<?= filemtime(__DIR__ . '/assets/estilo.css') ?>">
 </head>
 <body>
 <main class="tela-prova">
@@ -16,6 +16,6 @@
 </header>
 <div id="conteudo-prova" role="group" aria-live="polite"></div>
 </main>
-<script src="assets/aluno.js" defer></script>
+<script src="assets/aluno.js?v=<?= filemtime(__DIR__ . '/assets/aluno.js') ?>" defer></script>
 </body>
 </html>
