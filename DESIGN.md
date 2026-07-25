@@ -30,21 +30,25 @@ typography:
     fontSize: "1rem"
     fontWeight: 400
 rounded:
+  bulma: "0"
   md: "0.5rem"
   bolha: "50%"
 components:
-  botao-principal:
-    backgroundColor: "{colors.tinta}"
+  botao-primario:
+    backgroundColor: "{colors.vermelho-leitura-optica}"
     textColor: "#ffffff"
-    rounded: "{rounded.md}"
+    rounded: "{rounded.bulma}"
+    nota: "classe .button.is-primary do Bulma customizado, nao mais escrita a mao"
   campo:
     backgroundColor: "{colors.papel}"
     textColor: "{colors.tinta}"
-    rounded: "{rounded.md}"
+    rounded: "{rounded.bulma}"
+    nota: "classe .input do Bulma customizado"
   alternativa:
     backgroundColor: "{colors.cartao}"
     textColor: "{colors.tinta}"
     rounded: "{rounded.md}"
+    nota: "CSS proprio, fora do Bulma - identidade visual especifica do produto"
 ---
 
 # Design System: QuizSala
@@ -56,6 +60,8 @@ components:
 O QuizSala pega o vocabulário de um instrumento de avaliação de verdade — o cartão-resposta de leitura óptica, com suas bolhas pra preencher e marcas de registro — e faz esse documento ganhar vida porque o resultado muda ao vivo, na frente da turma. Duas forças convivem na mesma interface: **direta e sem frescura**, feita pra sala de aula real (Wi-Fi que cai, celular antigo, professor sem tempo — utilitária antes de bonita), e **urgente e viva**, com a energia de um placar de jogo, sobretudo no painel do projetor, onde o número que muda é o próprio produto.
 
 O sistema rejeita explicitamente o vocabulário de gamificação educacional (Kahoot, Duolingo): sem confete, sem mascote, sem ranking de tempo de resposta. Isso não é estética — é consequência direta de uma decisão de produto já travada (`arquitetura.md` §13): o objetivo é diagnóstico honesto da turma, e qualquer elemento de jogo contamina exatamente o que o produto existe pra medir.
+
+**Implementação:** o sistema é construído sobre o [Bulma](https://bulma.io) (framework CSS, `public/assets/vendor/bulma.css`), compilado uma vez em desenvolvimento com variáveis próprias (`$primary: #d9342b`, `$radius: 0` e as demais variáveis de raio zeradas) — as regras deste documento (zero sombra, vermelho único, sem cara de framework genérico) continuam valendo integralmente, só a base de grid/formulário/botão deixou de ser escrita do zero. Elementos sem equivalente no Bulma (a bolha, o placar do projetor, o cronômetro, as barras de distribuição, o QR code, o comprovante de impressão) continuam em CSS próprio, por cima do Bulma — são a identidade visual específica do produto, não algo que um framework genérico cobre. O Bulma também trouxe um efeito colateral bem-vindo: suporte a tema claro/escuro (`data-theme`, alternado manualmente por `public/assets/tema.js`, com um botão em cada tela), lembrado entre sessões via `localStorage`.
 
 **Key Characteristics:**
 - Duas famílias com papéis fixos: monoespaçada pro que precisa parecer registro oficial (título, rótulos, contador, letra da bolha), a fonte do sistema pro que é conteúdo de leitura corrida (enunciado, alternativas).
@@ -111,8 +117,8 @@ Sistema totalmente flat — zero `box-shadow` em todo o código. Hierarquia e se
 ## 5. Components
 
 ### Buttons
-- **Shape:** cantos suaves (`border-radius: 0.5rem`).
-- **Primary (`botao-principal`):** fundo tinta, texto branco, `min-height: 64px`, largura total — o botão "Entrar" da tela de entrada.
+- **Shape:** cantos retos (`border-radius: 0` — variável do Bulma zerada, Regra do Papel Plano vale também pros componentes do framework).
+- **Primary (`.button.is-primary`, classe do Bulma):** fundo vermelho de leitura óptica, texto branco, `min-height: 64px` (override próprio — o padrão do Bulma é menor), largura total — o botão "Entrar" da tela de entrada, "Salvar comprovante" na tela final.
 - **Focus:** `outline: 3px solid` vermelho de leitura óptica em `:focus-visible`, sempre visível, nunca removido sem substituto.
 
 ### A bolha (elemento de assinatura)

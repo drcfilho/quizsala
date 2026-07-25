@@ -8,6 +8,34 @@
     --marca:   #d9342b;
 }
 
+/* Bulma usa ~2.5em (~40px) de altura padrao em input/button - abaixo dos
+   64px que o QuizSala exige em todo alvo tocavel pelo aluno (DESIGN.md).
+   :not(.is-small) deixa de fora botoes pequenos de proposito, como o
+   alternador de tema. */
+.input, .button:not(.is-small) { min-height: 64px; }
+
+.quizsala-container-estreito { max-width: 22rem; }
+
+/* Codigo da sala e lido em voz alta/projetado - monoespacada e maiuscula
+   ajuda a distinguir 0/O, 1/I na hora de digitar (mesmo motivo do sorteio
+   sem esses caracteres em bin/gerarCodigoSala, src/util.php). */
+.quizsala-campo-codigo {
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+/* Cabecalho da prova (marcas de registro) ganhou um irmao (botao de
+   tema) ao lado - flex:1 so no cabecalho dentro desse contexto, pra ele
+   continuar ocupando o espaco que ocupava sozinho antes. Nao mexe em
+   .cabecalho-prova em si (identidade visual travada, DESIGN.md). */
+.quizsala-topo-prova {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.quizsala-topo-prova .cabecalho-prova { flex: 1; }
+
 * { box-sizing: border-box; }
 
 html, body {
@@ -23,76 +51,11 @@ body {
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-.rotulo {
-    display: block;
-    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.16em;
-    color: var(--grafite);
-    margin: 1rem 0 0.4rem;
-}
-
 a:focus-visible,
 button:focus-visible,
 input:focus-visible {
     outline: 3px solid var(--marca);
     outline-offset: 2px;
-}
-
-/* Tela de entrada */
-.tela-entrada {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1.5rem 1rem;
-}
-.tela-entrada .cartao {
-    width: 100%;
-    max-width: 22rem;
-    background: var(--cartao);
-    border: 1px solid var(--pauta);
-    border-radius: 0.5rem;
-    padding: 1.5rem;
-}
-.titulo {
-    margin: 0 0 1rem;
-    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-    font-size: 1.3rem;
-    letter-spacing: 0.05em;
-}
-.campo {
-    width: 100%;
-    min-height: 64px;
-    padding: 0.75rem 1rem;
-    border: 1px solid var(--pauta);
-    border-radius: 0.5rem;
-    background: var(--papel);
-    color: var(--tinta);
-    font-family: inherit;
-    font-size: 1.1rem;
-    margin-bottom: 0.5rem;
-}
-.campo-codigo {
-    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-}
-.botao-principal {
-    width: 100%;
-    min-height: 64px;
-    border: none;
-    border-radius: 0.5rem;
-    background: var(--tinta);
-    color: #fff;
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-top: 0.5rem;
-}
-.aviso {
-    color: var(--marca);
-    font-size: 0.95rem;
 }
 
 /* Tela da prova */
@@ -117,13 +80,6 @@ input:focus-visible {
 }
 .marca-registro { color: var(--pauta); }
 .nome-aluno { color: var(--tinta); font-weight: 600; }
-
-.mensagem-estado {
-    text-align: center;
-    color: var(--grafite);
-    font-size: 1.1rem;
-    margin-top: 3rem;
-}
 
 .enunciado {
     font-size: clamp(1.1rem, 4vw, 1.4rem);
@@ -225,28 +181,6 @@ input:focus-visible {
     font-size: 0.9rem;
     margin: 0.5rem 0 0;
 }
-.acoes-final {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin-top: 2.5rem;
-}
-.botao-secundario-final {
-    width: 100%;
-    min-height: 64px;
-    border: 1px solid var(--pauta);
-    border-radius: 0.5rem;
-    background: transparent;
-    color: var(--tinta);
-    font-size: 1.1rem;
-}
-.mensagem-agradecimento {
-    text-align: center;
-    font-size: 1.4rem;
-    font-weight: 600;
-    margin-top: 4rem;
-}
-
 /* Comprovante: so existe pra impressao (window.print -> "salvar como PDF"),
    escondido na tela normal. */
 #comprovante-impressao { display: none; }

@@ -17,19 +17,33 @@ $mensagemErro = match ($erro) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>QuizSala</title>
-<link rel="stylesheet" href="assets/estilo.css">
+<link rel="stylesheet" href="assets/vendor/bulma.css?v=<?= filemtime(__DIR__ . '/assets/vendor/bulma.css') ?>">
+<link rel="stylesheet" href="assets/estilo.css?v=<?= filemtime(__DIR__ . '/assets/estilo.css') ?>">
 </head>
 <body>
-<main class="tela-entrada">
-<div class="cartao">
-<h1 class="titulo">QuizSala</h1>
+<section class="hero is-fullheight">
+<div class="hero-body">
+<div class="container quizsala-container-estreito">
+<div class="box">
+<div class="level mb-4">
+<div class="level-left">
+<h1 class="title is-4 mb-0">QuizSala</h1>
+</div>
+<div class="level-right">
+<button type="button" class="button is-small is-light" data-alternar-tema aria-label="Alternar tema claro/escuro">
+<span class="icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path></svg></span>
+</button>
+</div>
+</div>
 <?php if ($mensagemErro !== ''): ?>
-<p class="aviso"><?= htmlspecialchars($mensagemErro) ?></p>
+<p class="help is-danger"><?= htmlspecialchars($mensagemErro) ?></p>
 <?php endif; ?>
 <form method="post" action="api/entrar.php">
-<label class="rotulo" for="codigo">Código da sala</label>
+<div class="field">
+<label class="label" for="codigo">Código da sala</label>
+<div class="control">
 <input
-  class="campo campo-codigo"
+  class="input quizsala-campo-codigo"
   type="text"
   id="codigo"
   name="codigo"
@@ -41,9 +55,13 @@ $mensagemErro = match ($erro) {
   enterkeyhint="next"
   maxlength="6"
 >
-<label class="rotulo" for="nome">Nome (se pedido pelo professor)</label>
+</div>
+</div>
+<div class="field">
+<label class="label" for="nome">Nome (se pedido pelo professor)</label>
+<div class="control">
 <input
-  class="campo"
+  class="input"
   type="text"
   id="nome"
   name="nome"
@@ -52,9 +70,16 @@ $mensagemErro = match ($erro) {
   enterkeyhint="go"
   maxlength="60"
 >
-<button type="submit" class="botao-principal">Entrar</button>
+</div>
+</div>
+<div class="control">
+<button type="submit" class="button is-primary is-fullwidth">Entrar</button>
+</div>
 </form>
 </div>
-</main>
+</div>
+</div>
+</section>
+<script src="assets/tema.js?v=<?= filemtime(__DIR__ . '/assets/tema.js') ?>" defer></script>
 </body>
 </html>

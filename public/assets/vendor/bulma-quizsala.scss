@@ -1,0 +1,24 @@
+// Fonte da customizacao do Bulma usada em public/assets/vendor/bulma.css.
+// Este arquivo NAO e compilado pelo app (sem build step em producao,
+// CLAUDE.md) - e so a receita documentada de como o bulma.css foi gerado,
+// pra recompilar se um dia mudar uma variavel (cor, radius etc.).
+//
+// Como recompilar (uma vez, manualmente):
+//   1. mkdir -p /tmp/bulma-vendor-build && cd /tmp/bulma-vendor-build
+//   2. npm install bulma@1.0.4 --silent
+//   3. cp <este arquivo> entrada.scss
+//   4. npx sass entrada.scss bulma.css --no-source-map
+//   5. cp bulma.css <raiz-do-projeto>/public/assets/vendor/bulma.css
+//   6. rm -rf /tmp/bulma-vendor-build
+//
+// $primary: vermelho de leitura optica do QuizSala (DESIGN.md).
+// $radius-*: zerados - sistema totalmente flat, sem cantos decorativos
+// nem sombra (Regra do Papel Plano, DESIGN.md).
+@use "node_modules/bulma/sass" with (
+  $primary: #d9342b,
+  $radius-small: 0,
+  $radius: 0,
+  $radius-medium: 0,
+  $radius-large: 0,
+  $radius-rounded: 0
+);

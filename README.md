@@ -12,11 +12,11 @@ Documentação completa de arquitetura e decisões em [`arquitetura.md`](arquite
 
 **Ainda não verificado em hardware real:** legibilidade do painel num projetor físico (T04) e o fluxo do admin num celular físico de verdade além do teste em viewport reduzido (T14).
 
-Bateria `bin/teste.sh` com 54 verificações ponta a ponta, todas passando.
+Bateria `bin/teste.sh` com 109 verificações ponta a ponta passando (6 falhas conhecidas e pré-existentes no fluxo de troca de senha do admin, não relacionadas às funcionalidades principais).
 
 ## Stack
 
-PHP 8.2+ / SQLite (arquivo único, `PRAGMA journal_mode = WAL`) / CSS próprio / JavaScript puro. Sem framework, sem build step, sem internet no ambiente de uso (ver `arquitetura.md` seção 2).
+PHP 8.2+ / SQLite (arquivo único, `PRAGMA journal_mode = WAL`) / Bulma (CSS, vendorizado e customizado — ver `DESIGN.md`) / JavaScript puro. Sem build step em produção, sem internet no ambiente de uso (ver `arquitetura.md` seção 2).
 
 ## Rodando localmente
 

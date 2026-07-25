@@ -28,7 +28,7 @@ function limparConteudo() {
 function mensagemEstado(texto) {
     var container = limparConteudo();
     var p = document.createElement('p');
-    p.className = 'mensagem-estado';
+    p.className = 'has-text-centered has-text-grey mt-6';
     p.textContent = texto;
     container.appendChild(p);
 }
@@ -155,14 +155,14 @@ function renderizarPlacar(dados) {
     container.appendChild(placar);
 
     var acoes = document.createElement('div');
-    acoes.className = 'acoes-final';
-    acoes.appendChild(criarBotao('Salvar comprovante em PDF', 'botao-principal', function () {
+    acoes.className = 'mt-6';
+    acoes.appendChild(criarBotao('Salvar comprovante em PDF', 'button is-primary is-fullwidth mb-3', function () {
         limparTimeoutPlacar();
         prepararComprovante(dados);
         window.print();
         renderizarAgradecimento();
     }));
-    acoes.appendChild(criarBotao('Concluir', 'botao-secundario-final', function () {
+    acoes.appendChild(criarBotao('Concluir', 'button is-fullwidth', function () {
         limparTimeoutPlacar();
         renderizarAgradecimento();
     }));
@@ -175,7 +175,7 @@ function renderizarAgradecimento() {
     limparTimeoutPlacar();
     var container = limparConteudo();
     var p = document.createElement('p');
-    p.className = 'mensagem-agradecimento';
+    p.className = 'title is-4 has-text-centered mt-6';
     p.textContent = 'Obrigado por participar!';
     container.appendChild(p);
 }

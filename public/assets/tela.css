@@ -13,6 +13,13 @@
     --acerto:  #1e7a34;
 }
 
+.quizsala-alternar-tema-projetor {
+    position: fixed;
+    top: 1.5vh;
+    right: 1.5vw;
+    z-index: 10;
+}
+
 * { box-sizing: border-box; }
 
 html, body {
