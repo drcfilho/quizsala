@@ -13,6 +13,12 @@
 
 * { box-sizing: border-box; }
 
+/* Bulma usa ~2.5em (~40px) de altura padrao em input/button - abaixo dos
+   64px que o QuizSala exige em todo alvo tocavel pelo professor no
+   celular (DESIGN.md). Mesmo ajuste ja feito em estilo.css (aluno);
+   :not(.is-small) deixa de fora o botao pequeno de alternar tema. */
+.input, .button:not(.is-small) { min-height: 64px; }
+
 html, body {
     margin: 0;
     padding: 0;
