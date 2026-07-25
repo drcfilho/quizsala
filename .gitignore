@@ -2,3 +2,6 @@ db/*.sqlite
 db/*.sqlite-wal
 db/*.sqlite-shm
 db/admin.senha
+psswd.env
+/php/
+/utils/
