@@ -43,22 +43,43 @@ function exigirAdmin(): void
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>QuizSala — Entrar</title>
+<link rel="stylesheet" href="/assets/vendor/bulma.css?v=<?= filemtime(__DIR__ . '/../public/assets/vendor/bulma.css') ?>">
 <link rel="stylesheet" href="/assets/admin.css?v=<?= filemtime(__DIR__ . '/../public/assets/admin.css') ?>">
 </head>
 <body>
-<main class="tela-admin">
-<div class="cartao-admin">
-<p class="cabecalho-admin">Área do professor</p>
+<section class="hero is-fullheight">
+<div class="hero-body">
+<div class="container quizsala-container-estreito-admin">
+<div class="box">
+<div class="level mb-4">
+<div class="level-left">
+<p class="title is-5 mb-0">Área do professor</p>
+</div>
+<div class="level-right">
+<button type="button" class="button is-small is-light" data-alternar-tema aria-label="Alternar tema claro/escuro">
+<span class="icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path></svg></span>
+</button>
+</div>
+</div>
 <?php if ($erro !== null): ?>
-<p class="erro-campo"><?= htmlspecialchars($erro) ?></p>
+<p class="help is-danger"><?= htmlspecialchars($erro) ?></p>
 <?php endif; ?>
 <form method="post">
-<label class="rotulo" for="senha_admin">Senha</label>
-<input class="campo-admin" type="password" id="senha_admin" name="senha_admin" autofocus>
-<button type="submit" class="botao-acao">Entrar</button>
+<div class="field">
+<label class="label" for="senha_admin">Senha</label>
+<div class="control">
+<input class="input" type="password" id="senha_admin" name="senha_admin" autofocus>
+</div>
+</div>
+<div class="control">
+<button type="submit" class="button is-primary is-fullwidth">Entrar</button>
+</div>
 </form>
 </div>
-</main>
+</div>
+</div>
+</section>
+<script src="/assets/tema.js?v=<?= filemtime(__DIR__ . '/../public/assets/tema.js') ?>" defer></script>
 </body>
 </html>
     <?php

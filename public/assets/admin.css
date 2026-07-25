@@ -505,6 +505,8 @@ main .cartao-admin .botao-acao + form {
 }
 .quizsala-topo-menu-admin .marca-admin { margin-bottom: 0; }
 
+.quizsala-container-estreito-admin { max-width: 24rem; }
+
 /* Truque de checkbox: sem JS pro menu recolher no celular (mesma familia
    do <details> ja usado no editor de questao - recurso nativo antes de
    escrever codigo). */
