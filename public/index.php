@@ -30,7 +30,7 @@ $mensagemErro = match ($erro) {
 <h1 class="title is-4 mb-0">QuizSala</h1>
 </div>
 <div class="level-right">
-<button type="button" class="button is-small is-light" data-alternar-tema aria-label="Alternar tema claro/escuro">
+<button type="button" class="button is-small is-ghost" data-alternar-tema aria-label="Alternar tema claro/escuro">
 <span class="icon">🌙</span>
 </button>
 </div>

@@ -16,7 +16,7 @@
 <span class="contador-questao" id="contador-questao"></span>
 <span class="marca-registro" aria-hidden="true">&#9642;</span>
 </header>
-<button type="button" class="button is-small is-light" data-alternar-tema aria-label="Alternar tema claro/escuro">
+<button type="button" class="button is-small is-ghost" data-alternar-tema aria-label="Alternar tema claro/escuro">
 <span class="icon">🌙</span>
 </button>
 </div>

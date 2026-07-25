@@ -56,7 +56,7 @@ function exigirAdmin(): void
 <p class="title is-5 mb-0">Área do professor</p>
 </div>
 <div class="level-right">
-<button type="button" class="button is-small is-light" data-alternar-tema aria-label="Alternar tema claro/escuro">
+<button type="button" class="button is-small is-ghost" data-alternar-tema aria-label="Alternar tema claro/escuro">
 <span class="icon">🌙</span>
 </button>
 </div>

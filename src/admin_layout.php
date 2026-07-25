@@ -32,7 +32,7 @@ function abrirLayoutAdmin(string $titulo, string $paginaAtiva): void
 <nav class="menu-admin">
 <div class="quizsala-topo-menu-admin">
 <p class="marca-admin">QuizSala</p>
-<button type="button" class="button is-small is-light" data-alternar-tema aria-label="Alternar tema claro/escuro">
+<button type="button" class="button is-small is-ghost" data-alternar-tema aria-label="Alternar tema claro/escuro">
 <span class="icon">🌙</span>
 </button>
 </div>
