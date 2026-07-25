@@ -58,17 +58,6 @@ input:focus-visible {
     outline-offset: 2px;
 }
 
-.botao-principal {
-    width: 100%;
-    min-height: 64px;
-    border: none;
-    border-radius: 0.5rem;
-    background: var(--tinta);
-    color: #fff;
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-top: 0.5rem;
-}
 /* Tela da prova */
 .tela-prova {
     min-height: 100vh;
@@ -91,13 +80,6 @@ input:focus-visible {
 }
 .marca-registro { color: var(--pauta); }
 .nome-aluno { color: var(--tinta); font-weight: 600; }
-
-.mensagem-estado {
-    text-align: center;
-    color: var(--grafite);
-    font-size: 1.1rem;
-    margin-top: 3rem;
-}
 
 .enunciado {
     font-size: clamp(1.1rem, 4vw, 1.4rem);
@@ -199,28 +181,6 @@ input:focus-visible {
     font-size: 0.9rem;
     margin: 0.5rem 0 0;
 }
-.acoes-final {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin-top: 2.5rem;
-}
-.botao-secundario-final {
-    width: 100%;
-    min-height: 64px;
-    border: 1px solid var(--pauta);
-    border-radius: 0.5rem;
-    background: transparent;
-    color: var(--tinta);
-    font-size: 1.1rem;
-}
-.mensagem-agradecimento {
-    text-align: center;
-    font-size: 1.4rem;
-    font-weight: 600;
-    margin-top: 4rem;
-}
-
 /* Comprovante: so existe pra impressao (window.print -> "salvar como PDF"),
    escondido na tela normal. */
 #comprovante-impressao { display: none; }
