@@ -253,9 +253,15 @@ body {
 }
 .form-titulo-prova .botao-pequeno { flex-shrink: 0; }
 
-main .cartao-admin form + .botao-acao,
-main .cartao-admin form + form,
-main .cartao-admin .botao-acao + form {
+/* > direto pro .cartao-admin, de proposito (achado real: sem isso essa
+   regra tambem "pegava" as formas do .botoes-item-prova dentro da lista de
+   provas - varios niveis abaixo do .cartao-admin - e empurrava Duplicar/
+   Excluir 12px pra baixo de Editar/Publicar, ja que cada botao daquela
+   fileira e o proprio <form>). So o espacamento entre secoes de topo
+   (lista -> formulario "Nova prova" etc.) deve valer aqui. */
+main .cartao-admin > form + .botao-acao,
+main .cartao-admin > form + form,
+main .cartao-admin > .botao-acao + form {
     margin-top: 0.75rem;
 }
 
