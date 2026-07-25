@@ -4,14 +4,27 @@ Guia pra rodar o QuizSala num notebook, do zero, sem depender de internet na hor
 
 ## O que precisa estar instalado
 
+No Windows, **nada precisa estar pré-instalado** — `iniciar.bat` resolve sozinho (ver seção abaixo). Em outros sistemas, ou se preferir instalar você mesmo:
+
 - **PHP 8.2 ou mais novo**, com a extensão `pdo_sqlite` habilitada (vem habilitada por padrão na maioria das instalações — confira com `php -m` e procure `pdo_sqlite` na lista).
-  - Windows: [windows.php.net/download](https://windows.php.net/download/) — baixe o zip "Non Thread Safe" (o servidor embutido do PHP não precisa da versão thread-safe), extraia numa pasta como `C:\php`, e adicione essa pasta ao `PATH` do sistema.
+  - Windows: [windows.php.net/download](https://windows.php.net/download/) — baixe o zip "Non Thread Safe", extraia numa pasta como `C:\php`, e adicione essa pasta ao `PATH` do sistema. Também precisa do **Visual C++ Redistributable** ([link direto](https://aka.ms/vs/17/release/vc_redist.x64.exe)) instalado — sem ele o `php.exe` do Windows não roda.
   - Depois de instalar, **abra um terminal novo** (o PATH só atualiza em janelas novas) e confirme com `php -v`.
 - Nenhum banco de dados separado, nenhum servidor web (Apache/Nginx), nenhum `npm install`. O PHP embutido (`php -S`) e o SQLite (arquivo único) são o suficiente — é por isso que o projeto roda num notebook que troca de sala sem setup pesado (`arquitetura.md` D1).
 
 ## Rodando pela primeira vez
 
-**Opção 1 — duplo clique (Windows):** dê duplo clique em `iniciar.bat`. Ele confere se o PHP está instalado, cria o banco na primeira vez, sobe o servidor e já abre o projetor no navegador.
+**Opção 1 — duplo clique (Windows), o jeito recomendado:** dê duplo clique em `iniciar.bat`.
+
+Ele confere sozinho se o sistema já tem PHP e Visual C++ Redistributable:
+
+- **Tem os dois?** Sobe o servidor direto, cria o banco na primeira vez e abre o projetor no navegador.
+- **Falta algo?** Mostra um menu:
+  1. Instalar via `winget` (recomendado, precisa de internet)
+  2. Instalar só o Visual C++ Redistributable, com o instalador já embutido em `utils\vc_redist.x64.exe` (não precisa de internet)
+  3. Usar a cópia portátil de PHP em `php\` (não instala nada no sistema, nem precisa de internet)
+  4. Sair e instalar manualmente (instruções acima)
+
+Ou seja: num notebook novo, sem internet na hora, a opção 3 ainda funciona — é por isso que o release traz `php\` e `utils\` prontos.
 
 **Opção 2 — manual, qualquer sistema:**
 ```sh

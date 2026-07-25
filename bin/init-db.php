@@ -89,6 +89,9 @@ if (!is_file($arquivoSenha)) {
     chmod($arquivoSenha, 0600); // no-op inofensivo no Windows, restringe no Linux/Mac
 }
 $senhaAdmin = trim((string) file_get_contents($arquivoSenha));
+$arquivoEnv = __DIR__ . '/../psswd.env';
+file_put_contents($arquivoEnv, "ADMIN_PASSWORD={$senhaAdmin}\n");
+chmod($arquivoEnv, 0600); // no-op inofensivo no Windows, restringe no Linux/Mac
 
 echo "Banco recriado: prova '{$questoes[0]['enunciado']}...' (id {$provaId}), 3 questoes, sessao AULA01 pronta (aguardando).\n";
 echo "Aluno entra com o codigo: AULA01\n";

@@ -47,13 +47,17 @@ Com a prova publicada, clique em **"Abrir sessão"** (ou vá em **Nova sessão**
 2. Escolha a identificação do aluno: **Anônimo** (apelido automático "Aluno 01", "Aluno 02"...) ou **Com nome** (aluno digita o próprio nome ao entrar).
 3. **Abrir sessão** — você cai direto no controle ao vivo, já com o código da sala gerado (6 caracteres, sem `0 O 1 I 5 S` — nada de confundir letra com número projetado do fundo da sala).
 
-Guarde esse link do controle — ele tem um token de professor embutido na URL (`?pt=...`) e fica salvo no navegador do seu celular. Sem esse token, ninguém mais consegue comandar a sessão, nem mesmo sabendo o código público da sala.
+Guarde esse link do controle: ele tem um token de professor embutido na URL (`?pt=...`) e fica salvo no navegador do seu celular. Sem esse token ninguém mais comanda a sessão — nem sabendo o código público da sala.
 
 **Antes de projetar, ative essa sessão:** o QuizSala nunca escolhe uma sessão sozinho — nem a mais recente, nem uma "de exemplo" deixada de uma aula anterior. Vá em **Sessões** (menu lateral) e clique **"Ativar no projetor"** na sessão que você acabou de abrir. Ela ganha um selo **"● No projetor"**; é essa, e só essa, que aparece pra quem abrir o projetor sem um código na URL.
 
 ## 5. Durante a aula
 
-**No projetor:** abra `tela.php` — sem precisar informar o código, ele mostra a sessão que você ativou no passo anterior (e volta pra tela de espera "Aguardando o início da sessão" se você encerrar e limpar essa sessão, até você ativar outra). Se você mesmo abrir com um código específico na URL (`tela.php?codigo=X`), esse comportamento fica desligado — útil pra apontar o projetor pra uma sessão específica sem depender de qual está ativada. Antes de você iniciar, ele mostra uma tela de espera com QR Code grande + código em letras gigantes + contador de quantos já entraram — os alunos podem escanear ou digitar o código em `index.php` enquanto isso.
+**No projetor:** abra `tela.php`. Sem código na URL, ele mostra sozinho a sessão que você ativou no passo anterior:
+
+- Antes de você clicar **Iniciar prova**, ele mostra uma tela de espera: QR Code grande, código em letras gigantes, contador de quantos já entraram.
+- Se você encerrar e limpar essa sessão sem ativar outra, ele volta pra "Aguardando o início da sessão".
+- Quer apontar pra uma sessão específica, ignorando qual está ativada? Abra com o código na URL: `tela.php?codigo=X`.
 
 **No seu celular** (`admin/sessao.php`, o link que você guardou):
 
@@ -64,15 +68,13 @@ Guarde esse link do controle — ele tem um token de professor embutido na URL (
 | **Próxima questão** | Avança; se era a última, encerra a prova sozinho |
 | **Parar prova** | Força o fim a qualquer momento — inclusive antes de "Iniciar prova", se você abriu a sessão errada — vira o botão de escape, sempre disponível |
 
-O contador **"X online · Y responderam"** fica visível o tempo todo. Quando bater 100%, o botão **Revelar** ganha um destaque (borda) — só um sinal, ele nunca dispara sozinho.
+Detalhes que ajudam no dia a dia:
 
-Um toque duplo sem querer não pula questão: o servidor só aplica o comando se a versão que o celular conhece bater com a atual — o segundo toque vira no-op.
-
-Ao **Revelar**, se a questão tiver uma explicação salva, ela aparece no projetor logo abaixo das barras de distribuição — os alunos veem não só a resposta certa, mas o porquê.
-
-Quando a última questão é revelada e você clica em **Próxima questão**, a prova encerra sozinha e o projetor mostra um **resumo final**: total de participantes e de questões no topo, e uma lista por questão com acertos/erros/não-responderam + as mesmas barras de distribuição da revelação. É a partir daí que você decide: abrir outra sessão (Nova sessão, no admin) ou parar por aqui.
-
-No celular do aluno, a tela final de placar avança sozinha pro "Obrigado por participar!" depois de 5 minutos sem ele tocar em nada — não precisa lembrar todo mundo de clicar em "Concluir".
+- O contador **"X online · Y responderam"** fica sempre visível. Ao bater 100%, o botão **Revelar** ganha destaque — é só um aviso, ele nunca dispara sozinho.
+- Toque duplo sem querer não pula questão: o servidor só aplica o comando se a versão que o celular conhece bater com a atual.
+- Ao **Revelar**, a explicação da questão (se você salvou uma) aparece no projetor junto com as barras de distribuição.
+- Na última questão, **Próxima questão** encerra a prova e o projetor mostra o **resumo final**: participantes, questões, e acertos/erros/não-responderam por questão. Daí você decide: abrir outra sessão ou parar por aqui.
+- No celular do aluno, a tela de placar avança sozinha pro "Obrigado por participar!" depois de 5 minutos parada — ninguém precisa lembrar de clicar em "Concluir".
 
 ## 6. Depois da aula
 
