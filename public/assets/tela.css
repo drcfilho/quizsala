@@ -171,8 +171,8 @@ body {
     background: var(--tinta);
     padding: 3vh 5vw;
 }
-.bloco-contador.completo .numero-contador { color: #fff; }
-.bloco-contador.completo .rotulo-contador { color: rgba(255, 255, 255, 0.7); }
+.bloco-contador.completo .numero-contador { color: var(--papel); }
+.bloco-contador.completo .rotulo-contador { color: var(--papel); opacity: 0.7; }
 
 /* T-novo: cronometro por questao - so aparece quando a questao tem duracao
    configurada. Pill discreta acima do contador, nao compete com ele. */

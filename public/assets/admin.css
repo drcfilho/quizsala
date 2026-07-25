@@ -87,7 +87,7 @@ body {
 }
 .presenca-admin.completo {
     background: var(--tinta);
-    color: #fff;
+    color: var(--papel);
     border-color: var(--tinta);
 }
 
@@ -184,7 +184,7 @@ body {
     border: 2px solid var(--tinta);
     border-radius: 0.5rem;
     background: var(--tinta);
-    color: #fff;
+    color: var(--papel);
     font-family: inherit;
     font-size: 1.1rem;
     font-weight: 700;
@@ -220,7 +220,7 @@ body {
     bottom: 1.5rem;
     transform: translateX(-50%);
     background: var(--tinta);
-    color: #fff;
+    color: var(--papel);
     padding: 0.75rem 1.25rem;
     border-radius: 0.5rem;
     font-size: 0.95rem;
@@ -564,7 +564,7 @@ main .cartao-admin > .botao-acao + form {
     transition: background-color 0.15s ease-out;
 }
 .link-menu-admin:hover { background: var(--papel); }
-.link-menu-admin.ativo { background: var(--tinta); color: #fff; }
+.link-menu-admin.ativo { background: var(--tinta); color: var(--papel); }
 
 .conteudo-admin {
     flex: 1;
