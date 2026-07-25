@@ -14,6 +14,7 @@
 <main class="painel" id="painel" data-fase="carregando">
 <div id="conteudo-painel"></div>
 </main>
+<p id="aviso-desatualizado" class="aviso-desatualizado" hidden><span class="pulso-ao-vivo" aria-hidden="true"></span>Sem conexão - tentando reconectar...</p>
 <script src="assets/tema.js?v=<?= filemtime(__DIR__ . '/assets/tema.js') ?>" defer></script>
 <script src="assets/tela.js?v=<?= filemtime(__DIR__ . '/assets/tela.js') ?>" defer></script>
 </body>
