@@ -16,6 +16,15 @@
 
 .quizsala-container-estreito { max-width: 22rem; }
 
+/* Codigo da sala e lido em voz alta/projetado - monoespacada e maiuscula
+   ajuda a distinguir 0/O, 1/I na hora de digitar (mesmo motivo do sorteio
+   sem esses caracteres em bin/gerarCodigoSala, src/util.php). */
+.quizsala-campo-codigo {
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
 * { box-sizing: border-box; }
 
 html, body {
