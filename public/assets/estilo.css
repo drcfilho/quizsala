@@ -25,6 +25,17 @@
     text-transform: uppercase;
 }
 
+/* Cabecalho da prova (marcas de registro) ganhou um irmao (botao de
+   tema) ao lado - flex:1 so no cabecalho dentro desse contexto, pra ele
+   continuar ocupando o espaco que ocupava sozinho antes. Nao mexe em
+   .cabecalho-prova em si (identidade visual travada, DESIGN.md). */
+.quizsala-topo-prova {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.quizsala-topo-prova .cabecalho-prova { flex: 1; }
+
 * { box-sizing: border-box; }
 
 html, body {
