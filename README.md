@@ -6,11 +6,11 @@ Ferramenta de aula: o professor aplica uma prova de múltipla escolha numa sala 
 
 | Arquivo | Pra quê |
 |---|---|
-| [`SETUP.md`](SETUP.md) | Instalar e configurar (rede, firewall, checklist de aula) |
+| [`docs/SETUP.md`](docs/SETUP.md) | Instalar e configurar (rede, firewall, checklist de aula) |
 | [`MANUAL.md`](MANUAL.md) | Usar no dia a dia — criar prova, publicar, aplicar em aula |
-| [`arquitetura.md`](arquitetura.md) | Arquitetura, decisões travadas, contrato da API |
-| [`plan.md`](plan.md) / [`tasks.md`](tasks.md) | Fases e quebra de tarefas do desenvolvimento |
-| [`PRODUCT.md`](PRODUCT.md) / [`DESIGN.md`](DESIGN.md) | Contexto de produto e sistema visual |
+| [`docs/arquitetura.md`](docs/arquitetura.md) | Arquitetura, decisões travadas, contrato da API |
+| [`docs/plan.md`](docs/plan.md) / [`docs/tasks.md`](docs/tasks.md) | Fases e quebra de tarefas do desenvolvimento |
+| [`docs/PRODUCT.md`](docs/PRODUCT.md) / [`docs/DESIGN.md`](docs/DESIGN.md) | Contexto de produto e sistema visual |
 
 ## Como rodar
 
@@ -34,11 +34,11 @@ Acesse `http://localhost:8080/index.php` (aluno, código `AULA01`) ou `http://lo
 bash bin/teste.sh
 ```
 
-Guia completo (rede da sala, firewall, checklist) em [`SETUP.md`](SETUP.md).
+Guia completo (rede da sala, firewall, checklist) em [`docs/SETUP.md`](docs/SETUP.md).
 
 ## Stack
 
-PHP 8.2+ · SQLite (arquivo único) · Bulma (CSS vendorizado, ver `DESIGN.md`) · JavaScript puro. Sem build step, sem internet no ambiente de uso.
+PHP 8.2+ · SQLite (arquivo único) · Bulma (CSS vendorizado, ver `docs/DESIGN.md`) · JavaScript puro. Sem build step, sem internet no ambiente de uso.
 
 ## Estrutura
 
@@ -47,10 +47,13 @@ bin/             init-db.php (recria o banco + seed), teste.sh (bateria ponta a 
 db/              schema.sql; quizsala.sqlite e admin.senha são gerados, fora do versionamento
 src/             db.php (PDO singleton, WAL), util.php (JSON/escape/CSV), auth.php (senha do admin, CSRF)
 public/          raiz do servidor web — index.php, prova.php, tela.php, admin/, api/, assets/, exemplos/
+manual/          manual.html — mesmo conteúdo do MANUAL.md, autocontido pra abrir no navegador
+dbadmin/         phpLiteAdmin local (avançado) — ver "Mexer direto no banco" em docs/SETUP.md
+docs/            documentação de arquitetura, produto, design e planejamento
 iniciar.bat/ps1  duplo clique no Windows — detecta PHP/VC++, cria o banco, sobe o servidor, abre o navegador
 parar.bat/ps1/sh encerra o servidor com segurança
-php/             cópia portátil do PHP (php.exe + ext/pdo_sqlite + php.ini) — não versionada, ver SETUP.md
-utils/           instalador do Visual C++ Redistributable — não versionado, ver SETUP.md
+php/             cópia portátil do PHP (php.exe + ext/pdo_sqlite + php.ini) — não versionada, ver docs/SETUP.md
+utils/           instalador do Visual C++ Redistributable — não versionado, ver docs/SETUP.md
 ```
 
 ## Estado atual
@@ -59,4 +62,4 @@ utils/           instalador do Visual C++ Redistributable — não versionado, v
 - **Faltando:** QR Code offline pra entrada (hoje é só código digitado) e encerrar/limpar sessão pelo admin sem depender de SQL direto.
 - **Ainda não testado em hardware real:** legibilidade num projetor físico, e o admin num celular de verdade (só testado em viewport reduzido no navegador).
 
-Detalhes por tarefa em `tasks.md`. Bateria `bin/teste.sh`: 109 verificações passando (6 falhas conhecidas, pré-existentes, no fluxo de troca de senha — não afetam o uso normal).
+Detalhes por tarefa em `docs/tasks.md`. Bateria `bin/teste.sh`: 109 verificações passando (6 falhas conhecidas, pré-existentes, no fluxo de troca de senha — não afetam o uso normal).
