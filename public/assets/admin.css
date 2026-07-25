@@ -34,6 +34,13 @@ body {
     padding: 1.5rem 1rem;
 }
 
+.quizsala-alternar-tema-sessao {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 10;
+}
+
 .cartao-admin {
     width: 100%;
     max-width: 24rem;
