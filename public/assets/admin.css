@@ -497,6 +497,14 @@ main .cartao-admin .botao-acao + form {
     margin: 0 0 2rem;
 }
 
+.quizsala-topo-menu-admin {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+}
+.quizsala-topo-menu-admin .marca-admin { margin-bottom: 0; }
+
 /* Truque de checkbox: sem JS pro menu recolher no celular (mesma familia
    do <details> ja usado no editor de questao - recurso nativo antes de
    escrever codigo). */
