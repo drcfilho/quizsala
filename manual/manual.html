@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QuizSala — Manual de uso</title>
+<style>
+  :root { --vermelho: #d9342b; --texto: #14171c; --fundo: #ffffff; --borda: #d7dbe0; --fundo-alt: #f4f5f7; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--texto);
+    background: var(--fundo);
+    max-width: 44rem;
+    margin: 0 auto;
+    padding: 1.5rem 1.25rem 4rem;
+    line-height: 1.55;
+  }
+  h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+  h2 { font-size: 1.2rem; margin-top: 2.2rem; border-bottom: 2px solid var(--vermelho); padding-bottom: 0.3rem; }
+  h3 { font-size: 1.02rem; margin-top: 1.4rem; }
+  code { background: var(--fundo-alt); padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.92em; }
+  .subtitulo { color: #555; margin-top: 0; }
+  .telas {
+    border: 2px solid var(--vermelho);
+    padding: 1rem 1.25rem;
+    margin: 1.25rem 0 2rem;
+  }
+  .telas h2 { margin-top: 0; border: none; padding: 0; color: var(--vermelho); }
+  .telas ol { margin: 0.5rem 0 0.75rem; padding-left: 1.3rem; }
+  .telas li { margin-bottom: 0.5rem; }
+  .telas a {
+    display: inline-block;
+    font-weight: 600;
+    color: var(--vermelho);
+    text-decoration: none;
+    border-bottom: 1px solid var(--vermelho);
+  }
+  .telas small { display: block; color: #555; font-weight: 400; }
+  .aviso {
+    background: var(--fundo-alt);
+    border-left: 4px solid var(--vermelho);
+    padding: 0.7rem 1rem;
+    margin: 0.75rem 0;
+    font-size: 0.95rem;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 0.75rem 0; }
+  th, td { border: 1px solid var(--borda); padding: 0.45rem 0.6rem; text-align: left; font-size: 0.95rem; }
+  th { background: var(--fundo-alt); }
+  ul, ol { padding-left: 1.3rem; }
+  li { margin-bottom: 0.35rem; }
+  .passo { font-weight: 600; }
+</style>
+</head>
+<body>
+
+<h1>QuizSala — Manual de uso</h1>
+<p class="subtitulo">Como criar prova, publicar, abrir sessão e aplicar em aula.</p>
+
+<div class="telas">
+  <h2>Telas principais (diagnóstico rápido)</h2>
+  <p>Com o servidor rodando (<code>iniciar.bat</code>), clique pra conferir se cada tela abre. Os links abaixo assumem <code>localhost:8080</code> — se estiver testando de outro aparelho na rede da sala, troque pelo IP mostrado no console do servidor.</p>
+  <ol>
+    <li>
+      <a href="http://localhost:8080/admin/index.php" target="_blank" rel="noopener">Admin do professor — admin/index.php</a>
+      <small>Onde você cria prova, publica, abre sessão e controla a aula. Pede senha (veja em <code>db/admin.senha</code> ou <code>psswd.env</code>).</small>
+    </li>
+    <li>
+      <a href="http://localhost:8080/tela.php" target="_blank" rel="noopener">Projetor — tela.php</a>
+      <small>Tela só de leitura pra projetar/TV. Sem código na URL, mostra sozinha a sessão que estiver ativa.</small>
+    </li>
+    <li>
+      <a href="http://localhost:8080/prova.php" target="_blank" rel="noopener">Prova do aluno — prova.php</a>
+      <small>Onde o aluno responde depois de entrar com o código da sala em <code>index.php</code>.</small>
+    </li>
+  </ol>
+  <p style="margin-bottom:0">Se alguma dessas não abrir: confira se o servidor está rodando (janela do <code>iniciar.bat</code> aberta) e se a porta/IP batem com o que o console mostrou.</p>
+</div>
+
+<h2>Antes de começar: três telas, três públicos</h2>
+<ul>
+  <li><strong>Você (professor)</strong> comanda tudo pelo <strong>admin</strong> — de dois jeitos: as páginas de <strong>conteúdo</strong> (provas, questões, sessões, senha) são pra desktop, com menu lateral; o <strong>controle ao vivo</strong> (<code>admin/sessao.php</code>) é isolado, pro seu celular — você anda pela sala com ele na mão.</li>
+  <li><strong>Os alunos</strong> entram pelo próprio celular: código da sala (ou QR), responder, ver o resultado.</li>
+  <li><strong>O projetor/TV</strong> só exibe — ninguém interage com ela.</li>
+</ul>
+
+<h2>1. Criar uma prova</h2>
+<ol>
+  <li>Acesse <code>admin/provas.php</code> (senha em <code>db/admin.senha</code>, ou a que você definiu em "Trocar senha").</li>
+  <li>Em "Nova prova", dê um título e clique em <strong>Criar prova</strong>.</li>
+  <li>Ela nasce como <strong>rascunho</strong> — não aparece pra ninguém ainda. Dá pra montar com calma antes de publicar.</li>
+</ol>
+<div class="aviso"><strong>Alternativa:</strong> se já tem as questões numa planilha, use <strong>Importar CSV</strong> (menu lateral). Formato: <code>enunciado, alternativa_a..e, correta (letra A-E), explicacao</code> — baixe o exemplo na própria tela. Uma linha inválida cancela a importação inteira.</div>
+
+<h2>2. Adicionar questões</h2>
+<p>Clique em <strong>Editar</strong> na prova. Um indicador de progresso no topo mostra onde você está: <code>1. Criar prova → 2. Questões → 3. Publicar → 4. Sessão</code>.</p>
+<p>Para cada questão:</p>
+<ol>
+  <li><strong>Nova questão</strong> → escreva o enunciado, preencha pelo menos 2 alternativas, marque a certa.</li>
+  <li><strong>+ Explicação</strong> (opcional) — por que a resposta certa está certa. Aparece no projetor na revelação.</li>
+  <li><strong>+ Cronômetro</strong> (opcional) — duração em segundos. Projetor e celular mostram contagem regressiva; ao zerar, só avisa visualmente — revelar continua manual. Deixe em branco pra não ter cronômetro.</li>
+  <li><strong>Salvar questão</strong>.</li>
+</ol>
+<p>Na lista dá pra reordenar (setas ↑/↓) e excluir — excluir renumera as seguintes automaticamente.</p>
+<div class="aviso"><strong>Testar antes de publicar:</strong> o botão "Testar prova (abre uma sessão)" cria uma sessão de verdade, mesmo em rascunho — use pra conferir o fluxo completo antes de expor pra turma.</div>
+
+<h2>3. Publicar</h2>
+<p>Com pelo menos uma questão salva, o botão principal vira <strong>"Publicar prova"</strong>. Só provas publicadas aparecem pra abrir sessão.</p>
+<p>Mudou de ideia? <strong>Despublicar</strong> funciona a qualquer momento — exceto se já existe uma sessão dessa prova em andamento. Proposital: tirar o tapete no meio da aplicação seria pior que deixar terminar.</p>
+
+<h2>4. Abrir uma sessão</h2>
+<p>Com a prova publicada, clique em <strong>"Abrir sessão"</strong> (ou <strong>Nova sessão</strong> no menu lateral):</p>
+<ol>
+  <li>Escolha a prova.</li>
+  <li>Escolha a identificação do aluno: <strong>Anônimo</strong> (apelido automático) ou <strong>Com nome</strong>.</li>
+  <li><strong>Abrir sessão</strong> — você cai no controle ao vivo, já com o código da sala gerado (6 caracteres, sem <code>0 O 1 I 5 S</code>).</li>
+</ol>
+<div class="aviso">Guarde o link do controle: tem um token de professor na URL (<code>?pt=...</code>). Sem ele, ninguém mais comanda a sessão — nem sabendo o código público.</div>
+<div class="aviso"><strong>Antes de projetar, ative a sessão:</strong> o QuizSala nunca escolhe sozinho. Vá em <strong>Sessões</strong> → <strong>"Ativar no projetor"</strong> na sessão que você abriu. Só essa aparece pra quem abrir o projetor sem código na URL.</div>
+
+<h2>5. Durante a aula</h2>
+<p><strong>No projetor</strong> (<code>tela.php</code>):</p>
+<ul>
+  <li>Antes de clicar <strong>Iniciar prova</strong>: tela de espera com QR Code, código gigante e contador de quem já entrou.</li>
+  <li>Se encerrar e limpar a sessão sem ativar outra, volta pra "Aguardando o início da sessão".</li>
+  <li>Pra apontar pra uma sessão específica, ignorando qual está ativada: <code>tela.php?codigo=X</code>.</li>
+</ul>
+
+<p><strong>No seu celular</strong> (<code>admin/sessao.php</code>):</p>
+<table>
+  <tr><th>Botão</th><th>O que faz</th></tr>
+  <tr><td>Iniciar prova</td><td>Sai de "aguardando" e libera a primeira questão</td></tr>
+  <tr><td>Revelar</td><td>Mostra acertos/erros e distribuição — no projetor e pro aluno</td></tr>
+  <tr><td>Próxima questão</td><td>Avança; se era a última, encerra a prova sozinha</td></tr>
+  <tr><td>Parar prova</td><td>Força o fim a qualquer momento — botão de escape, sempre disponível</td></tr>
+</table>
+<ul>
+  <li>O contador "X online · Y responderam" fica sempre visível. Em 100%, <strong>Revelar</strong> ganha destaque — é só um aviso, não dispara sozinho.</li>
+  <li>Toque duplo sem querer não pula questão (o servidor descarta comando com versão desatualizada).</li>
+  <li>Na última questão, <strong>Próxima questão</strong> encerra e o projetor mostra o resumo final: participantes, questões, acertos/erros/não-responderam por questão.</li>
+  <li>No celular do aluno, a tela de placar avança sozinha pro agradecimento depois de 5 minutos parada.</li>
+</ul>
+
+<h2>6. Depois da aula</h2>
+<p>O controle ao vivo não some sozinho ao encerrar — avisa "Prova encerrada." e manda pro admin no computador. Em <strong>Sessões → Sessões encerradas</strong> fica o botão <strong>Limpar</strong>: apaga participantes e respostas (a prova continua existindo). Pede confirmação dupla porque é definitivo.</p>
+<p>Pra desligar o notebook com segurança, rode <code>parar.bat</code> (Windows) antes — encerra o servidor sem deixar processo pendurado.</p>
+
+<h2>Outras coisas úteis</h2>
+<ul>
+  <li><strong>Duplicar prova</strong>: copia questões pra uma prova nova e independente.</li>
+  <li><strong>Trocar senha do admin</strong>: define sua própria senha em vez da gerada automaticamente. Mínimo 6 caracteres.</li>
+  <li><strong>Excluir prova</strong>: apaga prova, questões e sessões — pede confirmação dupla, sem volta.</li>
+  <li><strong>Várias sessões da mesma prova</strong>: dá pra abrir quantas quiser, pra turmas diferentes — respostas não se misturam.</li>
+</ul>
+
+<h2>Se algo der errado</h2>
+<ul>
+  <li><strong>Celular não entra na rede</strong>: confira o SSID/roteador — ver <code>SETUP.md</code>.</li>
+  <li><strong>Página abre mas não atualiza</strong>: o poll é a cada 2 segundos; espere um pouco.</li>
+  <li><strong>Prova não aparece pra abrir sessão</strong>: precisa estar <strong>publicada</strong>.</li>
+  <li><strong>Botão do controle não funciona</strong>: o link perdeu o <code>?pt=...</code> — volte em <code>admin/index.php</code> e entre pelo link de lá.</li>
+  <li><strong>Projetor preso em "Aguardando o início da sessão"</strong>: ninguém ativou uma sessão. Vá em <strong>Sessões</strong> → <strong>"Ativar no projetor"</strong>.</li>
+</ul>
+
+</body>
+</html>
