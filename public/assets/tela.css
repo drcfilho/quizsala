@@ -13,6 +13,19 @@
     --acerto:  #1e7a34;
 }
 
+/* Tema escuro (alternado por tema.js) - continua contraste maximo (agora
+   branco sobre preto em vez de preto sobre branco), nunca uma paleta
+   colorida nova. Cores refeitas mantendo o mesmo contraste. */
+:root[data-theme="dark"] {
+    --papel:   #14171c;
+    --cartao:  #1e222a;
+    --tinta:   #f2f1ee;
+    --grafite: #9aa0ab;
+    --pauta:   #333941;
+    --marca:   #e8493f;
+    --acerto:  #2e9c4a;
+}
+
 .quizsala-alternar-tema-projetor {
     position: fixed;
     top: 1.5vh;

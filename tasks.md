@@ -734,6 +734,20 @@ Não é código. É a tarefa que decide se a v1 acabou.
 
 **Pronto quando** as 6 telas carregam o Bulma vendorizado, têm o alternador de tema, nenhuma identidade visual específica do produto (bolha, placar, QR, cronômetro, comprovante) foi alterada, e `bin/teste.sh` continua passando igual a antes. **Confirmado.**
 
+**Correção pós-merge:** o "confirmado" acima estava incompleto. Achado pelo usuário testando de verdade: o botão de tema não fazia nada em nenhuma página do admin de mesa (`provas.php`, `questoes.php` etc.) — faltava a tag `<script src="tema.js">` em `src/admin_layout.php` (só a criei nas outras 5 telas, esqueci essa no Plano 5). Corrigido. Investigação também revelou uma lacuna maior, ainda **não corrigida**: o alternador só troca as variáveis internas do Bulma (`--bulma-*`) — a maior parte da superfície visual de cada tela é CSS próprio (fundo do body, sidebar do admin, cartões, bolha, placar) com cores fixas em `:root`, que nunca respondem a `data-theme`. Registrado como pendência (ver T27 não, ver nota abaixo — pendência dentro da própria T26, não uma tarefa nova): falta um bloco `:root[data-theme="dark"] { ... }` em `estilo.css`/`tela.css`/`admin.css` invertendo `--papel`/`--cartao`/`--tinta`/`--grafite`/`--pauta`, mantendo `--marca`/`--acerto`.
+
+---
+
+## T27 · Empacotamento de release *(pendente)*
+
+**Pedido do usuário (2026-07-24), registrado antes de implementar.** Regra permanente a partir de agora: todo release do QuizSala deve levar só os arquivos necessários pra rodar (nada de `.md` solto, exceto `README.md` e `MANUAL.md`) — descompactar e rodar `iniciar.bat`/`iniciar.ps1`/`iniciar.sh` direto, sem passo manual extra.
+
+**Ainda não implementado.** Falta:
+1. Um script/processo de empacotamento (provavelmente `bin/gerar-release.ps1` ou similar) que copie pra uma pasta/zip limpa: `public/`, `src/`, `db/schema.sql` (não `quizsala.sqlite`, gerado na hora), `bin/init-db.php`, `iniciar.bat`, `iniciar.ps1`, `parar.bat`, `parar.ps1`, `README.md`, `MANUAL.md` — de fora: `tasks.md`, `plan.md`, `arquitetura.md`, `DESIGN.md`, `PRODUCT.md`, `SETUP.md`, `docs/`, `telas/`, `bulma_README.md`, testes (`bin/teste.sh`, `bin/verificar-migracoes.php`).
+2. **Depois** (fase seguinte, explicitamente adiada pelo usuário): mudar `iniciar.ps1` pra incluir o PHP portátil dentro do release, removendo a dependência de o professor já ter PHP instalado.
+
+**Pronto quando** existir um comando/script que gera o pacote de release só com o necessário, e o resultado descompactado roda com um duplo-clique no `.bat`/`.ps1`, sem precisar copiar nem apagar nada manualmente.
+
 ---
 
 ## Resumo

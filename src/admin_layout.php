@@ -53,6 +53,7 @@ function fecharLayoutAdmin(): void
     ?>
 </main>
 </div>
+<script src="../assets/tema.js?v=<?= filemtime(__DIR__ . '/../public/assets/tema.js') ?>" defer></script>
 </body>
 </html>
     <?php

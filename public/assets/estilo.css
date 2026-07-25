@@ -8,6 +8,20 @@
     --marca:   #d9342b;
 }
 
+/* Tema escuro (alternado por tema.js, atributo data-theme que o Bulma ja
+   interpreta pros proprios componentes) - sem isso as variaveis proprias
+   ficavam fixas no claro, e so os elementos genuinamente Bulma (.button,
+   .box, .input) mudavam de cor. Cores refeitas pra manter o mesmo
+   contraste - nunca so um filtro/invert. */
+:root[data-theme="dark"] {
+    --papel:   #14171c;
+    --cartao:  #1e222a;
+    --tinta:   #f2f1ee;
+    --grafite: #9aa0ab;
+    --pauta:   #333941;
+    --marca:   #e8493f;
+}
+
 /* Bulma usa ~2.5em (~40px) de altura padrao em input/button - abaixo dos
    64px que o QuizSala exige em todo alvo tocavel pelo aluno (DESIGN.md).
    :not(.is-small) deixa de fora botoes pequenos de proposito, como o
