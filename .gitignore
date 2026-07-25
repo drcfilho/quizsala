@@ -5,3 +5,4 @@ db/admin.senha
 psswd.env
 /php/
 /utils/
+dbadmin/phpliteadmin.config.php
