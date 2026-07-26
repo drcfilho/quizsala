@@ -8,9 +8,14 @@
 <link rel="stylesheet" href="assets/tela.css?v=<?= filemtime(__DIR__ . '/assets/tela.css') ?>">
 </head>
 <body>
+<div class="quizsala-botoes-topo-projetor">
+<button type="button" class="button is-small is-ghost" data-alternar-fullscreen aria-label="Alternar tela cheia">
+<span class="icon">⛶</span>
+</button>
 <button type="button" class="button is-small is-ghost quizsala-alternar-tema-projetor" data-alternar-tema aria-label="Alternar tema claro/escuro">
 <span class="icon">🌙</span>
 </button>
+</div>
 <main class="painel" id="painel" data-fase="carregando">
 <div id="conteudo-painel"></div>
 </main>

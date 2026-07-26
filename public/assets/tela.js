@@ -589,3 +589,20 @@ function poll() {
 
 poll();
 setInterval(poll, INTERVALO_POLL_MS);
+
+document.addEventListener('DOMContentLoaded', function () {
+    var btnFs = document.querySelector('[data-alternar-fullscreen]');
+    if (btnFs) {
+        btnFs.addEventListener('click', function () {
+            if (!document.fullscreenElement) {
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        });
+    }
+});

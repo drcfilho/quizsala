@@ -54,6 +54,7 @@ $mensagemErro = match ($erro) {
   inputmode="text"
   enterkeyhint="next"
   maxlength="6"
+  oninput="this.value = this.value.toUpperCase()"
 >
 </div>
 </div>

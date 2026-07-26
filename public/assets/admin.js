@@ -344,6 +344,55 @@ function renderizar(dados) {
     cabecalho.textContent = 'Sala ' + codigo;
     cartao.appendChild(cabecalho);
 
+    var acoesAuxiliares = document.createElement('div');
+    acoesAuxiliares.className = 'botoes-auxiliares-admin mb-3';
+
+    var btnQr = document.createElement('button');
+    btnQr.type = 'button';
+    btnQr.className = 'button is-small is-light mr-2';
+    btnQr.textContent = '📱 QR Code';
+    btnQr.addEventListener('click', function () {
+        var caixa = document.getElementById('caixa-qr-admin');
+        if (caixa) {
+            caixa.hidden = !caixa.hidden;
+        }
+    });
+    acoesAuxiliares.appendChild(btnQr);
+
+    var btnCopiar = document.createElement('button');
+    btnCopiar.type = 'button';
+    btnCopiar.className = 'button is-small is-light';
+    btnCopiar.textContent = '📋 Copiar link';
+    btnCopiar.addEventListener('click', function () {
+        var linkAluno = location.protocol + '//' + location.host + '/index.php?s=' + encodeURIComponent(codigo);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(linkAluno).then(function () {
+                mostrarAviso('Link da sala copiado!');
+            }).catch(function () {
+                mostrarAviso('Erro ao copiar.');
+            });
+        } else {
+            mostrarAviso('Link: ' + linkAluno);
+        }
+    });
+    acoesAuxiliares.appendChild(btnCopiar);
+    cartao.appendChild(acoesAuxiliares);
+
+    var caixaQr = document.createElement('div');
+    caixaQr.id = 'caixa-qr-admin';
+    caixaQr.className = 'caixa-qr-admin has-text-centered my-3';
+    caixaQr.hidden = true;
+    var imgQr = document.createElement('img');
+    imgQr.src = '../api/qr.php?codigo=' + encodeURIComponent(codigo);
+    imgQr.style.maxWidth = '180px';
+    imgQr.alt = 'QR Code da sala';
+    caixaQr.appendChild(imgQr);
+    var pCod = document.createElement('p');
+    pCod.className = 'title is-5 is-family-monospace mt-1';
+    pCod.textContent = codigo;
+    caixaQr.appendChild(pCod);
+    cartao.appendChild(caixaQr);
+
     if (dados.fase === 'aguardando') {
         mensagem(cartao, 'Sala aberta, aguardando você iniciar.');
         cartao.appendChild(criarBotoes(['iniciar']));

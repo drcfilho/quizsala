@@ -271,6 +271,9 @@ function prepararComprovante(dados) {
 // resposta da rede. Se o servidor recusar (ja tinha resposta diferente,
 // questao fechou), desfaz e explica.
 function responder(alternativaId, elemento) {
+    if (navigator.vibrate) {
+        try { navigator.vibrate(35); } catch (e) {}
+    }
     var lista = elemento.parentElement;
 
     Array.prototype.forEach.call(lista.children, function (el) {
@@ -329,9 +332,14 @@ function mostrarAviso(texto) {
     }, 2500);
 }
 
+var falhasConsecutivasAluno = 0;
+
 function poll() {
     fetch('api/estado.php?token=' + encodeURIComponent(token) + '&v=' + versaoConhecida)
         .then(function (resp) {
+            falhasConsecutivasAluno = 0;
+            var avisoConexao = document.getElementById('aviso-sem-conexao-aluno');
+            if (avisoConexao) avisoConexao.remove();
             if (resp.status === 404) {
                 localStorage.removeItem(TOKEN_CHAVE);
                 location.href = 'index.php';
@@ -347,7 +355,14 @@ function poll() {
             }
         })
         .catch(function () {
-            // rede instavel: so tenta de novo no proximo poll, sem travar a tela
+            falhasConsecutivasAluno++;
+            if (falhasConsecutivasAluno >= 3 && !document.getElementById('aviso-sem-conexao-aluno')) {
+                var aviso = document.createElement('div');
+                aviso.id = 'aviso-sem-conexao-aluno';
+                aviso.className = 'aviso-flutuante';
+                aviso.textContent = 'Sem conexão. Tentando reconectar...';
+                document.body.appendChild(aviso);
+            }
         });
 }
 

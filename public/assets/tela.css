@@ -26,11 +26,13 @@
     --acerto:  #2e9c4a;
 }
 
-.quizsala-alternar-tema-projetor {
+.quizsala-botoes-topo-projetor {
     position: fixed;
     top: 1.5vh;
     right: 1.5vw;
     z-index: 10;
+    display: flex;
+    gap: 0.5rem;
 }
 
 * { box-sizing: border-box; }
