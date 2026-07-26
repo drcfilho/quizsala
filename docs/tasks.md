@@ -748,6 +748,8 @@ Não é código. É a tarefa que decide se a v1 acabou.
 
 **Pronto quando** existir um comando/script que gera o pacote de release só com o necessário, e o resultado descompactado roda com um duplo-clique no `.bat`/`.ps1`, sem precisar copiar nem apagar nada manualmente.
 
+**Nota (2026-07-25):** `dbadmin/` (T28) pode entrar no zip do release — decisão do usuário, registrada antes de implementar. Só não entrou nos releases v1.3.0/v1.4.0; fica pro próximo. Continua sem link em nenhuma tela (uso via `dbadmin\abrir.bat`, só local).
+
 ---
 
 ## T28 · Hash de senha do phpLiteAdmin (`dbadmin/`) *(sugestão, não implementada)*
