@@ -817,3 +817,71 @@ Ficou pendente:
 - Log de acesso à página da prova com hash de identificação do aparelho (celular/PC/tablet) — pedido do usuário, registrado no backlog (`plan.md` §8) com a ressalva de design que precisa resolver antes de implementar: o hash tem que identificar o aparelho sem identificar a pessoa, pra não contradizer a decisão de anonimato já tomada pro projeto (`plan.md` §10). Ainda não implementado.
 
 O ponto de decisão real já passou: **T03** (revelação com acertos/erros) está no ar desde cedo — é o teste com a turma real (**T20**) que falta pra confirmar se a ideia funciona fora do ambiente de desenvolvimento.
+
+---
+
+# Bloco G — Melhorias Futuras (`docs/melhorias.md`)
+
+Evoluções mapeadas para próximas versões do produto, mantendo os 4 pilares e as restrições de produto (sem gamificação, sem internet).
+
+---
+
+## T31 · Exportação de Relatório de Notas (CSV/PDF)
+
+**Entrega:** Botão na aba de sessão encerrada em `admin/index.php` para baixar um arquivo CSV/PDF com os resultados da turma.
+
+**Arquivos:** `public/admin/exportar-sessao.php` *(novo)*, `src/util.php`, `public/admin/index.php`
+
+**Passos:**
+1. Criar `exportar-sessao.php` exigindo `exigirAdmin()`.
+2. Buscar lista de participantes e suas pontuações via `resultadoParticipante()`.
+3. Gerar saída em CSV no formato `Nome;Acertos;Total;Percentual;Data`.
+
+---
+
+## T32 · Relatório Pedagógico de Diagnóstico da Turma
+
+**Entrega:** Exibição destacada no resumo da sessão encerrada de questões com taxa de erro > 50%.
+
+**Arquivos:** `src/util.php`, `public/admin/index.php`, `public/api/painel.php`
+
+---
+
+## T33 · Embaralhamento de Alternativas por Aluno (Anti-Cola Sutil)
+
+**Entrega:** Ordem aleatória das alternativas apresentadas ao aluno, mantendo o gabarito original no servidor.
+
+**Arquivos:** `public/api/estado.php`, `public/api/responder.php`
+
+---
+
+## T34 · Sistema de Tags e Categorização de Questões
+
+**Entrega:** Campo de tags no editor de questões (`questao.php`) e filtro por tag ao criar/selecionar provas.
+
+**Arquivos:** `db/schema.sql`, `public/admin/questao.php`, `src/util.php`
+
+---
+
+## T35 · Suporte PWA e Cache de Assets Offline
+
+**Entrega:** `manifest.json` e Service Worker básico para permitir instalação no celular do aluno e cache de arquivos estáticos.
+
+**Arquivos:** `public/manifest.json` *(novo)*, `public/sw.js` *(novo)*, `public/index.php`
+
+---
+
+## T36 · Indicador de Saúde da Rede no Controle do Professor
+
+**Entrega:** Métrica de latência e sinal do poll exibidos no topo do controle mobile (`admin.js`).
+
+**Arquivos:** `public/assets/admin.js`, `public/api/painel.php`
+
+---
+
+## T37 · Gerador de Prova Impressa em PDF
+
+**Entrega:** Exportação da prova para PDF no formato físico impresso com cartão-resposta óptico.
+
+**Arquivos:** `public/admin/imprimir-prova.php` *(novo)*, `public/assets/impressao-prova.css` *(novo)*
+
